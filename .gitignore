@@ -1,0 +1,14 @@
+*.exe
+*.o
+*.lst
+*.log
+*.a
+*.lib
+*.dll
+*.so
+
+# Certain source files I don't want committed
+leetcode.c
+
+# VSCode
+.vscode/
