@@ -48,6 +48,8 @@ UNITY_SRC_FILES = $(wildcard $(PATH_UNITY)*.c)
 UNITY_HDR_FILES = $(wildcard $(PATH_UNITY)*.h)
 UNITY_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(UNITY_SRC_FILES)))
 
+COLLECTION_LIB_NAME = ccol
+
 BUILD_TYPE ?= RELEASE
 DS ?= ALL
 
@@ -55,7 +57,7 @@ ifeq ($(DS), ALL)
   SRC_FILES = $(wildcard $(PATH_SRC)*.c)
   HDR_FILES = $(wildcard $(PATH_INC)*.h)
   SRC_TEST_FILES = $(wildcard $(PATH_TEST_FILES)*.c)
-  LIB_FILE = $(PATH_BUILD)liblwcol.$(STATIC_LIB_EXTENSION)
+  LIB_FILE = $(PATH_BUILD)lib$(COLLECTION_LIB_NAME).$(STATIC_LIB_EXTENSION)
   DS_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
 else
   SRC_FILES = $(PATH_SRC)$(DS).c
