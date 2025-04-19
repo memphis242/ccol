@@ -56,6 +56,7 @@ struct Vector_S
 
 /* Private Function Prototypes */
 static bool LocalVectorExpand( struct Vector_S * self );
+static void ShiftOneOver( struct Vector_S * self, uint32_t idx );
 
 /* Public API Implementations */
 
@@ -160,6 +161,48 @@ bool VectorPush( struct Vector_S * self, const void * restrict element )
    return ret_val;
 }
 
+bool VectorInsertAt( struct Vector_S * self,
+                     uint32_t idx,
+                     const void * restrict element )
+{
+   // Assertion on an internal paradox
+   assert( self->len <= self->capacity );
+
+   // Early return op
+   // Invalid inputs
+   if ( (NULL == self) || (NULL == element) || (idx > self->len) )
+   {
+      // TODO: Throw exception
+      return false;
+   }
+
+   bool ret_val = true;
+
+   // Ensure there's space
+   bool successfully_expanded = true;
+   if ( self->len == self->capacity )
+   {
+      successfully_expanded = LocalVectorExpand(self);
+   }
+
+   if ( successfully_expanded )
+   {
+      if ( self->len > 0 )
+      {
+         ShiftOneOver(self, idx);
+      }
+      void * insertion_spot = (unsigned char *)self->arr + (self->element_size * self->len);
+      memcpy( insertion_spot, element, self->element_size );
+      self->len++;
+   }
+   else
+   {
+      ret_val = false;
+   }
+
+   return ret_val;
+}
+
 /* Private Function Implementations */
 
 static bool LocalVectorExpand( struct Vector_S * self )
@@ -220,4 +263,23 @@ static bool LocalVectorExpand( struct Vector_S * self )
    }
 
    return ret_val;
+}
+
+// Shift to the right all elements from the idx onwards to length of the vector
+static void ShiftOneOver( struct Vector_S * self, uint32_t idx )
+{
+   assert( (self != NULL) &&
+           (self->arr != NULL) &&
+            // Don't try to shift data past the data range of the array
+           (idx < self->len) &&
+           (idx < MAX_VECTOR_LENGTH) &&
+           (self->element_size > 0) );
+
+   // Start at the end and shift over to the right by one until we hit idx
+   for ( uint32_t i = self->len; i > idx; i-- )
+   {
+      uint8_t * old_spot = (uint8_t *)self->arr + ((i - 1) * self->element_size);
+      uint8_t * new_spot = (uint8_t *)self->arr + (i * self->element_size);
+      memcpy( new_spot, old_spot, self->element_size );
+   }
 }

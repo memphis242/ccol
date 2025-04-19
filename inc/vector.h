@@ -74,7 +74,9 @@ bool VectorPush( struct Vector_S * self, const void * restrict element );
  * @return true if the element was successfully inserted, false otherwise
  *         (e.g., memory allocation fails).
  */
-bool VectorInsertAt( struct Vector_S * self, uint32_t idx, const void * restrict element );
+bool VectorInsertAt( struct Vector_S * self,
+                     uint32_t idx,
+                     const void * restrict element );
 
 /**
  * @brief Retrieves the element at the specified index in the vector.
