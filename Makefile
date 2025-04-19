@@ -141,7 +141,7 @@ LDFLAGS += $(DIAGNOSTIC_FLAGS)
 collection: $(BUILD_DIRS) $(LIB_FILE) $(LIB_LIST_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo "Library built!"
+	@echo -e "\033[32mCollection Library \033[35m$(LIB_FILE) \033[32;1mbuilt\033[0m!"
 	@echo "----------------------------------------"
 
 .PHONY: lib
@@ -149,13 +149,13 @@ collection: $(BUILD_DIRS) $(LIB_FILE) $(LIB_LIST_FILE)
 lib: $(BUILD_DIRS) $(LIB_FILE) $(LIB_LIST_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo "Library built!"
+	@echo -e "Library \033[35m$(LIB_FILE) \033[32;1mbuilt\033[0m!"
 	@echo "----------------------------------------"
 
 $(LIB_FILE): $(DS_OBJ_FILES) $(BUILD_DIRS) 
 	@echo
 	@echo "----------------------------------------"
-	@echo "Constructing the static library: $@..."
+	@echo -e "\033[36mConstructing\033[0m the static library: $@..."
 	@echo
 	ar rcs $@ $<
 
@@ -164,33 +164,35 @@ $(LIB_FILE): $(DS_OBJ_FILES) $(BUILD_DIRS)
 test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE)	# Don't actually need the .lst file but want to force the disassembly generation
 	@echo
 	@echo "----------------------------------------"
-	@echo "Running all test executables..."
-	@echo
+	@echo -e "\033[36;1mRunning all test executables\033[0m..."
+	@echo "----------------------------------------"
 	for exec in $(TEST_EXECUTABLES); do \
-			echo "Running $$exec..."; \
+			echo ""; \
+			echo -e "\033[36;2mRunning $$exec...\033[0m\n"; \
+			echo "----------------------------------------"; \
 			chmod +x $$exec && ./$$exec || exit 1; \
+			echo "----------------------------------------"; \
 	done
 	@echo
-	@echo "----------------------------------------"
-	@echo "All tests completed!"
+	@echo -e "\033[36mAll tests completed!\033[0m"
 	@echo
 
 $(PATH_BUILD)%.$(TARGET_EXTENSION): $(PATH_BUILD)%.o $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo "Linking $< and the DSA static lib $(LIB_FILE) into an executable..."
+	@echo -e "\033[36mLinking\033[0m $< and the DSA static lib $(LIB_FILE) into an executable..."
 	@echo
 	$(CC) $(LDFLAGS) $< -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
 
 $(PATH_BUILD)%.o: $(PATH_TEST_FILES)%.c
 	@echo
 	@echo "----------------------------------------"
-	@echo "Compiling the test file: $<..."
+	@echo -e "\033[36mCompiling\033[0m the test file: $<..."
 	@echo
 	$(CC) -c $(CFLAGS) $< -o $@
 	@echo
 	@echo "----------------------------------------"
-	@echo "Running static analysis on $<..."
+	@echo -e "\033[36mRunning static analysis\033[0m on $<..."
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
@@ -200,19 +202,19 @@ $(PATH_BUILD)%.o: $(PATH_TEST_FILES)%.c
 $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
 	@echo
 	@echo "----------------------------------------"
-	@echo "Compiling the DSA source file: $<..."
+	@echo -e "\033[36mCompiling\033[0m the DSA source file: $<..."
 	@echo
 	$(CC) -c $(CFLAGS) $< -o $@
 	@echo
 	@echo "----------------------------------------"
-	@echo "Running static analysis on $<..."
+	@echo -e "\033[36mRunning static analysis\033[0m on $<..."
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
 $(LIB_LIST_FILE): $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo "Disassembly of $<..."
+	@echo -e "\033[36mDisassembly\033[0m of $<..."
 	@echo
 	objdump -D $< > $@
 
@@ -220,7 +222,7 @@ $(LIB_LIST_FILE): $(LIB_FILE)
 $(PATH_BUILD)%.lst: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 	@echo
 	@echo "----------------------------------------"
-	@echo "Disassembly of $<..."
+	@echo -e "\033[36mDisassembly\033[0m of $<..."
 	@echo
 	objdump -D $< > $@
 
@@ -240,12 +242,14 @@ $(PATH_PROFILE):
 # Clean rule to remove generated files
 .PHONY: clean
 clean:
+	@echo
 	$(CLEANUP) $(PATH_OBJECT_FILES)*.o
 	$(CLEANUP) $(PATH_BUILD)*.$(TARGET_EXTENSION)
 	$(CLEANUP) $(PATH_RESULTS)*.txt
 	$(CLEANUP) $(PATH_BUILD)*.lst
 	$(CLEANUP) $(PATH_BUILD)*.log
 	$(CLEANUP) $(PATH_BUILD)*.$(STATIC_LIB_EXTENSION)
+	@echo
 
 .PRECIOUS: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 .PRECIOUS: $(PATH_BUILD)Test%.o
