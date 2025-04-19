@@ -89,66 +89,66 @@ void HeapFree( struct Heap_S * self )
 // }
 
 // Methods
-bool InsertIntoHeap( struct Heap_S * self, const void * element )
-{
-   // Early return opportunity
-   if ( (NULL == element) || (NULL == self) )
-   {
-      // TODO: Throw exception
-      return false;
-   }
-
-   else if ( (0 == self->len) || (NULL == self->heap) )
-   {
-      // Heap has no elements yet, so ez-pz insertion!
-      (void)memcpy( self->heap, element, self->element_size );
-      self->len = 1;
-
-      return true;
-   }
-
-   // Insert into the bottom layer's left-most open spot.
-   // For an array implementations, this is simply arr[self->len]!
-   uint8_t * ptr_root = (uint8_t *)self->heap;
-   uint8_t * ptr_new_mem = ptr_root + (self->len * self->element_size);
-   (void)memcpy( ptr_new_mem, element, self->element_size );
-   self->len++;
-
-   // Call the private function to bubble up the 
-
-   // Check against parent and perform necessary bubble-up swaps until the necessary heap property is satisfied
-   size_t present_idx = self->len;
-   size_t parent_idx = (present_idx - 1) / 2;
-   size_t idx_diff = present_idx - parent_idx;
-   uint8_t * ptr_to_inserted_element = ptr_new_mem;
-   uint8_t * ptr_to_parent = ptr_to_inserted_element - (idx_diff * SizeOfMember);
-   unsigned long long int counter = 0;
-   void * temp = malloc(SizeOfMember);
-   // Until newly inserted element's position respects the heap property...
-   while ( (present_idx != 0) && (CompareElements( element, ptr_to_parent ) > 0) && (counter < MAX_HEAP_HEIGHT) )
-   {
-      // Swap
-      if ( NULL == temp )
-      {
-         // Failed to dynamically allocate memory!
-         return false;
-      }
-
-      // c = a
-      (void)memcpy(temp, element, SizeOfMember);
-      // a = b
-      (void)memcpy(element, ptr_to_inserted_element, SizeOfMember);
-      // b = c
-      (void)memcpy(ptr_to_inserted_element, temp, SizeOfMember);
-
-      counter++;
-      present_idx = parent_idx;
-      parent_idx = (present_idx - 1) / 2;
-      idx_diff = present_idx - parent_idx;
-      ptr_to_inserted_element = ptr_to_parent;
-      ptr_to_parent = ptr_to_inserted_element - (idx_diff * SizeOfMember);
-   }
-   free(temp);
-
-   return true;
-}
+//bool InsertIntoHeap( struct Heap_S * self, const void * element )
+//{
+//   // Early return opportunity
+//   if ( (NULL == element) || (NULL == self) )
+//   {
+//      // TODO: Throw exception
+//      return false;
+//   }
+//
+//   else if ( (0 == self->len) || (NULL == self->heap) )
+//   {
+//      // Heap has no elements yet, so ez-pz insertion!
+//      (void)memcpy( self->heap, element, self->element_size );
+//      self->len = 1;
+//
+//      return true;
+//   }
+//
+//   // Insert into the bottom layer's left-most open spot.
+//   // For an array implementations, this is simply arr[self->len]!
+//   uint8_t * ptr_root = (uint8_t *)self->heap;
+//   uint8_t * ptr_new_mem = ptr_root + (self->len * self->element_size);
+//   (void)memcpy( ptr_new_mem, element, self->element_size );
+//   self->len++;
+//
+//   // Call the private function to bubble up the 
+//
+//   // Check against parent and perform necessary bubble-up swaps until the necessary heap property is satisfied
+//   size_t present_idx = self->len;
+//   size_t parent_idx = (present_idx - 1) / 2;
+//   size_t idx_diff = present_idx - parent_idx;
+//   uint8_t * ptr_to_inserted_element = ptr_new_mem;
+//   uint8_t * ptr_to_parent = ptr_to_inserted_element - (idx_diff * SizeOfMember);
+//   unsigned long long int counter = 0;
+//   void * temp = malloc(SizeOfMember);
+//   // Until newly inserted element's position respects the heap property...
+//   while ( (present_idx != 0) && (CompareElements( element, ptr_to_parent ) > 0) && (counter < MAX_HEAP_HEIGHT) )
+//   {
+//      // Swap
+//      if ( NULL == temp )
+//      {
+//         // Failed to dynamically allocate memory!
+//         return false;
+//      }
+//
+//      // c = a
+//      (void)memcpy(temp, element, SizeOfMember);
+//      // a = b
+//      (void)memcpy(element, ptr_to_inserted_element, SizeOfMember);
+//      // b = c
+//      (void)memcpy(ptr_to_inserted_element, temp, SizeOfMember);
+//
+//      counter++;
+//      present_idx = parent_idx;
+//      parent_idx = (present_idx - 1) / 2;
+//      idx_diff = present_idx - parent_idx;
+//      ptr_to_inserted_element = ptr_to_parent;
+//      ptr_to_parent = ptr_to_inserted_element - (idx_diff * SizeOfMember);
+//   }
+//   free(temp);
+//
+//   return true;
+//}
