@@ -83,14 +83,6 @@ endif
 # List of all object files we're expecting for the data structures
 OBJ_FILES = $(patsubst %.c,$(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
 
-$(info LIB_FILE is $(LIB_FILE))
-$(info DS_OBJ_FILES is $(DS_OBJ_FILES))
-$(info SRC_FILES is $(SRC_FILES))
-$(info HDR_FILES is $(HDR_FILES))
-$(info SRC_TEST_FILES is $(SRC_TEST_FILES))
-$(info PATH_BUILD is $(PATH_BUILD))
-$(info PATH_OBJECT_FILES is $(PATH_OBJECT_FILES))
-
 # Compiler setup
 CROSS	= 
 CC = $(CROSS)gcc
@@ -185,7 +177,7 @@ $(PATH_RESULTS)%.txt: $(PATH_BUILD)%.$(TARGET_EXTENSION) $(COLORIZE_UNITY_SCRIPT
 $(PATH_BUILD)%.$(TARGET_EXTENSION): $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mLinking\033[0m $(TEST_OJB_FILES), $(UNITY_OBJ_FILES), and the collection static lib $(LIB_FILE) into an executable..."
+	@echo -e "\033[36mLinking\033[0m $(TEST_OBJ_FILES), $(UNITY_OBJ_FILES), and the collection static lib $(LIB_FILE) into an executable..."
 	@echo
 	$(CC) $(LDFLAGS) $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
 
