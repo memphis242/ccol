@@ -131,9 +131,9 @@ LDFLAGS += $(DIAGNOSTIC_FLAGS)
 ############################# The Rules & Recipes ##############################
 
 ######################### Lib Rules ########################
-.PHONY: release
+.PHONY: lib
 # Build the static library files
-release: $(BUILD_DIRS) $(LIB_FILE)
+lib: $(BUILD_DIRS) $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
 	@echo "Library built!"
