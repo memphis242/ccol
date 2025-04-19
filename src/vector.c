@@ -17,12 +17,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#include <limits.h>
 #include "vector.h"
 
 // TODO: Realloc usage is a security vulnerability because data left behind from
 //       realloc moving the data rather than growing/shrinking could be sensitive
-//       and somehow exploited elsewhere. In this situation, I think you'd want
-//       provide a custom realloc that handles this situation.
+//       and somehow exploited elsewhere. Given that, add support for custom
+//       allocators and provide your own, more secure realloc.
 
 /* Local Macro Definitions */
 // Constants
@@ -32,7 +33,7 @@
 #define IS_EMPTY(self)     ( 0 == (self)->len )
 
 // Enforce a maximum length to help prevent extreme memory requests
-#define TENTATIVE_MAX_VEC_LEN 100000 // 100,000
+#define TENTATIVE_MAX_VEC_LEN UINT32_MAX
 #if ( SIZE_MAX < PTRDIFF_MAX )
    #define SYSTEM_LIMIT SIZE_MAX
 #else
@@ -71,7 +72,7 @@ struct Vector_S * VectorInit( size_t element_size,
         (max_capacity == 0) ||
         (initial_capacity > max_capacity) )
    {
-      // TODO: Vector constructor exception → assert()?
+      // TODO: Vector constructor exception
       return NULL;
    }
 
@@ -123,6 +124,42 @@ void VectorFree( struct Vector_S * self )
       free(self->arr);
    }
    free(self);
+}
+
+uint32_t VectorLength( struct Vector_S * self )
+{
+   if ( NULL == self )
+   {
+      return 0;
+   }
+   return self->len;
+}
+
+uint32_t VectorCapacity( struct Vector_S * self )
+{
+   if ( NULL == self )
+   {
+      return 0;
+   }
+   return self->capacity;
+}
+
+uint32_t VectorMaxCapacity( struct Vector_S * self )
+{
+   if ( NULL == self )
+   {
+      return 0;
+   }
+   return self->max_capacity;
+}
+
+size_t VectorElementSize( struct Vector_S * self )
+{
+   if ( NULL == self )
+   {
+      return 0;
+   }
+   return self->element_size;
 }
 
 bool VectorPush( struct Vector_S * self, const void * restrict element )
