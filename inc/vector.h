@@ -33,7 +33,9 @@ struct Vector_S;
  * @param max_capacity The maximum number of elements the vector can hold ever.
  *                     Note that if max_capacity is larger than an internal limit
  *                     set within the implementation, that internal limit will be
- *                     used instead. TODO: Exception for max capacity too large.
+ *                     used instead.
+ * 
+ * @todo Exceptions
  *
  * @return A pointer to the initialized vector, or NULL if allocation fails.
  */
@@ -49,6 +51,50 @@ struct Vector_S * VectorInit( size_t element_size,
  * @param self Vector handle
  */
 void VectorFree( struct Vector_S * self );
+
+/**
+ * @brief Retrieves the number of elements in the vector.
+ *
+ * Returns the current number of elements stored in the vector.
+ *
+ * @param self Vector handle
+ * 
+ * @return The number of elements in the vector.
+ */
+uint32_t VectorLength( struct Vector_S * self );
+
+/**
+ * @brief Retrieves the current capacity of the vector.
+ *
+ * Returns the total number of elements the vector can hold without resizing.
+ *
+ * @param self Vector handle
+ * 
+ * @return The current capacity of the vector.
+ */
+uint32_t VectorCapacity( struct Vector_S * self );
+
+/**
+ * @brief Retrieves the maximum capacity of the vector.
+ *
+ * Returns the maximum number of elements the vector can ever hold.
+ *
+ * @param self Vector handle
+ * 
+ * @return The maximum capacity of the vector.
+ */
+uint32_t VectorMaxCapacity( struct Vector_S * self );
+
+/**
+ * @brief Retrieves the size of each element in the vector.
+ *
+ * Returns the size (in bytes) of each element stored in the vector.
+ *
+ * @param self Vector handle
+ * 
+ * @return The size of each element in the vector.
+ */
+size_t VectorElementSize( struct Vector_S * self );
 
 /**
  * @brief Inserts an element at the _end_ of the vector.
@@ -121,17 +167,6 @@ void * VectorSetElementAt( struct Vector_S * self,
 void * VectorRemoveElementAt( struct Vector_S * self, uint32_t idx );
 
 /**
- * @brief Retrieves the number of elements in the vector.
- *
- * Returns the current number of elements stored in the vector.
- *
- * @param self Vector handle
- * 
- * @return The number of elements in the vector.
- */
-uint32_t VectorLength( struct Vector_S * self );
-
-/**
  * @brief Retrieves the last element in the vector.
  *
  * Provides access to the last element in the vector without removing it.
@@ -160,3 +195,5 @@ void VectorClear( struct Vector_S * self );
  * @return true is empty, false otherwise.
  */
 bool VectorIsEmpty( struct Vector_S * self );
+
+// TODO: Support deep copies?
