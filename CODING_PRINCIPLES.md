@@ -7,6 +7,7 @@
    5. A list of banned functions / code constructs are checked by home brewed tools
    6. Unit test the code to verify that the program behaves correctly through most conceivable scenarios (see the unit testing principles below)
    7. Fuzz test (e.g., [afl](https://lcamtuf.coredump.cx/afl/)) to catch the crazy edge cases that cause the program to misbehave
+   8. Use asserts on assumptions made at various points of execution. These asserts should abort the program on internal paradoxes.
 1. Unit testing principles:
    1. 100% function and statement code coverage is **required**, _however, keep in mind sub-point 2 below
    2. The code should be treated as a **black box** :black_large_square. Do **not** look into it as you write your tests! Focus on how the code _should behave_.
