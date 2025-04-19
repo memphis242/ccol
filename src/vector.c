@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#include "vector.h"
 
 // TODO: Realloc usage is a security vulnerability because data left behind from
 //       realloc moving the data rather than growing/shrinking could be sensitive
@@ -25,7 +26,7 @@
 
 /* Local Macro Definitions */
 // Constants
-#define EXPANSION_FACTOR   (2.0f)
+#define EXPANSION_FACTOR   (2)
 
 // Function-like
 #define IS_EMPTY(self)     ( 0 == (self)->len )
@@ -109,7 +110,7 @@ void VectorFree( struct Vector_S * self )
    free(self);
 }
 
-bool VectorInsert( struct Vector_S * self, const void * restrict element )
+bool VectorPush( struct Vector_S * self, const void * restrict element )
 {
    // Assertion on an internal paradox
    assert( self->len <= self->capacity );
