@@ -52,15 +52,20 @@ DS ?= ALL
 
 ifeq ($(DS), ALL)
   SRC_FILES = $(wildcard $(PATH_SRC)*.c)
-  HDR_FILES += $(wildcard $(PATH_INC)*.h)
-  SRC_TEST_FILES += $(wildcard $(PATH_TEST_FILES)*.c)
+  HDR_FILES = $(wildcard $(PATH_INC)*.h)
+  SRC_TEST_FILES = $(wildcard $(PATH_TEST_FILES)*.c)
   LIB_FILE = $(PATH_BUILD)liblwcol.$(STATIC_LIB_EXTENSION)
+  DS_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
 else
-  SRC_FILES += $(PATH_SRC)$(DS).c
-  HDR_FILES += $(PATH_INC)$(DS).c
-  SRC_TEST_FILES += $(PATH_TEST_FILES)$(DS).c
+  SRC_FILES = $(PATH_SRC)$(DS).c
+  HDR_FILES = $(PATH_INC)$(DS).h
+  SRC_TEST_FILES = $(PATH_TEST_FILES)test_$(DS).c
   LIB_FILE = $(PATH_BUILD)lib$(DS).$(STATIC_LIB_EXTENSION)
+  DS_OBJ_FILES = $(PATH_OBJECT_FILES)$(DS).o
 endif
+TEST_EXECUTABLES = $(patsubst %.c, $(PATH_BUILD)%.$(TARGET_EXTENSION), $(notdir $(SRC_TEST_FILES)))
+LIB_LIST_FILE = $(patsubst %.$(STATIC_LIB_EXTENSION), $(PATH_BUILD)%.lst, $(notdir $(LIB_FILE)))
+TEST_LIST_FILE = $(patsubst %.$(TARGET_EXTENSION), $(PATH_BUILD)%.lst, $(notdir $(TEST_EXECUTABLES)))
 
 ifeq ($(BUILD_TYPE), TEST)
 
@@ -133,63 +138,51 @@ LDFLAGS += $(DIAGNOSTIC_FLAGS)
 ######################### Lib Rules ########################
 # Build the static library files
 .PHONY: collection
-collection: $(LIB_FILE)
+collection: $(BUILD_DIRS) $(LIB_FILE) $(LIB_LIST_FILE)
 	@echo
 	@echo "----------------------------------------"
 	@echo "Library built!"
 	@echo "----------------------------------------"
-
-$(LIB_FILE): $(OBJ_FILES)
-	@echo
-	@echo "----------------------------------------"
-	@echo "Constructing the collection static library: $@..."
-	@echo
-	ar rcs $@ $^
 
 .PHONY: lib
 # Build the static library files
-lib: $(BUILD_DIRS) $(LIB_FILE)
+lib: $(BUILD_DIRS) $(LIB_FILE) $(LIB_LIST_FILE)
 	@echo
 	@echo "----------------------------------------"
 	@echo "Library built!"
 	@echo "----------------------------------------"
 
-# Build the library of the DS in question
-$(PATH_BUILD)lib%.$(STATIC_LIB_EXTENSION): $(PATH_OBJECT_FILES)%.o
+$(LIB_FILE): $(DS_OBJ_FILES) $(BUILD_DIRS) 
 	@echo
 	@echo "----------------------------------------"
-	@echo "Constructing static library: $@..."
+	@echo "Constructing the static library: $@..."
 	@echo
-	ar rcs $@ $^
-
+	ar rcs $@ $<
 
 ######################## Test Rules ########################
 .PHONY: test
-test: $(BUILD_DIRS) $(TEST_FILE_NAME).exe $(TEST_FILE_NAME).lst	# Don't actually need the .lst file but want to force the disassembly generation
+test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE)	# Don't actually need the .lst file but want to force the disassembly generation
 	@echo
 	@echo "----------------------------------------"
-	@echo "Running the test..."
+	@echo "Running all test executables..."
 	@echo
-	./$(TEST_FILE_NAME).exe
-
-# Produces an object dump that includes the disassembly of the executable
-$(TEST_FILE_NAME).lst: $(TEST_FILE_NAME).exe
-	@echo
-	@echo "----------------------------------------"
-	@echo "Disassembly of $<..."
-	@echo
-	objdump -D $< > $@
-
-# Build the executable
-$(TEST_FILE_NAME).exe: $(TEST_FILE_NAME).o lib$(SRC_FILES).a
+	for exec in $(TEST_EXECUTABLES); do \
+			echo "Running $$exec..."; \
+			chmod +x $$exec && ./$$exec || exit 1; \
+	done
 	@echo
 	@echo "----------------------------------------"
-	@echo "Linking $< and the DSA static lib into executable..."
+	@echo "All tests completed!"
 	@echo
-	$(CC) $(LDFLAGS) $< -L. -l$(SRC_FILES) -o $@
 
-# Build the object file and run static analysis against it
-$(TEST_FILE_NAME).o: $(TEST_FILE_NAME).c
+$(PATH_BUILD)%.$(TARGET_EXTENSION): $(PATH_BUILD)%.o $(LIB_FILE)
+	@echo
+	@echo "----------------------------------------"
+	@echo "Linking $< and the DSA static lib $(LIB_FILE) into an executable..."
+	@echo
+	$(CC) $(LDFLAGS) $< -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
+
+$(PATH_BUILD)%.o: $(PATH_TEST_FILES)%.c
 	@echo
 	@echo "----------------------------------------"
 	@echo "Compiling the test file: $<..."
@@ -199,7 +192,7 @@ $(TEST_FILE_NAME).o: $(TEST_FILE_NAME).c
 	@echo "----------------------------------------"
 	@echo "Running static analysis on $<..."
 	@echo
-	cppcheck $<
+	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
 ######################### Generic ##########################
 
@@ -215,6 +208,21 @@ $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
 	@echo "Running static analysis on $<..."
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
+
+$(LIB_LIST_FILE): $(LIB_FILE)
+	@echo
+	@echo "----------------------------------------"
+	@echo "Disassembly of $<..."
+	@echo
+	objdump -D $< > $@
+
+# Produces an object dump that includes the disassembly of the executable
+$(PATH_BUILD)%.lst: $(PATH_BUILD)%.$(TARGET_EXTENSION)
+	@echo
+	@echo "----------------------------------------"
+	@echo "Disassembly of $<..."
+	@echo
+	objdump -D $< > $@
 
 # Make the directories if they don't already exist
 $(PATH_RESULTS):
@@ -236,6 +244,8 @@ clean:
 	$(CLEANUP) $(PATH_BUILD)*.$(TARGET_EXTENSION)
 	$(CLEANUP) $(PATH_RESULTS)*.txt
 	$(CLEANUP) $(PATH_BUILD)*.lst
+	$(CLEANUP) $(PATH_BUILD)*.log
+	$(CLEANUP) $(PATH_BUILD)*.$(STATIC_LIB_EXTENSION)
 
 .PRECIOUS: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 .PRECIOUS: $(PATH_BUILD)Test%.o
