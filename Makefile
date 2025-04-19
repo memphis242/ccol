@@ -46,6 +46,7 @@ COLORIZE_UNITY_SCRIPT = $(PATH_SCRIPTS)colorize_unity.py
 
 UNITY_SRC_FILES = $(wildcard $(PATH_UNITY)*.c)
 UNITY_HDR_FILES = $(wildcard $(PATH_UNITY)*.h)
+UNITY_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(UNITY_SRC_FILES)))
 
 BUILD_TYPE ?= RELEASE
 DS ?= ALL
@@ -66,23 +67,27 @@ endif
 TEST_EXECUTABLES = $(patsubst %.c, $(PATH_BUILD)%.$(TARGET_EXTENSION), $(notdir $(SRC_TEST_FILES)))
 LIB_LIST_FILE = $(patsubst %.$(STATIC_LIB_EXTENSION), $(PATH_BUILD)%.lst, $(notdir $(LIB_FILE)))
 TEST_LIST_FILE = $(patsubst %.$(TARGET_EXTENSION), $(PATH_BUILD)%.lst, $(notdir $(TEST_EXECUTABLES)))
+TEST_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_TEST_FILES)))
+RESULTS = $(patsubst %.c, $(PATH_RESULTS)%.txt, $(notdir $(SRC_TEST_FILES)))
+
+$(info TEST_OBJ_FILES: $(TEST_OBJ_FILES))
 
 ifeq ($(BUILD_TYPE), TEST)
-
   BUILD_DIRS += $(PATH_RESULTS)
-
-  SRC_FILES += $(UNITY_SRC_FILES)
-  HDR_FILES += $(UNITY_HDR_FILES)
-  RESULTS = $(patsubst %.c, $(PATH_RESULTS)%.txt, $(notdir $(SRC_TEST_FILES)))
-
 else ifeq ($(BUILD_TYPE), PROFILE)
-
   BUILD_DIRS += $(PATH_PROFILE)
-
 endif
 
-# List of all object files we're expecting
+# List of all object files we're expecting for the data structures
 OBJ_FILES = $(patsubst %.c,$(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
+
+$(info LIB_FILE is $(LIB_FILE))
+$(info DS_OBJ_FILES is $(DS_OBJ_FILES))
+$(info SRC_FILES is $(SRC_FILES))
+$(info HDR_FILES is $(HDR_FILES))
+$(info SRC_TEST_FILES is $(SRC_TEST_FILES))
+$(info PATH_BUILD is $(PATH_BUILD))
+$(info PATH_OBJECT_FILES is $(PATH_OBJECT_FILES))
 
 # Compiler setup
 CROSS	= 
@@ -105,7 +110,9 @@ DIAGNOSTIC_FLAGS = -fdiagnostics-color
 COMPILER_STATIC_ANALYZER = -fanalyzer
 
 # Compile up the compiler flags
-CFLAGS = $(INCLUDE_PATHS) $(COMMON_DEFINES) $(DIAGNOSTIC_FLAGS) $(COMPILER_WARNING_FLAGS) $(COMPILER_STATIC_ANALYZER) $(COMPILER_STANDARD)
+CFLAGS = $(INCLUDE_PATHS) $(COMMON_DEFINES) \
+			$(DIAGNOSTIC_FLAGS) $(COMPILER_WARNING_FLAGS) $(COMPILER_STATIC_ANALYZER) \
+			$(COMPILER_STANDARD)
 
 ifeq ($(BUILD_TYPE), RELEASE)
 $(info CFLAGS for release)
@@ -161,30 +168,26 @@ $(LIB_FILE): $(DS_OBJ_FILES) $(BUILD_DIRS)
 
 ######################## Test Rules ########################
 .PHONY: test
-test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE)	# Don't actually need the .lst file but want to force the disassembly generation
-	@echo
-	@echo "----------------------------------------"
-	@echo -e "\033[36;1mRunning all test executables\033[0m..."
-	@echo "----------------------------------------"
-	for exec in $(TEST_EXECUTABLES); do \
-			echo ""; \
-			echo -e "\033[36;2mRunning $$exec...\033[0m\n"; \
-			echo "----------------------------------------"; \
-			chmod +x $$exec && ./$$exec || exit 1; \
-			echo "----------------------------------------"; \
-	done
+test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS)
 	@echo
 	@echo -e "\033[36mAll tests completed!\033[0m"
 	@echo
 
-$(PATH_BUILD)%.$(TARGET_EXTENSION): $(PATH_BUILD)%.o $(LIB_FILE)
+# Write the test results to a result .txt file
+$(PATH_RESULTS)%.txt: $(PATH_BUILD)%.$(TARGET_EXTENSION) $(COLORIZE_UNITY_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mLinking\033[0m $< and the collection static lib $(LIB_FILE) into an executable..."
-	@echo
-	$(CC) $(LDFLAGS) $< -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
+	@echo "Running $<..."
+	-./$< 2>&1 | tee $@ | python $(COLORIZE_UNITY_SCRIPT)
 
-$(PATH_BUILD)%.o: $(PATH_TEST_FILES)%.c
+$(PATH_BUILD)%.$(TARGET_EXTENSION): $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) $(LIB_FILE)
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[36mLinking\033[0m $(TEST_OJB_FILES), $(UNITY_OBJ_FILES), and the collection static lib $(LIB_FILE) into an executable..."
+	@echo
+	$(CC) $(LDFLAGS) $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
+
+$(PATH_OBJECT_FILES)%.o: $(PATH_TEST_FILES)%.c $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the test file: $<..."
@@ -196,10 +199,26 @@ $(PATH_BUILD)%.o: $(PATH_TEST_FILES)%.c
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
+$(PATH_OBJECT_FILES)%.o: $(PATH_UNITY)%.c $(PATH_UNITY)%.h
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[36mCompiling\033[0m the unity file: $<..."
+	@echo
+	$(CC) -c $(CFLAGS) $< -o $@
+	@echo
+
+.PHONY: unity_static_analysis
+unity_static_analysis: $(PATH_UNITY)unity.c $(COLORIZE_CPPCHECK_SCRIPT)
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[36mRunning static analysis\033[0m on $<..."
+	@echo
+	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
+
 ######################### Generic ##########################
 
 # Compile the collection source file into an object file
-$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
+$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."
