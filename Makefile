@@ -47,7 +47,7 @@ COLORIZE_UNITY_SCRIPT = $(PATH_SCRIPTS)colorize_unity.py
 UNITY_SRC_FILES = $(wildcard $(PATH_UNITY)*.c)
 UNITY_HDR_FILES = $(wildcard $(PATH_UNITY)*.h)
 
-BUILD_TYPE ?= LIB
+BUILD_TYPE ?= RELEASE
 DS ?= ALL
 
 ifeq ($(DS), ALL)
@@ -131,6 +131,21 @@ LDFLAGS += $(DIAGNOSTIC_FLAGS)
 ############################# The Rules & Recipes ##############################
 
 ######################### Lib Rules ########################
+# Build the static library files
+.PHONY: collection
+collection: $(LIB_FILE)
+	@echo
+	@echo "----------------------------------------"
+	@echo "Library built!"
+	@echo "----------------------------------------"
+
+$(LIB_FILE): $(OBJ_FILES)
+	@echo
+	@echo "----------------------------------------"
+	@echo "Constructing the collection static library: $@..."
+	@echo
+	ar rcs $@ $^
+
 .PHONY: lib
 # Build the static library files
 lib: $(BUILD_DIRS) $(LIB_FILE)
@@ -140,13 +155,12 @@ lib: $(BUILD_DIRS) $(LIB_FILE)
 	@echo "----------------------------------------"
 
 # Build the library of the DS in question
-#$(PATH_BUILD)%.$(STATIC_LIB_EXTENSION) : $(OBJ_FILES)
-$(PATH_BUILD)libvector.$(STATIC_LIB_EXTENSION): $(OBJ_FILES)
+$(PATH_BUILD)lib%.$(STATIC_LIB_EXTENSION): $(PATH_OBJECT_FILES)%.o
 	@echo
 	@echo "----------------------------------------"
-	@echo "Constructing static library of DSA: $<..."
+	@echo "Constructing static library: $@..."
 	@echo
-	ar rcs $@ $<
+	ar rcs $@ $^
 
 
 ######################## Test Rules ########################
