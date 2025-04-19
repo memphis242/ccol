@@ -180,7 +180,7 @@ test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE)	# Don't ac
 $(PATH_BUILD)%.$(TARGET_EXTENSION): $(PATH_BUILD)%.o $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mLinking\033[0m $< and the DSA static lib $(LIB_FILE) into an executable..."
+	@echo -e "\033[36mLinking\033[0m $< and the collection static lib $(LIB_FILE) into an executable..."
 	@echo
 	$(CC) $(LDFLAGS) $< -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
 
@@ -198,11 +198,11 @@ $(PATH_BUILD)%.o: $(PATH_TEST_FILES)%.c
 
 ######################### Generic ##########################
 
-# Compile the DSA source file into an object file
+# Compile the collection source file into an object file
 $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mCompiling\033[0m the DSA source file: $<..."
+	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."
 	@echo
 	$(CC) -c $(CFLAGS) $< -o $@
 	@echo
@@ -214,7 +214,7 @@ $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
 $(LIB_LIST_FILE): $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mDisassembly\033[0m of $<..."
+	@echo -e "\033[36mDisassembly\033[0m of $< into $@..."
 	@echo
 	objdump -D $< > $@
 
@@ -222,7 +222,7 @@ $(LIB_LIST_FILE): $(LIB_FILE)
 $(PATH_BUILD)%.lst: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mDisassembly\033[0m of $<..."
+	@echo -e "\033[36mDisassembly\033[0m of $< into $@..."
 	@echo
 	objdump -D $< > $@
 
