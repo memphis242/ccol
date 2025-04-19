@@ -51,6 +51,7 @@ struct Vector_S
    size_t element_size;
    uint32_t len;
    uint32_t capacity;
+   uint32_t max_capacity;
 };
 
 /* Private Function Prototypes */
@@ -58,12 +59,16 @@ static bool LocalVectorExpand( struct Vector_S * self );
 
 /* Public API Implementations */
 
-struct Vector_S * VectorInit( size_t element_size, uint32_t initial_capacity )
+struct Vector_S * VectorInit( size_t element_size,
+                              uint32_t initial_capacity,
+                              uint32_t max_capacity )
 {
    // Early return op
    // Invalid inputs
    if ( (element_size == 0) ||
-        (initial_capacity > MAX_VECTOR_LENGTH) )
+        (initial_capacity > MAX_VECTOR_LENGTH) ||
+        (max_capacity == 0) ||
+        (initial_capacity > max_capacity) )
    {
       // TODO: Vector constructor exception → assert()?
       return NULL;
@@ -97,6 +102,15 @@ struct Vector_S * VectorInit( size_t element_size, uint32_t initial_capacity )
 
    NewVec->element_size = element_size;
    NewVec->len = 0;
+   if ( max_capacity > MAX_VECTOR_LENGTH )
+   {
+      // TODO: Throw exception for max_capacity too large
+      NewVec->max_capacity = MAX_VECTOR_LENGTH;
+   }
+   else
+   {
+      NewVec->max_capacity = max_capacity;
+   }
 
    return NewVec;
 }
@@ -150,7 +164,7 @@ bool VectorPush( struct Vector_S * self, const void * restrict element )
 
 static bool LocalVectorExpand( struct Vector_S * self )
 {
-   // Since this is locally defined, I will destructively assert at any invalid inputs
+   // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert( (self != NULL) && (self->element_size != 0) );
 
    bool ret_val = true;
@@ -170,6 +184,11 @@ static bool LocalVectorExpand( struct Vector_S * self )
       }
       self->len = 0;
    }
+   else if ( self->capacity == self->max_capacity )
+   {
+      // TODO: Throw exception: Already at capacity. Cannot expand further.
+      ret_val = false;
+   }
    else
    {
       // Assert if we somehow have a NULL arr when the vector was determined
@@ -177,13 +196,13 @@ static bool LocalVectorExpand( struct Vector_S * self )
       assert( self->arr != NULL );
       uint32_t new_capacity;
 
-      if ( (uint32_t)(self->capacity * EXPANSION_FACTOR) <= MAX_VECTOR_LENGTH )
+      if ( (uint32_t)(self->capacity * EXPANSION_FACTOR) <= self->max_capacity )
       {
          new_capacity = (uint32_t)(self->capacity * EXPANSION_FACTOR);
       }
       else
       {
-         new_capacity = MAX_VECTOR_LENGTH;
+         new_capacity = self->max_capacity;
       }
 
       void * new_ptr = realloc( self->arr, (self->element_size * new_capacity) );

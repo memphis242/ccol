@@ -30,10 +30,16 @@ struct Vector_S;
  *
  * @param element_size The size of each element in the vector (in bytes).
  * @param initial_capacity The initial number of elements the vector can hold.
+ * @param max_capacity The maximum number of elements the vector can hold ever.
+ *                     Note that if max_capacity is larger than an internal limit
+ *                     set within the implementation, that internal limit will be
+ *                     used instead. TODO: Exception for max capacity too large.
  *
  * @return A pointer to the initialized vector, or NULL if allocation fails.
  */
-struct Vector_S * VectorInit( size_t element_size, uint32_t initial_capacity );
+struct Vector_S * VectorInit( size_t element_size,
+                              uint32_t initial_capacity,
+                              uint32_t max_capacity );
 
 /**
  * @brief Frees the memory allocated for the vector.
