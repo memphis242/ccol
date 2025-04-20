@@ -162,6 +162,15 @@ size_t VectorElementSize( struct Vector_S * self )
    return self->element_size;
 }
 
+bool VectorIsEmpty( struct Vector_S * self )
+{
+   if ( NULL == self )
+   {
+      return true;
+   }
+   return IS_EMPTY(self);
+}
+
 bool VectorPush( struct Vector_S * self, const void * restrict element )
 {
    // Assertion on an internal paradox
