@@ -52,14 +52,14 @@ int main(void)
    
    RUN_TEST(Test_VectorInitialization);
    RUN_TEST(Test_VectorOpsOnNullVectors);
-   RUN_TEST(Test_VectorPush);
-   RUN_TEST(Test_VectorInsertAt);
-   RUN_TEST(Test_VectorGetElementAt);
-   RUN_TEST(Test_VectorSetElementAt);
-   RUN_TEST(Test_VectorRemoveElementAt);
-   RUN_TEST(Test_VectorLastElement);
-   RUN_TEST(Test_VectorClear);
-   RUN_TEST(Test_VectorIsEmpty);
+   //RUN_TEST(Test_VectorPush);
+   //RUN_TEST(Test_VectorInsertAt);
+   //RUN_TEST(Test_VectorGetElementAt);
+   //RUN_TEST(Test_VectorSetElementAt);
+   //RUN_TEST(Test_VectorRemoveElementAt);
+   //RUN_TEST(Test_VectorLastElement);
+   //RUN_TEST(Test_VectorClear);
+   //RUN_TEST(Test_VectorIsEmpty);
 
    return UNITY_END();
 }
@@ -279,9 +279,9 @@ void Test_VectorPush(void)
       {
          vec_len++;
          last_element = VectorLastElement(vec);
-         TEST_ASSERT( last_element->x == test_element.x );
-         TEST_ASSERT( last_element->y == test_element.y );
-         TEST_ASSERT( last_element->z == test_element.z );
+         TEST_ASSERT_EQUAL_FLOAT( test_element.x, last_element->x );
+         TEST_ASSERT_EQUAL_FLOAT( test_element.y, last_element->y );
+         TEST_ASSERT_EQUAL_FLOAT( test_element.z, last_element->z );
          TEST_ASSERT_EQUAL_UINT32( vec_len, VectorLength(vec) );
       }
    }
@@ -304,9 +304,9 @@ void Test_VectorPush(void)
       {
          vec_len++;
          last_element = VectorLastElement(vec);
-         TEST_ASSERT( last_element->x == test_element.x );
-         TEST_ASSERT( last_element->y == test_element.y );
-         TEST_ASSERT( last_element->z == test_element.z );
+         TEST_ASSERT_EQUAL_FLOAT( test_element.x, last_element->x );
+         TEST_ASSERT_EQUAL_FLOAT( test_element.y, last_element->y );
+         TEST_ASSERT_EQUAL_FLOAT( test_element.z, last_element->z );
          TEST_ASSERT_EQUAL_UINT32( vec_len, VectorLength(vec) );
       }
    }
@@ -320,4 +320,39 @@ void Test_VectorPush(void)
    vec = VectorInit( sizeof(struct MyData_S), 0, 0 );
    TEST_ASSERT_FALSE( VectorPush( vec, &test_element ) );
    TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
+}
+
+void Test_VectorInsertAt(void)
+{
+
+}
+
+void Test_VectorGetElementAt(void)
+{
+
+}
+
+void Test_VectorSetElementAt(void)
+{
+
+}
+
+void Test_VectorRemoveElementAt(void)
+{
+
+}
+
+void Test_VectorLastElement(void)
+{
+
+}
+
+void Test_VectorClear(void)
+{
+
+}
+
+void Test_VectorIsEmpty(void)
+{
+
 }

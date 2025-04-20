@@ -212,8 +212,6 @@ bool VectorInsertAt( struct Vector_S * self,
                      uint32_t idx,
                      const void * restrict element )
 {
-   assert( self->len <= self->capacity );
-
    // Early return op
    // Invalid inputs
    if ( (NULL == self) || (NULL == element) || (idx > self->len) )
@@ -221,6 +219,10 @@ bool VectorInsertAt( struct Vector_S * self,
       // TODO: Throw exception
       return false;
    }
+
+   assert( self->len <= self->capacity );
+   assert( self->len <= self->max_capacity );
+   assert( idx <= self->len );
 
    bool ret_val = true;
 
