@@ -173,9 +173,6 @@ bool VectorIsEmpty( struct Vector_S * self )
 
 bool VectorPush( struct Vector_S * self, const void * restrict element )
 {
-   // Assertion on an internal paradox
-   assert( self->len <= self->capacity );
-
    // Early return op
    // Invalid inputs
    if ( (NULL == self) || (NULL == element) )
@@ -183,6 +180,10 @@ bool VectorPush( struct Vector_S * self, const void * restrict element )
       // TODO: Throw exception
       return false;
    }
+
+   assert( self->len <= self->capacity );
+   assert( self->len <= self->max_capacity );
+   assert( (self->element_size * self->len) <= PTRDIFF_MAX );
 
    bool ret_val = true;
 
@@ -211,7 +212,6 @@ bool VectorInsertAt( struct Vector_S * self,
                      uint32_t idx,
                      const void * restrict element )
 {
-   // Assertion on an internal paradox
    assert( self->len <= self->capacity );
 
    // Early return op

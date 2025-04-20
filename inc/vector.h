@@ -97,6 +97,15 @@ uint32_t VectorMaxCapacity( struct Vector_S * self );
 size_t VectorElementSize( struct Vector_S * self );
 
 /**
+ * @brief Checks if the vector is empty.
+ * 
+ * @param self A pointer to the Vector_S structure representing the vector.
+ * 
+ * @return true is empty, false otherwise.
+ */
+bool VectorIsEmpty( struct Vector_S * self );
+
+/**
  * @brief Inserts an element at the _end_ of the vector.
  *
  * @param self Vector handle
@@ -185,15 +194,6 @@ void * VectorLastElement( struct Vector_S * self );
  *
  * @param self Vector handle
  */
-void VectorClear( struct Vector_S * self );
-
-/**
- * @brief Checks if the vector is empty.
- * 
- * @param self A pointer to the Vector_S structure representing the vector.
- * 
- * @return true is empty, false otherwise.
- */
-bool VectorIsEmpty( struct Vector_S * self );
+bool VectorClear( struct Vector_S * self );
 
 // TODO: Support deep copies?
