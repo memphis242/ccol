@@ -147,9 +147,9 @@ void * VectorGetElementAt( struct Vector_S * self, uint32_t idx );
  * @param element A pointer to the new value to set at the specified index.
  *                The memory pointed to must not overlap with the vector's memory.
  * 
- * @return A pointer to the updated element, or NULL if the index is out of bounds.
+ * @return true if the update was successful, false otherwise
  */
-void * VectorSetElementAt( struct Vector_S * self,
+bool VectorSetElementAt( struct Vector_S * self,
                            uint32_t idx,
                            const void * restrict element );
 
