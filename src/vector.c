@@ -249,6 +249,42 @@ bool VectorInsertAt( struct Vector_S * self,
    return ret_val;
 }
 
+void * VectorGetElementAt( struct Vector_S * self, uint32_t idx )
+{
+   return NULL;
+}
+
+bool VectorSetElementAt( struct Vector_S * self,
+                           uint32_t idx,
+                           const void * restrict element )
+{
+   return false;
+}
+
+void * VectorRemoveElementAt( struct Vector_S * self, uint32_t idx )
+{
+   return NULL;
+}
+
+void * VectorLastElement( struct Vector_S * self )
+{
+   if ( (NULL == self) || (NULL == self->arr) || (0 == self->len) )
+   {
+      return NULL;
+   }
+
+   assert( self->len <= self->capacity );
+   assert( self->len <= self->max_capacity );
+   assert( (self->element_size * self->len) <= PTRDIFF_MAX );
+
+   return (void *)( (uint8_t *)(self->arr) + (self->element_size * self->len) );
+}
+
+bool VectorClear( struct Vector_S * self )
+{
+   return false;
+}
+
 /* Private Function Implementations */
 
 static bool LocalVectorExpand( struct Vector_S * self )
