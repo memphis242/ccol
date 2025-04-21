@@ -137,14 +137,16 @@ bool VectorInsertAt( struct Vector_S * self,
  * @brief Retrieves the element at the specified index in the vector.
  *
  * Provides access to the element at the given index _without_ removing it.
+ * Also, performs an internal memcpy() to the provided data buffer so that
+ * any internal realloc()'s don't lead to unintended stale pointers.
  *
  * @param self Vector handle
  * @param idx The index of the element to retrieve.
+ * @param data Pointer to the data that will be returned.
  * 
- * @return A pointer to the element at the specified index, or NULL if the index
- *         is out of bounds.
+ * @return true if the retrieval was successful, false otherwise.
  */
-void * VectorGetElementAt( struct Vector_S * self, uint32_t idx );
+bool VectorGetElementAt( struct Vector_S * self, uint32_t idx, void * data );
 
 /**
  * @brief Sets the value of an element at the specified index in the vector.
@@ -166,25 +168,32 @@ bool VectorSetElementAt( struct Vector_S * self,
  * @brief Removes an element from the vector at the specified index.
  *
  * Deletes the element at the given index and shifts subsequent elements to fill
- * the gap.
+ * the gap. Also, performs an internal memcpy() to the provided data buffer so that
+ * any internal realloc()'s don't lead to unintended stale pointers. If data is
+ * NULL, then the function skips the data copying.
  *
  * @param self Vector handle
  * @param idx The index of the element to be removed.
+ * @param data Pointer to the data that will be returned.
  * 
- * @return A pointer to the removed element, or NULL if the index is out of bounds.
+ * @return true if the element was removed, false otherwise
  */
-void * VectorRemoveElementAt( struct Vector_S * self, uint32_t idx );
+bool VectorRemoveElementAt( struct Vector_S * self, uint32_t idx, void * data );
 
 /**
  * @brief Retrieves the last element in the vector.
  *
  * Provides access to the last element in the vector without removing it.
+ * Also, performs an internal memcpy() to the provided data buffer so that
+ * any internal realloc()'s don't lead to unintended stale pointers.
  *
  * @param self Vector handle
+ * @param data Pointer to the data that will be returned.
  * 
- * @return A pointer to the last element, or NULL if the vector is empty.
+ * @return true if the last element was successfully retrieved and placed in data,
+ *         false otherwise
  */
-void * VectorLastElement( struct Vector_S * self );
+bool VectorLastElement( struct Vector_S * self, void * data );
 
 /**
  * @brief Clears all elements in the vector.
