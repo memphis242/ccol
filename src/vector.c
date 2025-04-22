@@ -31,6 +31,8 @@
 
 // Function-like
 #define IS_EMPTY(self)     ( 0 == (self)->len )
+#define PTR_TO_IDX(vec, idx) \
+      ( (uint8_t *)((vec)->arr) + ((vec)->element_size * (idx)) )
 
 // Enforce a maximum length to help prevent extreme memory requests
 #define TENTATIVE_MAX_VEC_LEN UINT32_MAX
@@ -196,7 +198,7 @@ bool VectorPush( struct Vector_S * self, const void * restrict element )
 
    if ( successfully_expanded )
    {
-      void * insertion_spot = (unsigned char *)self->arr + (self->element_size * self->len);
+      void * insertion_spot = (void *)PTR_TO_IDX(self, self->len);
       memcpy( insertion_spot, element, self->element_size );
       self->len++;
    }
@@ -239,7 +241,7 @@ bool VectorInsertAt( struct Vector_S * self,
       {
          ShiftOneOver(self, idx);
       }
-      void * insertion_spot = (unsigned char *)self->arr + (self->element_size * self->len);
+      void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, element, self->element_size );
       self->len++;
    }
@@ -251,9 +253,16 @@ bool VectorInsertAt( struct Vector_S * self,
    return ret_val;
 }
 
-void * VectorGetElementAt( struct Vector_S * self, uint32_t idx )
+bool VectorGetElementAt( struct Vector_S * self, uint32_t idx, void * data )
 {
-   return NULL;
+   if ( (NULL == self) || (idx >= self->len) || (NULL == self->arr) )
+   {
+      return false;
+   }
+
+
+   
+   return true;
 }
 
 bool VectorSetElementAt( struct Vector_S * self,
