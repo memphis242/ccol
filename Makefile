@@ -90,12 +90,13 @@ COMPILER_WARNING_FLAGS = \
     -Wall -Wextra -Wpedantic \
     -Wconversion -Wdouble-promotion -Wnull-dereference \
     -Wwrite-strings -Wformat=2 -Wformat-overflow=2 \
-	 -Wformat-signedness \
-    -Wcast-align=strict \
-    -Wswitch-enum -Wfloat-equal \
+    -Wformat-signedness -Wuseless-cast \
+    -Wcast-align=strict -Wimplicit-fallthrough=3 -Wswitch-default \
+    -Wswitch-enum -Wfloat-equal -Wuse-after-free=2 \
     -Wdeprecated-declarations -Wmissing-prototypes -Wparentheses \
     -Wreturn-type -Wlogical-op -Wstrict-aliasing \
     -Wuninitialized -Wmaybe-uninitialized -Wshadow
+
 COMPILER_SANITIZERS = -fsanitize=bool -fsanitize=undefined -fsanitize-trap
 COMPILER_OPTIMIZATION_LEVEL_DEBUG = -Og -g3
 COMPILER_OPTIMIZATION_LEVEL_SPEED = -O3
