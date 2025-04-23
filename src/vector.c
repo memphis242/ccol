@@ -272,12 +272,12 @@ bool VectorSetElementAt( struct Vector_S * self,
    return false;
 }
 
-void * VectorRemoveElementAt( struct Vector_S * self, uint32_t idx )
+bool VectorRemoveElementAt( struct Vector_S * self, uint32_t idx, void * data )
 {
-   return NULL;
+   return false;
 }
 
-void * VectorLastElement( struct Vector_S * self )
+bool VectorLastElement( struct Vector_S * self, void * data )
 {
    if ( (NULL == self) || (NULL == self->arr) || (0 == self->len) )
    {
