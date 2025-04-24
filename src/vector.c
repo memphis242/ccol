@@ -4,6 +4,7 @@
  *
  * This file contains the implementation of a dynamic array, also known as a vector,
  * which provides functionalities for dynamic resizing, element access, and manipulation.
+ * The underlying primitive data structure used is an array.
  *
  * @author Abdulla Almosalami (memphis242)
  * @date April 12, 2025
