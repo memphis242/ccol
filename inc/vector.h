@@ -132,21 +132,38 @@ bool VectorPush( struct Vector_S * self, const void * restrict element );
 bool VectorInsertAt( struct Vector_S * self,
                      uint32_t idx,
                      const void * restrict element );
-
 /**
- * @brief Retrieves the element at the specified index in the vector.
+ * @brief Retrieves a pointer to the element at the specified index in the vector.
  *
- * Provides access to the element at the given index _without_ removing it.
- * Also, performs an internal memcpy() to the provided data buffer so that
- * any internal realloc()'s don't lead to unintended stale pointers.
+ * Provides direct access to the element at the given index _without_ removing it.
+ * The returned pointer points to the internal memory of the vector, and the user
+ * needs to be aware of the risks in working with pointers to opaque data. For
+ * example, reallocations that may occur due to vector insertions or deletions
+ * could render the pointers stale.
  *
  * @param self Vector handle
  * @param idx The index of the element to retrieve.
- * @param data Pointer to the data that will be returned.
  * 
- * @return true if the retrieval was successful, false otherwise.
+ * @return A pointer to the element if the retrieval was successful, or NULL if
+ *         something is off.
  */
-bool VectorGetElementAt( struct Vector_S * self, uint32_t idx, void * data );
+void * VectorGetElementAt( struct Vector_S * self, uint32_t idx );
+
+/**
+* @brief Copies the element at the specified index in the vector to a provided buffer.
+*
+* Copies the element at the given index into the provided data buffer. This ensures
+* that any internal reallocations of the vector do not lead to unintended stale pointers.
+*
+* @param self Vector handle
+* @param idx The index of the element to retrieve.
+* @param data Pointer to the buffer where the element will be copied.
+*             The buffer must be large enough to hold the element.
+* 
+* @return true if the retrieval and copy were successful, false otherwise
+*         (e.g., if the index is out of bounds or data is NULL).
+*/
+bool VectorCpyElementAt( struct Vector_S * self, uint32_t idx, void * data );
 
 /**
  * @brief Sets the value of an element at the specified index in the vector.

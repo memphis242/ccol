@@ -253,15 +253,26 @@ bool VectorInsertAt( struct Vector_S * self,
    return ret_val;
 }
 
-bool VectorGetElementAt( struct Vector_S * self, uint32_t idx, void * data )
+void * VectorGetElementAt( struct Vector_S * self, uint32_t idx )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == self->arr) )
+   {
+      return NULL;
+   }
+
+   return (void *)PTR_TO_IDX(self, idx);
+}
+
+bool VectorCpyElementAt( struct Vector_S * self, uint32_t idx, void * data )
+{
+   if ( (NULL == self) || (idx >= self->len) || (NULL == self->arr) ||
+        (NULL == data) || (0 == self->element_size) )
    {
       return false;
    }
 
+   (void)memcpy( data, (void *)PTR_TO_IDX(self, idx), self->element_size );
 
-   
    return true;
 }
 
