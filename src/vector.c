@@ -289,7 +289,7 @@ bool VectorRemoveElementAt( struct Vector_S * self, uint32_t idx, void * data )
    return false;
 }
 
-bool VectorLastElement( struct Vector_S * self, void * data )
+void * VectorLastElement( struct Vector_S * self )
 {
    if ( (NULL == self) || (NULL == self->arr) || (0 == self->len) )
    {
@@ -300,7 +300,26 @@ bool VectorLastElement( struct Vector_S * self, void * data )
    assert( self->len <= self->max_capacity );
    assert( (self->element_size * self->len) <= PTRDIFF_MAX );
 
-   return (void *)( (uint8_t *)(self->arr) + (self->element_size * self->len) );
+   return (void *)PTR_TO_IDX(self, self->len);
+}
+
+bool VectorCpyLastElement( struct Vector_S * self, void * data )
+{
+   if ( (NULL == self) || (NULL == self->arr) || (0 == self->len) ||
+        (NULL == data) || (0 == self->element_size) )
+   {
+      return false;
+   }
+
+   assert( self->len <= self->capacity );
+   assert( self->len <= self->max_capacity );
+   assert( (self->element_size * self->len) <= PTRDIFF_MAX );
+
+   (void)memcpy( data,
+                 (void *)PTR_TO_IDX(self, self->len),
+                 self->element_size );
+   
+   return true;
 }
 
 bool VectorClear( struct Vector_S * self )
