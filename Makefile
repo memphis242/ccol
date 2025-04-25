@@ -95,7 +95,9 @@ COMPILER_WARNING_FLAGS = \
     -Wswitch-enum -Wfloat-equal -Wuse-after-free=2 \
     -Wdeprecated-declarations -Wmissing-prototypes -Wparentheses \
     -Wreturn-type -Wlogical-op -Wstrict-aliasing \
-    -Wuninitialized -Wmaybe-uninitialized -Wshadow
+    -Wuninitialized -Wmaybe-uninitialized -Wshadow \
+	 -Wsuggest-attribute=const \
+	 -Walloc-zero -Walloc-size
 
 COMPILER_SANITIZERS = -fsanitize=bool -fsanitize=undefined -fsanitize-trap
 COMPILER_OPTIMIZATION_LEVEL_DEBUG = -Og -g3
