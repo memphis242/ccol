@@ -268,11 +268,31 @@ void test_VectorLength(void) {
     VectorFree(vec);
 }
 
-
 void test_VectorCapacity(void)
 {
     struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
     TEST_ASSERT_EQUAL_UINT32(10, VectorCapacity(vec));
+    VectorFree(vec);
+}
+
+void test_VectorMaxCapacity(void) {
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    TEST_ASSERT_EQUAL_UINT32(100, VectorMaxCapacity(vec));
+    VectorFree(vec);
+}
+
+void test_VectorElementSize(void) {
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    TEST_ASSERT_EQUAL_size_t(sizeof(int), VectorElementSize(vec));
+    VectorFree(vec);
+}
+
+void test_VectorIsEmpty(void) {
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+    int value = 42;
+    VectorPush(vec, &value);
+    TEST_ASSERT_FALSE(VectorIsEmpty(vec));
     VectorFree(vec);
 }
 
@@ -354,35 +374,79 @@ void test_VectorPush(void)
 
 void test_VectorInsertAt(void)
 {
-
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value1 = 42, value2 = 84;
+   VectorPush(vec, &value1);
+   TEST_ASSERT_TRUE(VectorInsertAt(vec, 0, &value2));
+   TEST_ASSERT_EQUAL_INT(84, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(42, *(int *)VectorGetElementAt(vec, 1));
+   VectorFree(vec);
 }
 
 void test_VectorGetElementAt(void)
 {
-
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value = 42;
+   VectorPush(vec, &value);
+   int *retrieved = (int *)VectorGetElementAt(vec, 0);
+   TEST_ASSERT_NOT_NULL(retrieved);
+   TEST_ASSERT_EQUAL_INT(42, *retrieved);
+   VectorFree(vec);
 }
 
-void test_VectorSetElementAt(void)
-{
-
+void test_VectorCpyElementAt(void) {
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value = 42, buffer;
+   VectorPush(vec, &value);
+   TEST_ASSERT_TRUE(VectorCpyElementAt(vec, 0, &buffer));
+   TEST_ASSERT_EQUAL_INT(42, buffer);
+   VectorFree(vec);
 }
 
-void test_VectorRemoveElementAt(void)
-{
-
+void test_VectorSetElementAt(void) {
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value1 = 42, value2 = 84;
+   VectorPush(vec, &value1);
+   TEST_ASSERT_TRUE(VectorSetElementAt(vec, 0, &value2));
+   TEST_ASSERT_EQUAL_INT(84, *(int *)VectorGetElementAt(vec, 0));
+   VectorFree(vec);
 }
 
-void test_VectorLastElement(void)
-{
-
+void test_VectorRemoveElementAt(void) {
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value = 42, buffer;
+   VectorPush(vec, &value);
+   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, &buffer));
+   TEST_ASSERT_EQUAL_INT(42, buffer);
+   TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+   VectorFree(vec);
 }
 
-void test_VectorClear(void)
-{
-
+void test_VectorLastElement(void) {
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value = 42;
+   VectorPush(vec, &value);
+   int *last = (int *)VectorLastElement(vec);
+   TEST_ASSERT_NOT_NULL(last);
+   TEST_ASSERT_EQUAL_INT(42, *last);
+   VectorFree(vec);
 }
 
-void test_VectorIsEmpty(void)
-{
+void test_VectorCpyLastElement(void) {
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value = 42, buffer;
+   VectorPush(vec, &value);
+   TEST_ASSERT_TRUE(VectorCpyLastElement(vec, &buffer));
+   TEST_ASSERT_EQUAL_INT(42, buffer);
+   VectorFree(vec);
+}
 
+void test_VectorClear(void) {
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   int value = 42;
+   VectorPush(vec, &value);
+   TEST_ASSERT_FALSE(VectorIsEmpty(vec));
+   TEST_ASSERT_TRUE(VectorClear(vec));
+   TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+   VectorFree(vec);
 }
