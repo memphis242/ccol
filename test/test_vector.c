@@ -33,16 +33,16 @@
 /* Forward Function Declarations */
 void setUp(void);
 void tearDown(void);
-void Test_VectorInitialization(void);
-void Test_VectorOpsOnNullVectors(void);
-void Test_VectorPush(void);
-void Test_VectorInsertAt(void);
-void Test_VectorGetElementAt(void);
-void Test_VectorSetElementAt(void);
-void Test_VectorRemoveElementAt(void);
-void Test_VectorLastElement(void);
-void Test_VectorClear(void);
-void Test_VectorIsEmpty(void);
+void test_VectorInitialization(void);
+void test_VectorOpsOnNullVectors(void);
+void test_VectorPush(void);
+void test_VectorInsertAt(void);
+void test_VectorGetElementAt(void);
+void test_VectorSetElementAt(void);
+void test_VectorRemoveElementAt(void);
+void test_VectorLastElement(void);
+void test_VectorClear(void);
+void test_VectorIsEmpty(void);
 
 /* Meat of the Program */
 
@@ -50,16 +50,16 @@ int main(void)
 {
    UNITY_BEGIN();
    
-   RUN_TEST(Test_VectorInitialization);
-   RUN_TEST(Test_VectorOpsOnNullVectors);
-   //RUN_TEST(Test_VectorPush);
-   //RUN_TEST(Test_VectorInsertAt);
-   //RUN_TEST(Test_VectorGetElementAt);
-   //RUN_TEST(Test_VectorSetElementAt);
-   //RUN_TEST(Test_VectorRemoveElementAt);
-   //RUN_TEST(Test_VectorLastElement);
-   //RUN_TEST(Test_VectorClear);
-   //RUN_TEST(Test_VectorIsEmpty);
+   RUN_TEST(test_VectorInitialization);
+   RUN_TEST(test_VectorOpsOnNullVectors);
+   //RUN_TEST(test_VectorPush);
+   //RUN_TEST(test_VectorInsertAt);
+   //RUN_TEST(test_VectorGetElementAt);
+   //RUN_TEST(test_VectorSetElementAt);
+   //RUN_TEST(test_VectorRemoveElementAt);
+   //RUN_TEST(test_VectorLastElement);
+   //RUN_TEST(test_VectorClear);
+   //RUN_TEST(test_VectorIsEmpty);
 
    return UNITY_END();
 }
@@ -75,7 +75,7 @@ void tearDown(void)
 
 /* Computation */
 
-void Test_VectorInitialization(void)
+void test_VectorInitialization(void)
 {
    struct Vector_S * vec;
 
@@ -224,7 +224,7 @@ void Test_VectorInitialization(void)
 
 }
 
-void Test_VectorOpsOnNullVectors(void)
+void test_VectorOpsOnNullVectors(void)
 {
    // Call any API that takes in a pointer, and ensure appropriate behavior
    VectorFree(NULL);
@@ -246,7 +246,7 @@ void Test_VectorOpsOnNullVectors(void)
    TEST_ASSERT_TRUE( VectorIsEmpty(NULL) );
 }
 
-void Test_VectorFree(void)
+void test_VectorFree(void)
 {
    size_t i = 0;
    struct Vector_S * vec;
@@ -259,7 +259,7 @@ void Test_VectorFree(void)
    // are no crashed.
 }
 
-void Test_VectorLength(void) {
+void test_VectorLength(void) {
     struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
     TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
     int value = 42;
@@ -269,14 +269,14 @@ void Test_VectorLength(void) {
 }
 
 
-void Test_VectorCapacity(void)
+void test_VectorCapacity(void)
 {
     struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
     TEST_ASSERT_EQUAL_UINT32(10, VectorCapacity(vec));
     VectorFree(vec);
 }
 
-void Test_VectorPush(void)
+void test_VectorPush(void)
 {
    struct Vector_S * vec;
    struct MyData_S
@@ -352,37 +352,37 @@ void Test_VectorPush(void)
    TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
 }
 
-void Test_VectorInsertAt(void)
+void test_VectorInsertAt(void)
 {
 
 }
 
-void Test_VectorGetElementAt(void)
+void test_VectorGetElementAt(void)
 {
 
 }
 
-void Test_VectorSetElementAt(void)
+void test_VectorSetElementAt(void)
 {
 
 }
 
-void Test_VectorRemoveElementAt(void)
+void test_VectorRemoveElementAt(void)
 {
 
 }
 
-void Test_VectorLastElement(void)
+void test_VectorLastElement(void)
 {
 
 }
 
-void Test_VectorClear(void)
+void test_VectorClear(void)
 {
 
 }
 
-void Test_VectorIsEmpty(void)
+void test_VectorIsEmpty(void)
 {
 
 }
