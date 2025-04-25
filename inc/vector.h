@@ -132,6 +132,7 @@ bool VectorPush( struct Vector_S * self, const void * element );
 bool VectorInsertAt( struct Vector_S * self,
                      uint32_t idx,
                      const void * element );
+
 /**
  * @brief Retrieves a pointer to the element at the specified index in the vector.
  *
@@ -236,5 +237,48 @@ bool VectorCpyLastElement( struct Vector_S * self, void * data );
  * @param self Vector handle
  */
 bool VectorClear( struct Vector_S * self );
+
+
+/* Sub-Range Based Vector Operations */
+
+void * VectorGetElementsInRange( struct Vector_S * self,
+                                 uint32_t idx_start,
+                                 uint32_t idx_end );
+
+bool VectorCpyElementsInRange( struct Vector_S * self,
+                               uint32_t idx_start,
+                               uint32_t idx_end,
+                               void * buffer );
+
+void * VectorGetElementsFromStartToIdx( struct Vector_S * self,
+                                        uint32_t idx );
+
+bool VectorCpyElementsFromStartToIdx( struct Vector_S * self,
+                                      uint32_t idx,
+                                      void * buffer );
+
+void * VectorGetElementsFromIdxToEnd( struct Vector_S * self,
+                                      uint32_t idx );
+
+bool VectorCpyElementsFromIdxToEnd( struct Vector_S * self,
+                                    uint32_t idx,
+                                    void * buffer );
+
+bool VectorSetElementsInRange( struct Vector_S * self,
+                               uint32_t idx_start,
+                               uint32_t idx_end,
+                               const void * data );
+
+bool VectorSetElementsFromStartToIdx( struct Vector_S * self,
+                                      uint32_t idx,
+                                      const void * data );
+
+bool VectorSetElementsFromIdxToEnd( struct Vector_S * self,
+                                    uint32_t idx,
+                                    const void * data );
+
+bool VectorRemoveElementsInRange( struct Vector_S * self,
+                                  uint32_t idx_start,
+                                  uint32_t idx_end );
 
 // TODO: Support deep copies?
