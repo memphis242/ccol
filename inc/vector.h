@@ -114,7 +114,7 @@ bool VectorIsEmpty( struct Vector_S * self );
  * @return `true` if the insertion is successful, `false` otherwise.
  *         (e.g., memory allocation fails).
  */
-bool VectorPush( struct Vector_S * self, const void * restrict element );
+bool VectorPush( struct Vector_S * self, const void * element );
 
 /**
  * @brief Inserts an element into the vector at the specified index.
@@ -131,7 +131,7 @@ bool VectorPush( struct Vector_S * self, const void * restrict element );
  */
 bool VectorInsertAt( struct Vector_S * self,
                      uint32_t idx,
-                     const void * restrict element );
+                     const void * element );
 /**
  * @brief Retrieves a pointer to the element at the specified index in the vector.
  *
@@ -179,7 +179,7 @@ bool VectorCpyElementAt( struct Vector_S * self, uint32_t idx, void * data );
  */
 bool VectorSetElementAt( struct Vector_S * self,
                            uint32_t idx,
-                           const void * restrict element );
+                           const void * element );
 
 /**
  * @brief Removes an element from the vector at the specified index.
@@ -210,7 +210,22 @@ bool VectorRemoveElementAt( struct Vector_S * self, uint32_t idx, void * data );
  * @return true if the last element was successfully retrieved and placed in data,
  *         false otherwise
  */
-bool VectorLastElement( struct Vector_S * self, void * data );
+void * VectorLastElement( struct Vector_S * self );
+
+/**
+ * @brief Copies the last element in the vector to a provided buffer.
+ *
+ * Copies the last element in the vector into the provided data buffer. This ensures
+ * that any internal reallocations of the vector do not lead to unintended stale pointers.
+ *
+ * @param self Vector handle
+ * @param data Pointer to the buffer where the last element will be copied.
+ *             The buffer must be large enough to hold the element.
+ * 
+ * @return true if the last element was successfully copied to the buffer, false otherwise
+ *         (e.g., if the vector is empty or data is NULL).
+ */
+bool VectorCpyLastElement( struct Vector_S * self, void * data );
 
 /**
  * @brief Clears all elements in the vector.
