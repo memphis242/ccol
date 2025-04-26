@@ -76,31 +76,38 @@ void tearDown(void)
 
 /* Computation */
 
-void test_VectorInitialization(void)
+
+/************************ Vector Initialization Tests *************************/
+void test_VectorInit_Invalid_ZeroElementSz(void)
 {
    struct Vector_S * vec;
-
-   /******************* Invalid Inputs ********************/
-   // Zero element size
-   // 0 element size
    vec = VectorInit(0, 20, 50);
    TEST_ASSERT_NULL( vec );
    VectorFree(vec); 
+}
 
-   // Max capacity is less than initial capacity
+void test_VectorInit_Invalid_MaxCapLessThanInitCap(void)
+{
+   struct Vector_S * vec;
    vec = VectorInit(0, 50, 20);
    TEST_ASSERT_NULL( vec );
-   // TODO: Should actually throw an exception to inform the user...
    VectorFree(vec); 
+}
 
-   // Max capacity is zero. This is invalid because max capacity will not be
-   // changeable, and a max capacity of 0 is useless. We won't allow it.
+void test_VectorInit_Invalid_ZeroMaxCap(void)
+{
+   // This is invalid because max capacity will not be mutable,
+   // and a max capacity of 0 is useless. We won't allow it.
+   struct Vector_S * vec;
    vec = VectorInit(10, 0, 0);
    TEST_ASSERT_NULL( vec );
    // TODO: Should actually throw an exception to inform the user...
    VectorFree(vec);
+}
 
-   /******************** Input Combos *********************/
+void test_VectorInit_ValidInputCombo_3DPoints(void)
+{
+   struct Vector_S * vec;
    const uint32_t INITIAL_CAP_MAX = (uint32_t)(1.0e5f);
    const uint32_t MAX_CAP_MAX = 10 * INITIAL_CAP_MAX;
    // Create a vector of this made up struct datatype of 3D points
@@ -144,10 +151,14 @@ void test_VectorInitialization(void)
    // Even though malloc may fail a few times, there should be at least one
    // successful allocation among all these tries.
    TEST_ASSERT_TRUE(at_least_one_successful_initialization);
+}
 
-   // Repeat again but try a vector of strings, just to confirm another common
-   // use-case.
-   at_least_one_successful_initialization = false;
+void test_VectorInit_ValidInputCombo_PtrData(void)
+{
+   struct Vector_S * vec;
+   const uint32_t INITIAL_CAP_MAX = (uint32_t)(1.0e5f);
+   const uint32_t MAX_CAP_MAX = 10 * INITIAL_CAP_MAX;
+   bool at_least_one_successful_initialization = false;
    for ( uint32_t initial_cap = 0;
          initial_cap < INITIAL_CAP_MAX;
          initial_cap =
@@ -186,43 +197,32 @@ void test_VectorInitialization(void)
    // Even though malloc may fail a few times, there should be at least one
    // successful allocation among all these tries.
    TEST_ASSERT_TRUE(at_least_one_successful_initialization);
+}
 
-
-   /***************** Size/Length Limits ******************/
+void test_VectorInit_CapacityLimit(void)
+{
    // Now push things to the limit and try to create a vector at the system's limit.
    uint16_t iteration_counter = 0;
    const uint16_t MAX_ITERATIONS = UINT16_MAX;
-   vec = NULL;
-   // Might need to keep trying until I get a successful allocation...
-   while ( ( (NULL == vec) || (VectorCapacity(vec) == 0) ) &&
-           (iteration_counter < MAX_ITERATIONS)
-         )
-   {
-      VectorFree(vec);
-      vec = VectorInit( 1, UINT32_MAX, UINT32_MAX );
-      iteration_counter++;
-   }
+   struct Vector_S * vec = NULL;
+   TRY_INIT(vec, iteration_counter, 1, UINT32_MAX, UINT32_MAX);
    TEST_ASSERT_EQUAL_size_t( 1, VectorElementSize(vec) );
    TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorCapacity(vec) );
    TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorMaxCapacity(vec) );
    VectorFree(vec);
+}
 
-   iteration_counter = 0;
-   vec = NULL;
-   // Might need to keep trying until I get a successful allocation...
-   while ( ( (NULL == vec) || (VectorCapacity(vec) == 0) ) &&
-           (iteration_counter < MAX_ITERATIONS)
-         )
-   {
-      VectorFree(vec);
-      vec = VectorInit( UINT32_MAX, 1, 1 );
-      iteration_counter++;
-   }
+void test_VectorInit_ElementSzLimit(void)
+{
+   // Now push things to the limit and try to create a vector at the system's limit.
+   uint16_t iteration_counter = 0;
+   const uint16_t MAX_ITERATIONS = UINT16_MAX;
+   struct Vector_S * vec = NULL;
+   TRY_INIT(vec, iteration_counter, UINT32_MAX, 1, 1);
    TEST_ASSERT_EQUAL_size_t( UINT32_MAX, VectorElementSize(vec) );
    TEST_ASSERT_EQUAL_UINT32( 1, VectorCapacity(vec) );
    TEST_ASSERT_EQUAL_UINT32( 1, VectorMaxCapacity(vec) );
    VectorFree(vec);
-
 }
 
 void test_VectorOpsOnNullVectors(void)
@@ -252,7 +252,7 @@ void test_VectorFree(void)
    size_t i = 0;
    struct Vector_S * vec;
 
-   KEEP_TRYING_INIT(vec, i, sizeof(int), 10, 100);
+   TRY_INIT(vec, i, sizeof(int), 10, 100);
 
    // No assertion I can declare here
    VectorFree(vec);
@@ -310,7 +310,7 @@ void test_VectorPush(void)
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
    unsigned int iterations_counter = 0;
-   KEEP_TRYING_INIT( vec, iterations_counter, sizeof(struct MyData_S), 100, MAX_CAP );
+   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), 100, MAX_CAP );
 
    // Now push until you've reached the initial capacity, and confirm along the
    // way that the element was truly pushed in...
