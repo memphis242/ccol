@@ -240,24 +240,28 @@ void test_VectorInit_ElementSzLimit(void)
 
 void test_VectorOpsOnNullVectors(void)
 {
-   // Call any API that takes in a pointer, and ensure appropriate behavior
+   // Call any API that takes in a pointer, and ensure appropriate behavior, or
+   // that the application does not crash.
    VectorFree(NULL);
    (void)VectorLength(NULL);
    (void)VectorCapacity(NULL);
    (void)VectorMaxCapacity(NULL);
    (void)VectorElementSize(NULL);
+   TEST_ASSERT_TRUE( VectorIsEmpty(NULL) );
    TEST_ASSERT_FALSE( VectorPush(NULL, NULL) );
    TEST_ASSERT_FALSE( VectorInsertAt(NULL, 0, NULL) );
    TEST_ASSERT_FALSE( VectorInsertAt(NULL, UINT32_MAX, NULL) );
    TEST_ASSERT_NULL( VectorGetElementAt(NULL, 0) );
    TEST_ASSERT_NULL( VectorGetElementAt(NULL, UINT32_MAX) );
+   TEST_ASSERT_FALSE( VectorCpyElementAt(NULL, 0, NULL) );
+   TEST_ASSERT_FALSE( VectorCpyElementAt(NULL, UINT32_MAX, NULL) );
    TEST_ASSERT_FALSE( VectorSetElementAt(NULL, 0, NULL) );
    TEST_ASSERT_FALSE( VectorSetElementAt(NULL, UINT32_MAX, NULL) );
-   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, 0) );
-   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, UINT32_MAX) );
+   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, 0, NULL) );
+   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, UINT32_MAX, NULL) );
    TEST_ASSERT_NULL( VectorLastElement(NULL) );
+   TEST_ASSERT_FALSE( VectorCpyLastElement(NULL, NULL) );
    TEST_ASSERT_FALSE( VectorClear(NULL) );
-   TEST_ASSERT_TRUE( VectorIsEmpty(NULL) );
 }
 
 void test_VectorFree(void)
