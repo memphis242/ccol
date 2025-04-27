@@ -350,9 +350,9 @@ static bool LocalVectorExpand( struct Vector_S * self )
    {
       new_capacity = DEFAULT_INITIAL_CAPACITY;
    }
-   else if ( (uint32_t)(self->capacity * EXPANSION_FACTOR) < self->max_capacity )
+   else if ( (self->capacity * EXPANSION_FACTOR) < self->max_capacity )
    {
-      new_capacity = (uint32_t)(self->capacity * EXPANSION_FACTOR);
+      new_capacity = self->capacity * EXPANSION_FACTOR;
    }
    else
    {
