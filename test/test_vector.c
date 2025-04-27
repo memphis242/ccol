@@ -2,7 +2,7 @@
  * @file    test_vector.c
  * @brief   Test file for the the vector component
  * 
- * @author  Abdullah Almosalami @c85hup8
+ * @author  Abdullah Almosalami @memphis242
  * @date    Tues Apr 19, 2025
  * @copyright MIT License
  */
