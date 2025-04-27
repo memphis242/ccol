@@ -34,16 +34,29 @@
 /* Forward Function Declarations */
 void setUp(void);
 void tearDown(void);
-void test_VectorInitialization(void);
+void test_VectorInit_Invalid_ZeroElementSz(void);
+void test_VectorInit_Invalid_MaxCapLessThanInitCap(void);
+void test_VectorInit_Invalid_ZeroMaxCap(void);
+void test_VectorInit_ValidInputCombo_3DPoints(void);
+void test_VectorInit_ValidInputCombo_PtrData(void);
+void test_VectorInit_CapacityLimit(void);
+void test_VectorInit_ElementSzLimit(void);
 void test_VectorOpsOnNullVectors(void);
+void test_VectorFree(void);
+void test_VectorLength(void);
+void test_VectorCapacity(void);
+void test_VectorMaxCapacity(void);
+void test_VectorElementSize(void);
+void test_VectorIsEmpty(void);
 void test_VectorPush(void);
 void test_VectorInsertAt(void);
 void test_VectorGetElementAt(void);
+void test_VectorCpyElementAt(void);
 void test_VectorSetElementAt(void);
 void test_VectorRemoveElementAt(void);
 void test_VectorLastElement(void);
+void test_VectorCpyLastElement(void);
 void test_VectorClear(void);
-void test_VectorIsEmpty(void);
 
 /* Meat of the Program */
 
@@ -51,16 +64,7 @@ int main(void)
 {
    UNITY_BEGIN();
    
-   RUN_TEST(test_VectorInitialization);
-   RUN_TEST(test_VectorOpsOnNullVectors);
-   //RUN_TEST(test_VectorPush);
-   //RUN_TEST(test_VectorInsertAt);
-   //RUN_TEST(test_VectorGetElementAt);
-   //RUN_TEST(test_VectorSetElementAt);
-   //RUN_TEST(test_VectorRemoveElementAt);
-   //RUN_TEST(test_VectorLastElement);
-   //RUN_TEST(test_VectorClear);
-   //RUN_TEST(test_VectorIsEmpty);
+   RUN_TEST(test_VectorInit_Invalid_ZeroElementSz);
 
    return UNITY_END();
 }
