@@ -86,6 +86,7 @@ OBJ_FILES = $(patsubst %.c,$(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
 # Compiler setup
 CROSS	= 
 CC = $(CROSS)gcc
+
 COMPILER_WARNING_FLAGS = \
     -Wall -Wextra -Wpedantic \
     -Wconversion -Wdouble-promotion -Wnull-dereference \
@@ -98,6 +99,24 @@ COMPILER_WARNING_FLAGS = \
     -Wuninitialized -Wmaybe-uninitialized -Wshadow \
     -Wsuggest-attribute=const \
     -Walloc-zero -Walloc-size
+
+# Includes some -Wno-... flags for warnings that I'd normally want for my lib
+# src but **not** for my test file, which intentionally has all sorts of
+# naughty shenanigans going on
+COMPILER_WARNINGS_TEST_BUILD = \
+    -Wall -Wextra -Wpedantic \
+    -Wconversion -Wdouble-promotion -Wnull-dereference \
+    -Wwrite-strings -Wformat=2 -Wformat-overflow=2 \
+    -Wformat-signedness \
+    -Wcast-align=strict -Wimplicit-fallthrough=3 -Wswitch-default \
+    -Wswitch-enum -Wfloat-equal -Wuse-after-free=2 \
+    -Wdeprecated-declarations -Wmissing-prototypes -Wparentheses \
+    -Wreturn-type -Wlogical-op -Wstrict-aliasing \
+    -Wuninitialized -Wmaybe-uninitialized -Wshadow \
+    -Wsuggest-attribute=const \
+    -Walloc-zero -Walloc-size \
+	 -Wno-analyzer-use-of-uninitialized-value -Wno-uninitialized \
+	 -Wno-maybe-uninitialized
 
 COMPILER_SANITIZERS = -fsanitize=bool -fsanitize=undefined -fsanitize-trap
 COMPILER_OPTIMIZATION_LEVEL_DEBUG = -Og -g3
@@ -114,13 +133,16 @@ CFLAGS = $(INCLUDE_PATHS) $(COMMON_DEFINES) \
 			$(DIAGNOSTIC_FLAGS) $(COMPILER_WARNING_FLAGS) $(COMPILER_STATIC_ANALYZER) \
 			$(COMPILER_STANDARD)
 
+CFLAGS_TEST = \
+         -DTEST $(COMMON_DEFINES) \
+         $(INCLUDE_PATHS) \
+         $(DIAGNOSTIC_FLAGS) $(COMPILER_WARNINGS_TEST_BUILD) \
+         $(COMPILER_STATIC_ANALYZER) $(COMPILER_STANDARD) \
+         $(COMPILER_SANITIZERS) $(COMPILER_OPTIMIZATION_LEVEL_DEBUG)
+
 ifeq ($(BUILD_TYPE), RELEASE)
 $(info CFLAGS for release)
 CFLAGS += -DNDEBUG $(COMPILER_OPTIMIZATION_LEVEL_SPEED)
-
-else ifeq ($(BUILD_TYPE), TEST)
-$(info CFLAGS for testing)
-CFLAGS += -DTEST $(COMPILER_SANITIZERS) $(COMPILER_OPTIMIZATION_LEVEL_DEBUG)
 
 else ifeq ($(BUILD_TYPE), BENCHMARK)
 $(info CFLAGS for benchmarking)
@@ -192,19 +214,15 @@ $(PATH_OBJECT_FILES)%.o: $(PATH_TEST_FILES)%.c $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the test file: $<..."
 	@echo
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS_TEST) $< -o $@
 	@echo
-	@echo "----------------------------------------"
-	@echo -e "\033[36mRunning static analysis\033[0m on $<..."
-	@echo
-	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
 $(PATH_OBJECT_FILES)%.o: $(PATH_UNITY)%.c $(PATH_UNITY)%.h
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the unity file: $<..."
 	@echo
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS_TEST) $< -o $@
 	@echo
 
 .PHONY: unity_static_analysis
