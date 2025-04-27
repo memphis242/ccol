@@ -77,8 +77,8 @@ int main(void)
    RUN_TEST(test_VectorInit_Invalid_ZeroElementSz);
    RUN_TEST(test_VectorInit_Invalid_MaxCapLessThanInitCap);
    RUN_TEST(test_VectorInit_Invalid_ZeroMaxCap);
-//   RUN_TEST(test_VectorInit_ValidInputCombo_3DPoints);
-//   RUN_TEST(test_VectorInit_ValidInputCombo_PtrData);
+   RUN_TEST(test_VectorInit_ValidInputCombo_3DPoints);
+   RUN_TEST(test_VectorInit_ValidInputCombo_PtrData);
    RUN_TEST(test_VectorInit_CapacityLimit);
    RUN_TEST(test_VectorInit_ElementSzLimit);
    RUN_TEST(test_VectorOpsOnNullVectors);
