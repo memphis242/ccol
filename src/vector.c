@@ -51,20 +51,20 @@ struct Vector_S
 {
    void * arr;
    size_t element_size;
-   uint32_t len;
-   uint32_t capacity;
-   uint32_t max_capacity;
+   size_t len;
+   size_t capacity;
+   size_t max_capacity;
 };
 
 /* Private Function Prototypes */
 static bool LocalVectorExpand( struct Vector_S * self );
-static void ShiftOneOver( struct Vector_S * self, uint32_t idx );
+static void ShiftOneOver( struct Vector_S * self, size_t idx );
 
 /* Public API Implementations */
 
 struct Vector_S * VectorInit( size_t element_size,
-                              uint32_t initial_capacity,
-                              uint32_t max_capacity )
+                              size_t initial_capacity,
+                              size_t max_capacity )
 {
    // Early return op
    // Invalid inputs
@@ -89,7 +89,7 @@ struct Vector_S * VectorInit( size_t element_size,
    }
    else
    {
-      NewVec->arr = malloc( (size_t)(element_size * initial_capacity) );
+      NewVec->arr = malloc( element_size * initial_capacity );
    }
 
    // If malloc failed to allocate space for the array...
@@ -127,7 +127,7 @@ void VectorFree( struct Vector_S * self )
    free(self);
 }
 
-uint32_t VectorLength( struct Vector_S * self )
+size_t VectorLength( struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -136,7 +136,7 @@ uint32_t VectorLength( struct Vector_S * self )
    return self->len;
 }
 
-uint32_t VectorCapacity( struct Vector_S * self )
+size_t VectorCapacity( struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -145,7 +145,7 @@ uint32_t VectorCapacity( struct Vector_S * self )
    return self->capacity;
 }
 
-uint32_t VectorMaxCapacity( struct Vector_S * self )
+size_t VectorMaxCapacity( struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -210,7 +210,7 @@ bool VectorPush( struct Vector_S * self, const void * restrict element )
 }
 
 bool VectorInsertAt( struct Vector_S * self,
-                     uint32_t idx,
+                     size_t idx,
                      const void * restrict element )
 {
    // Early return op
@@ -252,7 +252,7 @@ bool VectorInsertAt( struct Vector_S * self,
    return ret_val;
 }
 
-void * VectorGetElementAt( struct Vector_S * self, uint32_t idx )
+void * VectorGetElementAt( struct Vector_S * self, size_t idx )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == self->arr) )
    {
@@ -262,7 +262,7 @@ void * VectorGetElementAt( struct Vector_S * self, uint32_t idx )
    return (void *)PTR_TO_IDX(self, idx);
 }
 
-bool VectorCpyElementAt( struct Vector_S * self, uint32_t idx, void * data )
+bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == self->arr) ||
         (NULL == data) || (0 == self->element_size) )
@@ -276,13 +276,13 @@ bool VectorCpyElementAt( struct Vector_S * self, uint32_t idx, void * data )
 }
 
 bool VectorSetElementAt( struct Vector_S * self,
-                           uint32_t idx,
+                           size_t idx,
                            const void * restrict element )
 {
    return false;
 }
 
-bool VectorRemoveElementAt( struct Vector_S * self, uint32_t idx, void * data )
+bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data )
 {
    return false;
 }
@@ -345,7 +345,7 @@ static bool LocalVectorExpand( struct Vector_S * self )
    bool ret_val = false;
 
    // First determine new capacity, and then realloc.
-   uint32_t new_capacity;
+   size_t new_capacity;
    if ( 0 == self->capacity )
    {
       new_capacity = DEFAULT_INITIAL_CAPACITY;
@@ -371,7 +371,7 @@ static bool LocalVectorExpand( struct Vector_S * self )
 }
 
 // Shift to the right all elements from the idx onwards to length of the vector
-static void ShiftOneOver( struct Vector_S * self, uint32_t idx )
+static void ShiftOneOver( struct Vector_S * self, size_t idx )
 {
    assert( (self != NULL) &&
            (self->arr != NULL) &&
@@ -381,7 +381,7 @@ static void ShiftOneOver( struct Vector_S * self, uint32_t idx )
            (self->element_size > 0) );
 
    // Start at the end and shift over to the right by one until we hit idx
-   for ( uint32_t i = self->len; i > idx; i-- )
+   for ( size_t i = self->len; i > idx; i-- )
    {
       uint8_t * old_spot = PTR_TO_IDX(self, i - 1);
       uint8_t * new_spot = PTR_TO_IDX(self, i);

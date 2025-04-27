@@ -40,8 +40,8 @@ struct Vector_S;
  * @return A pointer to the initialized vector, or NULL if allocation fails.
  */
 struct Vector_S * VectorInit( size_t element_size,
-                              uint32_t initial_capacity,
-                              uint32_t max_capacity );
+                              size_t initial_capacity,
+                              size_t max_capacity );
 
 /**
  * @brief Frees the memory allocated for the vector.
@@ -61,7 +61,7 @@ void VectorFree( struct Vector_S * self );
  * 
  * @return The number of elements in the vector.
  */
-uint32_t VectorLength( struct Vector_S * self );
+size_t VectorLength( struct Vector_S * self );
 
 /**
  * @brief Retrieves the current capacity of the vector.
@@ -72,7 +72,7 @@ uint32_t VectorLength( struct Vector_S * self );
  * 
  * @return The current capacity of the vector.
  */
-uint32_t VectorCapacity( struct Vector_S * self );
+size_t VectorCapacity( struct Vector_S * self );
 
 /**
  * @brief Retrieves the maximum capacity of the vector.
@@ -83,7 +83,7 @@ uint32_t VectorCapacity( struct Vector_S * self );
  * 
  * @return The maximum capacity of the vector.
  */
-uint32_t VectorMaxCapacity( struct Vector_S * self );
+size_t VectorMaxCapacity( struct Vector_S * self );
 
 /**
  * @brief Retrieves the size of each element in the vector.
@@ -130,7 +130,7 @@ bool VectorPush( struct Vector_S * self, const void * element );
  *         (e.g., memory allocation fails).
  */
 bool VectorInsertAt( struct Vector_S * self,
-                     uint32_t idx,
+                     size_t idx,
                      const void * element );
 
 /**
@@ -148,7 +148,7 @@ bool VectorInsertAt( struct Vector_S * self,
  * @return A pointer to the element if the retrieval was successful, or NULL if
  *         something is off.
  */
-void * VectorGetElementAt( struct Vector_S * self, uint32_t idx );
+void * VectorGetElementAt( struct Vector_S * self, size_t idx );
 
 /**
 * @brief Copies the element at the specified index in the vector to a provided buffer.
@@ -164,7 +164,7 @@ void * VectorGetElementAt( struct Vector_S * self, uint32_t idx );
 * @return true if the retrieval and copy were successful, false otherwise
 *         (e.g., if the index is out of bounds or data is NULL).
 */
-bool VectorCpyElementAt( struct Vector_S * self, uint32_t idx, void * data );
+bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data );
 
 /**
  * @brief Sets the value of an element at the specified index in the vector.
@@ -179,7 +179,7 @@ bool VectorCpyElementAt( struct Vector_S * self, uint32_t idx, void * data );
  * @return true if the update was successful, false otherwise
  */
 bool VectorSetElementAt( struct Vector_S * self,
-                           uint32_t idx,
+                           size_t idx,
                            const void * element );
 
 /**
@@ -196,7 +196,7 @@ bool VectorSetElementAt( struct Vector_S * self,
  * 
  * @return true if the element was removed, false otherwise
  */
-bool VectorRemoveElementAt( struct Vector_S * self, uint32_t idx, void * data );
+bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data );
 
 /**
  * @brief Retrieves the last element in the vector.
@@ -242,43 +242,43 @@ bool VectorClear( struct Vector_S * self );
 /* Sub-Range Based Vector Operations */
 
 void * VectorGetElementsInRange( struct Vector_S * self,
-                                 uint32_t idx_start,
-                                 uint32_t idx_end );
+                                 size_t idx_start,
+                                 size_t idx_end );
 
 bool VectorCpyElementsInRange( struct Vector_S * self,
-                               uint32_t idx_start,
-                               uint32_t idx_end,
+                               size_t idx_start,
+                               size_t idx_end,
                                void * buffer );
 
 void * VectorGetElementsFromStartToIdx( struct Vector_S * self,
-                                        uint32_t idx );
+                                        size_t idx );
 
 bool VectorCpyElementsFromStartToIdx( struct Vector_S * self,
-                                      uint32_t idx,
+                                      size_t idx,
                                       void * buffer );
 
 void * VectorGetElementsFromIdxToEnd( struct Vector_S * self,
-                                      uint32_t idx );
+                                      size_t idx );
 
 bool VectorCpyElementsFromIdxToEnd( struct Vector_S * self,
-                                    uint32_t idx,
+                                    size_t idx,
                                     void * buffer );
 
 bool VectorSetElementsInRange( struct Vector_S * self,
-                               uint32_t idx_start,
-                               uint32_t idx_end,
+                               size_t idx_start,
+                               size_t idx_end,
                                const void * data );
 
 bool VectorSetElementsFromStartToIdx( struct Vector_S * self,
-                                      uint32_t idx,
+                                      size_t idx,
                                       const void * data );
 
 bool VectorSetElementsFromIdxToEnd( struct Vector_S * self,
-                                    uint32_t idx,
+                                    size_t idx,
                                     const void * data );
 
 bool VectorRemoveElementsInRange( struct Vector_S * self,
-                                  uint32_t idx_start,
-                                  uint32_t idx_end );
+                                  size_t idx_start,
+                                  size_t idx_end );
 
 // TODO: Support deep copies?
