@@ -17,7 +17,7 @@
 #include "vector.h"
 
 /* Local Macro Definitions */
-#define MAX_INIT_ATTEMPTS 100
+#define MAX_INIT_ATTEMPTS 100 //! Used in the TRY_INIT macro to limit VectorInit() attempst
 
 #define TRY_INIT(ptr, iter_counter, elsz, icap, mcap)                          \
    do                                                                          \
@@ -54,7 +54,11 @@ void test_VectorCapacity(void);
 void test_VectorMaxCapacity(void);
 void test_VectorElementSize(void);
 void test_VectorIsEmpty(void);
-void test_VectorPush(void);
+void test_VectorPush_SimplePush(void);
+void test_VectorPush_UntilCapacity(void);
+void test_VectorPush_PastInitialCapacity(void);
+void test_VectorPush_PastMaxCapacity(void);
+void test_VectorPush_IntoVecWithZeroMaxCap(void);
 void test_VectorInsertAt(void);
 void test_VectorGetElementAt(void);
 void test_VectorCpyElementAt(void);
@@ -71,6 +75,32 @@ int main(void)
    UNITY_BEGIN();
 
    RUN_TEST(test_VectorInit_Invalid_ZeroElementSz);
+   RUN_TEST(test_VectorInit_Invalid_MaxCapLessThanInitCap);
+   RUN_TEST(test_VectorInit_Invalid_ZeroMaxCap);
+//   RUN_TEST(test_VectorInit_ValidInputCombo_3DPoints);
+//   RUN_TEST(test_VectorInit_ValidInputCombo_PtrData);
+   RUN_TEST(test_VectorInit_CapacityLimit);
+   RUN_TEST(test_VectorInit_ElementSzLimit);
+   RUN_TEST(test_VectorOpsOnNullVectors);
+   RUN_TEST(test_VectorFree);
+   RUN_TEST(test_VectorLength);
+   RUN_TEST(test_VectorCapacity);
+   RUN_TEST(test_VectorMaxCapacity);
+   RUN_TEST(test_VectorElementSize);
+   RUN_TEST(test_VectorIsEmpty);
+   RUN_TEST(test_VectorPush_SimplePush);
+   RUN_TEST(test_VectorPush_UntilCapacity);
+   RUN_TEST(test_VectorPush_PastInitialCapacity);
+   RUN_TEST(test_VectorPush_PastMaxCapacity);
+   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
+//   RUN_TEST(test_VectorInsertAt);
+//   RUN_TEST(test_VectorGetElementAt);
+//   RUN_TEST(test_VectorCpyElementAt);
+//   RUN_TEST(test_VectorSetElementAt);
+//   RUN_TEST(test_VectorRemoveElementAt);
+//   RUN_TEST(test_VectorLastElement);
+//   RUN_TEST(test_VectorCpyLastElement);
+//   RUN_TEST(test_VectorClear);
 
    return UNITY_END();
 }
@@ -216,7 +246,6 @@ void test_VectorInit_CapacityLimit(void)
 {
    // Now push things to the limit and try to create a vector at the system's limit.
    uint16_t iteration_counter = 0;
-   const uint16_t MAX_ITERATIONS = UINT16_MAX;
    struct Vector_S * vec = NULL;
    TRY_INIT(vec, iteration_counter, 1, UINT32_MAX, UINT32_MAX);
    TEST_ASSERT_EQUAL_size_t( 1, VectorElementSize(vec) );
@@ -229,7 +258,6 @@ void test_VectorInit_ElementSzLimit(void)
 {
    // Now push things to the limit and try to create a vector at the system's limit.
    uint16_t iteration_counter = 0;
-   const uint16_t MAX_ITERATIONS = UINT16_MAX;
    struct Vector_S * vec = NULL;
    TRY_INIT(vec, iteration_counter, UINT32_MAX, 1, 1);
    TEST_ASSERT_EQUAL_size_t( UINT32_MAX, VectorElementSize(vec) );
@@ -267,7 +295,7 @@ void test_VectorOpsOnNullVectors(void)
 void test_VectorFree(void)
 {
    size_t i = 0;
-   struct Vector_S * vec;
+   struct Vector_S * vec = NULL;
 
    TRY_INIT(vec, i, sizeof(int), 10, 100);
 
@@ -313,16 +341,44 @@ void test_VectorIsEmpty(void) {
     VectorFree(vec);
 }
 
-void test_VectorPush(void)
+void test_VectorPush_SimplePush(void)
 {
-   struct Vector_S * vec;
+   struct Vector_S * vec = NULL;
+   unsigned int iteration_counter = 0;
+   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100);
+
+   int value1 = 42;
+   int value2 = 84;
+
+   // Now try pushing...
+   // There should be no issues pushing because the initial capacity
+   // is greater than 2.
+   // Push the first value and verify
+   TEST_ASSERT_TRUE(VectorPush(vec, &value1));
+   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(value1, *(int *)VectorGetElementAt(vec, 0));
+
+   // Push the second value and verify
+   TEST_ASSERT_TRUE(VectorPush(vec, &value2));
+   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(value2, *(int *)VectorGetElementAt(vec, 1));
+
+   // Ensure the vector is not empty
+   TEST_ASSERT_FALSE(VectorIsEmpty(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorPush_UntilCapacity(void)
+{
+   struct Vector_S * vec = NULL;
    struct MyData_S
    {
       float x;
       float y;
       float z;
    };
-   const uint32_t MAX_CAP = 1000000;
+   const uint32_t MAX_CAP = (uint32_t)(1.0e6);
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
    unsigned int iterations_counter = 0;
@@ -379,11 +435,107 @@ void test_VectorPush(void)
    }
 
    VectorFree(vec);
+}
 
-   // Now try pushing into a vector that has failed to initialize
-   TEST_ASSERT_FALSE( VectorPush(NULL, &test_element) );
+void test_VectorPush_PastInitialCapacity(void)
+{
+   struct Vector_S * vec = NULL;
+   struct MyData_S
+   {
+      float x;
+      float y;
+      float z;
+   };
+   const uint32_t MAX_CAP = (uint32_t)(1.0e6);
+   const uint32_t INIT_CAP = MAX_CAP / 1000;
 
-   // Now try pushing into a vector that was initialized with 0 max capacity
+   unsigned int iterations_counter = 0;
+   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), 100, MAX_CAP );
+
+   // Fill to initial capacity
+   struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
+   struct MyData_S * last_element;
+   uint32_t vec_len = 0;
+   while ( VectorLength(vec) < INIT_CAP )
+   {
+      bool push_successfull = VectorPush( vec, &test_element );
+      vec_len = push_successfull ? (vec_len + 1) : vec_len;
+   }
+
+   // Now try pushing past the capacity
+   // Change the test element to distinguish it from the previously added elmnts
+   test_element.x = 10.5f;
+   test_element.y = -10.5;
+   test_element.z = 105.0f;
+   while ( VectorLength(vec) <= INIT_CAP )
+   {
+      bool push_successfull = VectorPush( vec, &test_element );
+      vec_len = push_successfull ? (vec_len + 1) : vec_len;
+   }
+   last_element = VectorLastElement(vec);
+   TEST_ASSERT_EQUAL_FLOAT( test_element.x, last_element->x );
+   TEST_ASSERT_EQUAL_FLOAT( test_element.y, last_element->y );
+   TEST_ASSERT_EQUAL_FLOAT( test_element.z, last_element->z );
+
+   VectorFree(vec);
+}
+
+void test_VectorPush_PastMaxCapacity(void)
+{
+   struct Vector_S * vec = NULL;
+   struct MyData_S
+   {
+      float x;
+      float y;
+      float z;
+   };
+   const uint32_t MAX_CAP = (uint32_t)(10.0e3);
+   const uint32_t INIT_CAP = MAX_CAP / 1000;
+
+   unsigned int iterations_counter = 0;
+   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP );
+
+   // Fill to initial capacity
+   struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
+   struct MyData_S * last_element;
+   uint32_t vec_len = 0;
+   while ( VectorLength(vec) < MAX_CAP )
+   {
+      bool push_successfull = VectorPush( vec, &test_element );
+      vec_len = push_successfull ? (vec_len + 1) : vec_len;
+   }
+
+   // Now try pushing past the max capacity many times
+   // Change the test element to distinguish it from the previously added elmnts
+   test_element.x = 10.5f;
+   test_element.y = -10.5;
+   test_element.z = 105.0f;
+   for ( uint16_t i = 0; i < 1000; i++ )
+   {
+      bool push_successfull = VectorPush( vec, &test_element );
+      last_element = VectorLastElement(vec);
+      TEST_ASSERT_FALSE(push_successfull);
+      // Last element is still the original data
+      TEST_ASSERT_EQUAL_FLOAT( test_element.x, last_element->x );
+      TEST_ASSERT_EQUAL_FLOAT( test_element.y, last_element->y );
+      TEST_ASSERT_EQUAL_FLOAT( test_element.z, last_element->z );
+   }
+   
+   VectorFree(vec);
+}
+
+void test_VectorPush_IntoVecWithZeroMaxCap(void)
+{
+   struct Vector_S * vec;
+   struct MyData_S
+   {
+      char str[20];
+      unsigned long long int id;
+   } test_element =
+   {
+      .str = "Test Element",
+      .id  = 0
+   };
    vec = VectorInit( sizeof(struct MyData_S), 0, 0 );
    TEST_ASSERT_FALSE( VectorPush( vec, &test_element ) );
    TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
