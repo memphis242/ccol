@@ -36,8 +36,10 @@
 /* Local Variables */
 
 /* Forward Function Declarations */
+
 void setUp(void);
 void tearDown(void);
+
 void test_VectorInit_Invalid_ZeroElementSz(void);
 void test_VectorInit_Invalid_MaxCapLessThanInitCap(void);
 void test_VectorInit_Invalid_ZeroMaxCap(void);
@@ -67,16 +69,19 @@ void test_VectorClear(void);
 int main(void)
 {
    UNITY_BEGIN();
-   
+
    RUN_TEST(test_VectorInit_Invalid_ZeroElementSz);
 
    return UNITY_END();
 }
 
+/********************************* Test Setup *********************************/
+
 void setUp(void)
 {
    // Do nothing
 }
+
 void tearDown(void)
 {
    // Do nothing
