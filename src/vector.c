@@ -120,7 +120,7 @@ struct Vector_S * VectorInit( size_t element_size,
 
 void VectorFree( struct Vector_S * self )
 {
-   if ( self != NULL )
+   if ( (self != NULL) && (self->arr != NULL) )
    {
       free(self->arr);
    }
