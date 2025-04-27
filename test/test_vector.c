@@ -19,13 +19,17 @@
 /* Local Macro Definitions */
 #define MAX_INIT_ATTEMPTS 100
 
-#define TRY_INIT(ptr, iter_counter, elsz, icap, mcap)       \
-   do                                                               \
-   {                                                                \
-      VectorFree(ptr);                                              \
-      ptr = VectorInit( elsz, icap, mcap );                         \
-      iter_counter++;                                               \
-   } while ( (NULL == ptr) && (VectorCapacity(ptr) == 0) && (iter_counter < MAX_INIT_ATTEMPTS) );
+#define TRY_INIT(ptr, iter_counter, elsz, icap, mcap)                          \
+   do                                                                          \
+   {                                                                           \
+      VectorFree(ptr);                                                         \
+      ptr = VectorInit( elsz, icap, mcap );                                    \
+      iter_counter++;                                                          \
+   } while (                                                                   \
+      (NULL == ptr) &&                                                         \
+      (VectorCapacity(ptr) == 0) &&                                            \
+      (iter_counter < MAX_INIT_ATTEMPTS)                                       \
+   );
 
 /* Datatypes */
 
