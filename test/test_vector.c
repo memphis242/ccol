@@ -253,8 +253,8 @@ void test_VectorOpsOnNullVectors(void)
    TEST_ASSERT_NULL( VectorGetElementAt(NULL, UINT32_MAX) );
    TEST_ASSERT_FALSE( VectorSetElementAt(NULL, 0, NULL) );
    TEST_ASSERT_FALSE( VectorSetElementAt(NULL, UINT32_MAX, NULL) );
-   //TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, 0) );
-   //TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, UINT32_MAX) );
+   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, 0) );
+   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, UINT32_MAX) );
    TEST_ASSERT_NULL( VectorLastElement(NULL) );
    TEST_ASSERT_FALSE( VectorClear(NULL) );
    TEST_ASSERT_TRUE( VectorIsEmpty(NULL) );
@@ -267,10 +267,9 @@ void test_VectorFree(void)
 
    TRY_INIT(vec, i, sizeof(int), 10, 100);
 
-   // No assertion I can declare here
+   // No assertion I can declare here, but I can at least check that the
+   // nothing crashes.
    VectorFree(vec);
-   // But run the free method anyways and make sure there
-   // are no crashed.
 }
 
 void test_VectorLength(void) {
