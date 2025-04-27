@@ -21,14 +21,12 @@
 #include <limits.h>
 #include "vector.h"
 
-// TODO: Realloc usage is a security vulnerability because data left behind from
-//       realloc moving the data rather than growing/shrinking could be sensitive
-//       and somehow exploited elsewhere. Given that, add support for custom
-//       allocators and provide your own, more secure realloc.
+// TODO: Add support for custom alloactors.
 
 /* Local Macro Definitions */
 // Constants
-#define EXPANSION_FACTOR   (2)
+#define EXPANSION_FACTOR            (2)   //TODO: Make the expansion factor user-configurable
+#define DEFAULT_INITIAL_CAPACITY    (10)  //! Not 1 because there would likely be a resize shortly after
 
 // Function-like
 #define IS_EMPTY(self)     ( 0 == (self)->len )
@@ -332,58 +330,41 @@ bool VectorClear( struct Vector_S * self )
 static bool LocalVectorExpand( struct Vector_S * self )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
-   assert( (self != NULL) && (self->element_size != 0) );
+   assert( (self != NULL) &&
+           (self->element_size != 0) &&
+           (self->arr != NULL) &&
+           (self->len <= self->capacity) &&
+           (self->len <= self->max_capacity) ); 
 
-   bool ret_val = true;
-
-   // If empty, create a single-element array
-   if ( IS_EMPTY(self) )
+   // If we're already at max capacity, can't expand further.
+   if ( self->capacity == self->max_capacity )
    {
-      self->arr = malloc( self->element_size );
-      if ( NULL == self->arr )
-      {
-         ret_val = false;
-         self->capacity = 0;
-      }
-      else
-      {
-         self->capacity = 1;
-      }
-      self->len = 0;
+      return false;
    }
-   else if ( self->capacity == self->max_capacity )
+
+   bool ret_val = false;
+
+   // First determine new capacity, and then realloc.
+   uint32_t new_capacity;
+   if ( 0 == self->capacity )
    {
-      // TODO: Throw exception: Already at capacity. Cannot expand further.
-      ret_val = false;
+      new_capacity = DEFAULT_INITIAL_CAPACITY;
+   }
+   else if ( (uint32_t)(self->capacity * EXPANSION_FACTOR) < self->max_capacity )
+   {
+      new_capacity = (uint32_t)(self->capacity * EXPANSION_FACTOR);
    }
    else
    {
-      // Assert if we somehow have a NULL arr when the vector was determined
-      // to be non-empty...
-      assert( self->arr != NULL );
-      uint32_t new_capacity;
+      new_capacity = self->max_capacity;
+   }
 
-      if ( (uint32_t)(self->capacity * EXPANSION_FACTOR) <= self->max_capacity )
-      {
-         new_capacity = (uint32_t)(self->capacity * EXPANSION_FACTOR);
-      }
-      else
-      {
-         new_capacity = self->max_capacity;
-      }
-
-      void * new_ptr = realloc( self->arr, (self->element_size * new_capacity) );
-      if ( NULL == new_ptr )
-      {
-         // TODO: Throw exception
-         // TODO: Is the original pointer still usable?
-         ret_val = false;
-      }
-      else
-      {
-         self->arr = new_ptr;
-         self->capacity = new_capacity;
-      }
+   void * new_ptr = realloc( self->arr, (self->element_size * new_capacity) );
+   if ( new_ptr != NULL )
+   {
+      self->arr = new_ptr;
+      self->capacity = new_capacity;
+      ret_val = true;
    }
 
    return ret_val;
@@ -402,8 +383,8 @@ static void ShiftOneOver( struct Vector_S * self, uint32_t idx )
    // Start at the end and shift over to the right by one until we hit idx
    for ( uint32_t i = self->len; i > idx; i-- )
    {
-      uint8_t * old_spot = (uint8_t *)self->arr + ((i - 1) * self->element_size);
-      uint8_t * new_spot = (uint8_t *)self->arr + (i * self->element_size);
+      uint8_t * old_spot = PTR_TO_IDX(self, i - 1);
+      uint8_t * new_spot = PTR_TO_IDX(self, i);
       memcpy( new_spot, old_spot, self->element_size );
    }
 }
