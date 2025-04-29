@@ -298,7 +298,7 @@ void * VectorLastElement( struct Vector_S * self )
    assert( self->len <= self->max_capacity );
    assert( (self->element_size * self->len) <= PTRDIFF_MAX );
 
-   return (void *)PTR_TO_IDX(self, self->len);
+   return (void *)PTR_TO_IDX(self, (self->len - 1));
 }
 
 bool VectorCpyLastElement( struct Vector_S * self, void * data )
