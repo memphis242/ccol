@@ -143,7 +143,7 @@ bool VectorInsertAt( struct Vector_S * self,
  * could render the pointers stale.
  *
  * @param self Vector handle
- * @param idx The index of the element to retrieve.
+ * @param idx The index of the element to retrieve, 0-indexed.
  * 
  * @return A pointer to the element if the retrieval was successful, or NULL if
  *         something is off.
@@ -157,7 +157,7 @@ void * VectorGetElementAt( struct Vector_S * self, size_t idx );
 * that any internal reallocations of the vector do not lead to unintended stale pointers.
 *
 * @param self Vector handle
-* @param idx The index of the element to retrieve.
+* @param idx The index of the element to retrieve, 0-indexed.
 * @param data Pointer to the buffer where the element will be copied.
 *             The buffer must be large enough to hold the element.
 * 
@@ -172,7 +172,7 @@ bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data );
  * Updates the element at the given index with the provided value.
  *
  * @param self Vector handle
- * @param idx The index of the element to update.
+ * @param idx The index of the element to update, 0-indexed.
  * @param element A pointer to the new value to set at the specified index.
  *                The memory pointed to must not overlap with the vector's memory.
  * 
@@ -191,7 +191,7 @@ bool VectorSetElementAt( struct Vector_S * self,
  * NULL, then the function skips the data copying.
  *
  * @param self Vector handle
- * @param idx The index of the element to be removed.
+ * @param idx The index of the element to be removed, 0-indexed.
  * @param data Pointer to the data that will be returned.
  * 
  * @return true if the element was removed, false otherwise
