@@ -90,7 +90,7 @@ int main(void)
    RUN_TEST(test_VectorElementSize);
    RUN_TEST(test_VectorIsEmpty);
    RUN_TEST(test_VectorPush_SimplePush);
-//   RUN_TEST(test_VectorPush_UntilCapacity);
+   RUN_TEST(test_VectorPush_UntilCapacity);
 //   RUN_TEST(test_VectorPush_PastInitialCapacity);
 //   RUN_TEST(test_VectorPush_PastMaxCapacity);
 //   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
@@ -99,7 +99,7 @@ int main(void)
 //   RUN_TEST(test_VectorCpyElementAt);
 //   RUN_TEST(test_VectorSetElementAt);
 //   RUN_TEST(test_VectorRemoveElementAt);
-//   RUN_TEST(test_VectorLastElement);
+   RUN_TEST(test_VectorLastElement);
 //   RUN_TEST(test_VectorCpyLastElement);
    RUN_TEST(test_VectorClear);
    RUN_TEST(test_VectorHardReset);
@@ -384,7 +384,7 @@ void test_VectorPush_UntilCapacity(void)
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
    unsigned int iterations_counter = 0;
-   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), 100, MAX_CAP );
+   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP );
 
    // Now push until you've reached the initial capacity, and confirm along the
    // way that the element was truly pushed in...
@@ -435,6 +435,10 @@ void test_VectorPush_UntilCapacity(void)
          TEST_ASSERT_EQUAL_UINT32( vec_len, VectorLength(vec) );
       }
    }
+
+   // We should have gotten past the initial capacity and grown
+   TEST_ASSERT_GREATER_THAN_UINT32( INIT_CAP, VectorLength(vec) );
+   TEST_ASSERT_GREATER_THAN_UINT32( INIT_CAP, VectorCapacity(vec) );
 
    VectorFree(vec);
 }
