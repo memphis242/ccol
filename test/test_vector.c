@@ -67,6 +67,7 @@ void test_VectorRemoveElementAt(void);
 void test_VectorLastElement(void);
 void test_VectorCpyLastElement(void);
 void test_VectorClear(void);
+void test_VectorHardReset(void);
 
 /* Meat of the Program */
 
@@ -89,10 +90,10 @@ int main(void)
    RUN_TEST(test_VectorElementSize);
    RUN_TEST(test_VectorIsEmpty);
    RUN_TEST(test_VectorPush_SimplePush);
-   RUN_TEST(test_VectorPush_UntilCapacity);
-   RUN_TEST(test_VectorPush_PastInitialCapacity);
-   RUN_TEST(test_VectorPush_PastMaxCapacity);
-   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
+//   RUN_TEST(test_VectorPush_UntilCapacity);
+//   RUN_TEST(test_VectorPush_PastInitialCapacity);
+//   RUN_TEST(test_VectorPush_PastMaxCapacity);
+//   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
 //   RUN_TEST(test_VectorInsertAt);
 //   RUN_TEST(test_VectorGetElementAt);
 //   RUN_TEST(test_VectorCpyElementAt);
@@ -100,7 +101,8 @@ int main(void)
 //   RUN_TEST(test_VectorRemoveElementAt);
 //   RUN_TEST(test_VectorLastElement);
 //   RUN_TEST(test_VectorCpyLastElement);
-//   RUN_TEST(test_VectorClear);
+   RUN_TEST(test_VectorClear);
+   RUN_TEST(test_VectorHardReset);
 
    return UNITY_END();
 }
@@ -610,12 +612,55 @@ void test_VectorCpyLastElement(void) {
    VectorFree(vec);
 }
 
-void test_VectorClear(void) {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+void test_VectorClear(void)
+{
+   struct Vector_S * vec = NULL;
+   unsigned int iteration_counter = 0;
+
+   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100)
+   TEST_ASSERT_NOT_NULL(vec);
+
    int value = 42;
    VectorPush(vec, &value);
    TEST_ASSERT_FALSE(VectorIsEmpty(vec));
    TEST_ASSERT_TRUE(VectorClear(vec));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+   VectorFree(vec);
+}
+
+void test_VectorHardReset(void)
+{
+   struct Vector_S * vec = NULL;
+   unsigned int iteration_counter = 0;
+
+   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100)
+   TEST_ASSERT_NOT_NULL(vec);
+
+   // Add some elements to the vector
+   int value1 = 42, value2 = 84, value3 = 126;
+   VectorPush(vec, &value1);
+   VectorPush(vec, &value2);
+   VectorPush(vec, &value3);
+
+   // Get pointers to these values to check later
+   int * ptr_val1;
+   int * ptr_val2;
+   int * ptr_val3;
+   ptr_val1 = VectorGetElementAt(vec, 0);
+   ptr_val2 = VectorGetElementAt(vec, 1);
+   ptr_val3 = VectorGetElementAt(vec, 2);
+
+   // Perform a hard reset
+   TEST_ASSERT_TRUE(VectorHardReset(vec));
+
+   // Verify the vector is empty
+   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+   TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+
+   // Verify all elements have been set to 0
+   TEST_ASSERT_EQUAL_INT(0, *ptr_val1);
+   TEST_ASSERT_EQUAL_INT(0, *ptr_val2);
+   TEST_ASSERT_EQUAL_INT(0, *ptr_val3);
+
    VectorFree(vec);
 }

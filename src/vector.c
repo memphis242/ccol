@@ -322,7 +322,28 @@ bool VectorCpyLastElement( struct Vector_S * self, void * data )
 
 bool VectorClear( struct Vector_S * self )
 {
-   return false;
+   if ( NULL == self )
+   {
+      return false;
+   }
+
+   self->len = 0;
+   return true;
+}
+
+bool VectorHardReset( struct Vector_S * self )
+{
+   if ( (NULL == self) || (NULL == self->arr) || (0 == self->element_size) )
+   {
+      return false;
+   }
+
+   for ( size_t i = 0; i < self->len; i++ )
+   {
+      memset( PTR_TO_IDX(self, i), 0, self->element_size );
+   }
+   self->len = 0;
+   return true;
 }
 
 /* Private Function Implementations */
