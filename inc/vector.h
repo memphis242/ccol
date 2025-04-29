@@ -229,14 +229,23 @@ void * VectorLastElement( struct Vector_S * self );
 bool VectorCpyLastElement( struct Vector_S * self, void * data );
 
 /**
- * @brief Clears all elements in the vector.
+ * @brief Resets the vector length to zero, thereby losing track of old data.
  *
- * Removes all elements from the vector, resetting its length to zero.
- * The allocated memory is not freed, allowing the vector to be reused.
+ * @note The allocated memory is not freed, allowing the vector to be reused.
  *
  * @param self Vector handle
  */
 bool VectorClear( struct Vector_S * self );
+
+/**
+ * @brief Sets all elements to 0 and resets the vector length to zero.
+ *
+ * Similar to VectorClear except all elements that were previously added will
+ * be memset to 0.
+ *
+ * @param self Vector handle
+ */
+bool VectorHardReset( struct Vector_S * self );
 
 
 /* Sub-Range Based Vector Operations */
