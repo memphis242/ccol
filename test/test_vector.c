@@ -91,9 +91,9 @@ int main(void)
    RUN_TEST(test_VectorIsEmpty);
    RUN_TEST(test_VectorPush_SimplePush);
    RUN_TEST(test_VectorPush_UntilCapacity);
-//   RUN_TEST(test_VectorPush_PastInitialCapacity);
-//   RUN_TEST(test_VectorPush_PastMaxCapacity);
-//   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
+   RUN_TEST(test_VectorPush_PastInitialCapacity);
+   RUN_TEST(test_VectorPush_PastMaxCapacity);
+   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
 //   RUN_TEST(test_VectorInsertAt);
 //   RUN_TEST(test_VectorGetElementAt);
 //   RUN_TEST(test_VectorCpyElementAt);
@@ -513,12 +513,10 @@ void test_VectorPush_PastMaxCapacity(void)
 
    // Now try pushing past the max capacity many times
    // Change the test element to distinguish it from the previously added elmnts
-   test_element.x = 10.5f;
-   test_element.y = -10.5;
-   test_element.z = 105.0f;
+   struct MyData_S new_test_element = { .x = 10.5f, .y = -10.5f, .z = 105.0f };
    for ( uint16_t i = 0; i < 1000; i++ )
    {
-      bool push_successfull = VectorPush( vec, &test_element );
+      bool push_successfull = VectorPush( vec, &new_test_element );
       last_element = VectorLastElement(vec);
       TEST_ASSERT_FALSE(push_successfull);
       // Last element is still the original data
