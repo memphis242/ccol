@@ -100,7 +100,7 @@ int main(void)
 //   RUN_TEST(test_VectorSetElementAt);
 //   RUN_TEST(test_VectorRemoveElementAt);
    RUN_TEST(test_VectorLastElement);
-//   RUN_TEST(test_VectorCpyLastElement);
+   RUN_TEST(test_VectorCpyLastElement);
    RUN_TEST(test_VectorClear);
    RUN_TEST(test_VectorHardReset);
 
@@ -605,7 +605,8 @@ void test_VectorLastElement(void) {
    VectorFree(vec);
 }
 
-void test_VectorCpyLastElement(void) {
+void test_VectorCpyLastElement(void)
+{
    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
    int value = 42, buffer;
    VectorPush(vec, &value);
