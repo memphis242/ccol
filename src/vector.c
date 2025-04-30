@@ -172,6 +172,15 @@ bool VectorIsEmpty( struct Vector_S * self )
    return IS_EMPTY(self);
 }
 
+bool VectorIsFull( struct Vector_S * self )
+{
+   if ( NULL == self )
+   {
+      return false;
+   }
+   return self->len == self->max_capacity;
+}
+
 bool VectorPush( struct Vector_S * self, const void * restrict element )
 {
    // Early return op
