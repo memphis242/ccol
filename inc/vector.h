@@ -99,11 +99,20 @@ size_t VectorElementSize( struct Vector_S * self );
 /**
  * @brief Checks if the vector is empty.
  * 
- * @param self A pointer to the Vector_S structure representing the vector.
+ * @param self Vector handle
  * 
- * @return true is empty, false otherwise.
+ * @return true if empty, false otherwise.
  */
 bool VectorIsEmpty( struct Vector_S * self );
+
+/**
+ * @brief Checks if the vector is full - i.e., at max capacity.
+ * 
+ * @param self Vector handle
+ * 
+ * @return true if full, false otherwise.
+ */
+bool VectorIsFull( struct Vector_S * self );
 
 /**
  * @brief Inserts an element at the _end_ of the vector.

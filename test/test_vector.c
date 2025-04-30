@@ -54,6 +54,7 @@ void test_VectorCapacity(void);
 void test_VectorMaxCapacity(void);
 void test_VectorElementSize(void);
 void test_VectorIsEmpty(void);
+void test_VectorIsFull(void);
 void test_VectorPush_SimplePush(void);
 void test_VectorPush_UntilCapacity(void);
 void test_VectorPush_PastInitialCapacity(void);
@@ -89,6 +90,7 @@ int main(void)
    RUN_TEST(test_VectorMaxCapacity);
    RUN_TEST(test_VectorElementSize);
    RUN_TEST(test_VectorIsEmpty);
+   RUN_TEST(test_VectorIsFull);
    RUN_TEST(test_VectorPush_SimplePush);
    RUN_TEST(test_VectorPush_UntilCapacity);
    RUN_TEST(test_VectorPush_PastInitialCapacity);
@@ -334,13 +336,42 @@ void test_VectorElementSize(void) {
     VectorFree(vec);
 }
 
-void test_VectorIsEmpty(void) {
+void test_VectorIsEmpty(void)
+{
     struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
     TEST_ASSERT_TRUE(VectorIsEmpty(vec));
     int value = 42;
     VectorPush(vec, &value);
     TEST_ASSERT_FALSE(VectorIsEmpty(vec));
     VectorFree(vec);
+}
+
+void test_VectorIsFull(void)
+{
+   // Initialize a vector with a small capacity
+   struct Vector_S *vec = NULL;
+   unsigned int iteration_counter = 0;
+   TRY_INIT(vec, iteration_counter, sizeof(int), 3, 3);
+
+   // Verify the vector is not full initially
+   TEST_ASSERT_FALSE(VectorIsFull(vec));
+
+   // Add elements to the vector
+   int value = 42;
+   VectorPush(vec, &value);
+   TEST_ASSERT_FALSE(VectorIsFull(vec)); // Still not full after one element
+
+   VectorPush(vec, &value);
+   TEST_ASSERT_FALSE(VectorIsFull(vec)); // Still not full after two elements
+
+   VectorPush(vec, &value);
+   TEST_ASSERT_TRUE(VectorIsFull(vec)); // Should be full after three elements
+
+   // Attempt to push another element (should fail if capacity is enforced)
+   VectorPush(vec, &value);
+   TEST_ASSERT_TRUE(VectorIsFull(vec)); // Still full after failed push
+
+   VectorFree(vec);
 }
 
 void test_VectorPush_SimplePush(void)
