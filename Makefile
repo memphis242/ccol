@@ -87,18 +87,20 @@ OBJ_FILES = $(patsubst %.c,$(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
 CROSS	= 
 CC = $(CROSS)gcc
 
-COMPILER_WARNING_FLAGS = \
+COMPILER_WARNINGS_TEST_BUILD = \
     -Wall -Wextra -Wpedantic \
     -Wconversion -Wdouble-promotion -Wnull-dereference \
     -Wwrite-strings -Wformat=2 -Wformat-overflow=2 \
-    -Wformat-signedness -Wuseless-cast \
+    -Wformat-signedness \
     -Wcast-align=strict -Wimplicit-fallthrough=3 -Wswitch-default \
     -Wswitch-enum -Wfloat-equal -Wuse-after-free=2 \
     -Wdeprecated-declarations -Wmissing-prototypes -Wparentheses \
     -Wreturn-type -Wlogical-op -Wstrict-aliasing \
     -Wuninitialized -Wmaybe-uninitialized -Wshadow \
     -Wsuggest-attribute=const \
-    -Walloc-zero -Walloc-size
+    -Walloc-zero -Walloc-size \
+    -Wno-analyzer-use-of-uninitialized-value -Wno-uninitialized \
+    -Wno-maybe-uninitialized
 
 # Includes some -Wno-... flags for warnings that I'd normally want for my lib
 # src but **not** for my test file, which intentionally has all sorts of
