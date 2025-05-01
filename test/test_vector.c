@@ -60,7 +60,11 @@ void test_VectorPush_UntilCapacity(void);
 void test_VectorPush_PastInitialCapacity(void);
 void test_VectorPush_PastMaxCapacity(void);
 void test_VectorPush_IntoVecWithZeroMaxCap(void);
-void test_VectorInsertAt(void);
+void test_VectorInsertion_AtZeroWithVectorLessThanCapacity(void);
+void test_VectorInsertion_AtZeroWithVectorAtCapacity(void);
+void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void);
+void test_VectorInsertion_AtEndEqualsVecPush(void);
+void test_VectorInsertion_AtMiddle(void);
 void test_VectorGetElementAt(void);
 void test_VectorCpyElementAt(void);
 void test_VectorSetElementAt(void);
@@ -69,6 +73,9 @@ void test_VectorLastElement(void);
 void test_VectorCpyLastElement(void);
 void test_VectorClear(void);
 void test_VectorHardReset(void);
+void test_VectorDuplicate_SmallVector(void);
+void test_VectorDuplicate_ReallyLargeVector(void);
+void test_VectorDuplicate_NullVector(void);
 
 /* Meat of the Program */
 
@@ -105,6 +112,9 @@ int main(void)
    RUN_TEST(test_VectorCpyLastElement);
    RUN_TEST(test_VectorClear);
    RUN_TEST(test_VectorHardReset);
+//   RUN_TEST(test_VectorDuplicate_SmallVector);
+//   RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
+//   RUN_TEST(test_VectorDuplicate_NullVector);
 
    return UNITY_END();
 }
@@ -576,9 +586,17 @@ void test_VectorPush_IntoVecWithZeroMaxCap(void)
    TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
 }
 
-void test_VectorInsertAt(void)
+void test_VectorInsertion_AtZeroWithVectorAtCapacity(void);
+void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void);
+void test_VectorInsertion_AtEndEqualsVecPush(void);
+void test_VectorInsertion_AtMiddle(void);
+
+void test_VectorInsertion_AtZeroWithVectorLessThanCapacity(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   struct Vector_S * vec = NULL;
+   unsigned int iteration_counter = 0;
+   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100);
+
    int value1 = 42, value2 = 84;
    VectorPush(vec, &value1);
    TEST_ASSERT_TRUE(VectorInsertAt(vec, 0, &value2));

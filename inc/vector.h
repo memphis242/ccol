@@ -256,6 +256,13 @@ bool VectorClear( struct Vector_S * self );
  */
 bool VectorHardReset( struct Vector_S * self );
 
+/**
+ * @brief Duplicates the vector passed in and returns a pointer to the result.
+ *
+ * @param self Vector handle
+ */
+struct Vector_S * VectorDuplicate( struct Vector_S * self );
+
 
 /* Sub-Range Based Vector Operations */
 
