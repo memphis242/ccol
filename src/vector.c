@@ -354,6 +354,38 @@ bool VectorHardReset( struct Vector_S * self )
    return true;
 }
 
+struct Vector_S * VectorDuplicate( struct Vector_S * self )
+{
+   return NULL;
+}
+
+bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b )
+{
+   if ( (NULL == a) || (NULL == b) )
+   {
+      return false;
+   }
+
+   bool ret_val = false;
+
+   // First check lengths
+   ret_val = (a->len == b->len);
+
+   // Then check capacities
+   ret_val = ret_val && (a->capacity == b->capacity);
+
+   // Then check max capacities
+   ret_val = ret_val && (a->max_capacity == b->max_capacity);
+
+   // Then check each element in the vector
+   if ( ret_val )
+   {
+      for ( size_t i = 0; i <  )
+   }
+
+   return ret_val;
+}
+
 /* Private Function Implementations */
 
 static bool LocalVectorExpand( struct Vector_S * self )

@@ -263,6 +263,15 @@ bool VectorHardReset( struct Vector_S * self );
  */
 struct Vector_S * VectorDuplicate( struct Vector_S * self );
 
+/**
+ * @brief Checks if two vectors are equivalent element-wise, length-wise,
+ *        and capacity-wise (including max capacity).
+ *
+ * @param a Vector handle for the first vector
+ * @param b Vector handle for the second vector
+ */
+bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b );
+
 
 /* Sub-Range Based Vector Operations */
 
