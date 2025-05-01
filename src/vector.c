@@ -251,7 +251,6 @@ bool VectorInsertAt( struct Vector_S * self,
       }
       void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, element, self->element_size );
-      self->len++;
    }
    else
    {
@@ -405,6 +404,7 @@ static void ShiftOneOver( struct Vector_S * self, size_t idx )
 {
    assert( (self != NULL) &&
            (self->arr != NULL) &&
+           (self->len < self->capacity) &&
             // Don't try to shift data past the data range of the array
            (idx < self->len) &&
            (idx < MAX_VECTOR_LENGTH) &&
@@ -417,4 +417,6 @@ static void ShiftOneOver( struct Vector_S * self, size_t idx )
       uint8_t * new_spot = PTR_TO_IDX(self, i);
       memcpy( new_spot, old_spot, self->element_size );
    }
+   
+   self->len++;
 }

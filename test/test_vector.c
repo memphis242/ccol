@@ -65,6 +65,7 @@ void test_VectorInsertion_AtZeroWithVectorAtCapacity(void);
 void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void);
 void test_VectorInsertion_AtEndEqualsVecPush(void);
 void test_VectorInsertion_AtMiddle(void);
+void test_VectorInsertion_AtMiddleOfEmptyVec(void);   // TODO: ← Trick one!
 void test_VectorGetElementAt(void);
 void test_VectorCpyElementAt(void);
 void test_VectorSetElementAt(void);
@@ -103,7 +104,11 @@ int main(void)
    RUN_TEST(test_VectorPush_PastInitialCapacity);
    RUN_TEST(test_VectorPush_PastMaxCapacity);
    RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
-//   RUN_TEST(test_VectorInsertAt);
+   RUN_TEST(test_VectorInsertion_AtZeroWithVectorLessThanCapacity);
+   RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
+   RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtMaxCapacity);
+   RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
+//   RUN_TEST(test_VectorInsertion_AtMiddle);
 //   RUN_TEST(test_VectorGetElementAt);
 //   RUN_TEST(test_VectorCpyElementAt);
 //   RUN_TEST(test_VectorSetElementAt);
@@ -586,23 +591,138 @@ void test_VectorPush_IntoVecWithZeroMaxCap(void)
    TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
 }
 
-void test_VectorInsertion_AtZeroWithVectorAtCapacity(void);
-void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void);
-void test_VectorInsertion_AtEndEqualsVecPush(void);
-void test_VectorInsertion_AtMiddle(void);
-
 void test_VectorInsertion_AtZeroWithVectorLessThanCapacity(void)
 {
    struct Vector_S * vec = NULL;
-   unsigned int iteration_counter = 0;
-   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100);
+   unsigned int iter = 0;
+   TRY_INIT( vec, iter, sizeof(int), 10, 100 );
 
-   int value1 = 42, value2 = 84;
-   VectorPush(vec, &value1);
-   TEST_ASSERT_TRUE(VectorInsertAt(vec, 0, &value2));
-   TEST_ASSERT_EQUAL_INT(84, *(int *)VectorGetElementAt(vec, 0));
-   TEST_ASSERT_EQUAL_INT(42, *(int *)VectorGetElementAt(vec, 1));
+   int val = 20;
+   while ( VectorLength(vec) < 5 )
+   {
+      (void)VectorPush(vec, &val);
+      val++;
+   }
+
+   // Do an insertion at the beginning. I expect everything downstream
+   // to have been shifted over as well.
+   int test_val = 100;
+   int * result;
+   while( !VectorInsertAt(vec, 0, &test_val) ); // Ensure insertion success
+   result = (int *)VectorGetElementAt(vec, 0);
+   TEST_ASSERT_EQUAL_INT(test_val, *result);
+   TEST_ASSERT_EQUAL_size_t(6, VectorLength(vec));
+   for ( size_t i = 1; i < 6; i++ )
+   {
+      result = VectorGetElementAt(vec, i);
+      TEST_ASSERT_NOT_NULL(result);
+      TEST_ASSERT_EQUAL_INT( 20 + (i-1), *result );
+   }
+
+   // Cleanup
    VectorFree(vec);
+}
+
+void test_VectorInsertion_AtZeroWithVectorAtCapacity(void)
+{
+   struct Vector_S * vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT( vec, iter, sizeof(int), 10, 100 );
+
+   int val = 20;
+   while ( VectorLength(vec) < 10 )
+   {
+      (void)VectorPush(vec, &val);
+      val++;
+   }
+
+   // Do an insertion at the beginning. I expect everything downstream
+   // to have been shifted over as well.
+   int test_val = 100;
+   int * result;
+   while( !VectorInsertAt(vec, 0, &test_val) ); // Ensure insertion success
+   result = (int *)VectorGetElementAt(vec, 0);
+   TEST_ASSERT_EQUAL_INT(test_val, *result);
+   TEST_ASSERT_EQUAL_size_t(11, VectorLength(vec));
+   for ( size_t i = 0; i < 10; i++ )
+   {
+      TEST_ASSERT_EQUAL_INT( 20 + i, *( (int *)VectorGetElementAt(vec, i + 1) ) );
+   }
+
+   // Cleanup
+   VectorFree(vec);
+}
+
+void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void)
+{
+   struct Vector_S * vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT( vec, iter, sizeof(int), 10, 100 );
+
+   int val = 20;
+   while ( VectorLength(vec) < 100 )
+   {
+      (void)VectorPush(vec, &val);
+      val++;
+   }
+
+   // Try to do an insertion many times. This should fail.
+   // Also, elements in vector should basically remain intact.
+   int test_val = 100;
+   for ( size_t i = 0; i < 100; i++ )
+   {
+      TEST_ASSERT_FALSE( VectorInsertAt(vec, 0, &test_val) );
+   }
+   for ( size_t i = 0; i < 100; i++ )
+   {
+      TEST_ASSERT_EQUAL_INT( 20 + i, *( (int *)VectorGetElementAt(vec, i) ) );
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorInsertion_AtEndEqualsVecPush(void)
+{
+   struct Vector_S * vec1 = NULL;
+   struct Vector_S * vec2 = NULL;
+   unsigned int iter = 0;
+   TRY_INIT( vec1, iter, sizeof(int), 10, 100 );
+   iter = 0;
+   TRY_INIT( vec2, iter, sizeof(int), 10, 100 );
+
+   int val = 20;
+   while ( VectorLength(vec1) < 100 )
+   {
+      (void)VectorPush(vec1, &val);
+      val++;
+   }
+   val = 20;
+   size_t idx = 0;
+   while ( VectorLength(vec2) < 100 )
+   {
+      (void)VectorInsertAt(vec2, idx, &val);
+      val++;
+      idx++;
+   }
+
+   // Try to do an insertion many times. This should fail.
+   // Also, elements in vector should basically remain intact.
+   int test_val = 100;
+   for ( size_t i = 0; i < 100; i++ )
+   {
+      TEST_ASSERT_FALSE( VectorInsertAt(vec, 0, &test_val) );
+   }
+   for ( size_t i = 0; i < 100; i++ )
+   {
+      TEST_ASSERT_EQUAL_INT( 20 + i, *( (int *)VectorGetElementAt(vec, i) ) );
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorInsertion_AtMiddle(void)
+{
+
 }
 
 void test_VectorGetElementAt(void)
