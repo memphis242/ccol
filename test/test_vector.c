@@ -19,11 +19,11 @@
 /* Local Macro Definitions */
 #define MAX_INIT_ATTEMPTS 100 //! Used in the TRY_INIT macro to limit VectorInit() attempst
 
-#define TRY_INIT(ptr, iter_counter, elsz, icap, mcap)                          \
+#define TRY_INIT(ptr, iter_counter, elsz, icap, mcap, init_len)                \
    do                                                                          \
    {                                                                           \
       VectorFree(ptr);                                                         \
-      ptr = VectorInit( elsz, icap, mcap );                                    \
+      ptr = VectorInit( elsz, icap, mcap, init_len );                          \
       iter_counter++;                                                          \
    } while (                                                                   \
       (NULL == ptr) &&                                                         \
@@ -43,10 +43,12 @@ void tearDown(void);
 void test_VectorInit_Invalid_ZeroElementSz(void);
 void test_VectorInit_Invalid_MaxCapLessThanInitCap(void);
 void test_VectorInit_Invalid_ZeroMaxCap(void);
+void test_VectorInit_Invalid_InitialLen(void);
 void test_VectorInit_ValidInputCombo_3DPoints(void);
 void test_VectorInit_ValidInputCombo_PtrData(void);
 void test_VectorInit_CapacityLimit(void);
 void test_VectorInit_ElementSzLimit(void);
+void test_VectorInit_InitialLen(void);
 void test_VectorOpsOnNullVectors(void);
 void test_VectorFree(void);
 void test_VectorLength(void);
@@ -65,7 +67,7 @@ void test_VectorInsertion_AtZeroWithVectorAtCapacity(void);
 void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void);
 void test_VectorInsertion_AtEndEqualsVecPush(void);
 void test_VectorInsertion_AtMiddle(void);
-void test_VectorInsertion_AtMiddleOfEmptyVec(void);   // TODO: ← Trick one!
+void test_VectorInsertion_AtMiddleOfEmptyVec(void);
 void test_VectorGetElementAt(void);
 void test_VectorCpyElementAt(void);
 void test_VectorSetElementAt(void);
@@ -93,10 +95,12 @@ int main(void)
    RUN_TEST(test_VectorInit_Invalid_ZeroElementSz);
    RUN_TEST(test_VectorInit_Invalid_MaxCapLessThanInitCap);
    RUN_TEST(test_VectorInit_Invalid_ZeroMaxCap);
+   RUN_TEST(test_VectorInit_Invalid_InitialLen);
    RUN_TEST(test_VectorInit_ValidInputCombo_3DPoints);
    RUN_TEST(test_VectorInit_ValidInputCombo_PtrData);
    RUN_TEST(test_VectorInit_CapacityLimit);
    RUN_TEST(test_VectorInit_ElementSzLimit);
+   RUN_TEST(test_VectorInit_InitialLen);
    RUN_TEST(test_VectorOpsOnNullVectors);
    RUN_TEST(test_VectorFree);
    RUN_TEST(test_VectorLength);
@@ -114,7 +118,8 @@ int main(void)
    RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
    RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtMaxCapacity);
    RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
-//   RUN_TEST(test_VectorInsertion_AtMiddle);
+   RUN_TEST(test_VectorInsertion_AtMiddle);
+   RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
 //   RUN_TEST(test_VectorGetElementAt);
 //   RUN_TEST(test_VectorCpyElementAt);
 //   RUN_TEST(test_VectorSetElementAt);
@@ -155,7 +160,7 @@ void tearDown(void)
 void test_VectorInit_Invalid_ZeroElementSz(void)
 {
    struct Vector_S * vec;
-   vec = VectorInit(0, 20, 50);
+   vec = VectorInit(0, 20, 50, 0);
    TEST_ASSERT_NULL( vec );
    VectorFree(vec); 
 }
@@ -163,7 +168,7 @@ void test_VectorInit_Invalid_ZeroElementSz(void)
 void test_VectorInit_Invalid_MaxCapLessThanInitCap(void)
 {
    struct Vector_S * vec;
-   vec = VectorInit(0, 50, 20);
+   vec = VectorInit(0, 50, 20, 0);
    TEST_ASSERT_NULL( vec );
    VectorFree(vec); 
 }
@@ -173,10 +178,15 @@ void test_VectorInit_Invalid_ZeroMaxCap(void)
    // This is invalid because max capacity will not be mutable,
    // and a max capacity of 0 is useless. We won't allow it.
    struct Vector_S * vec;
-   vec = VectorInit(10, 0, 0);
+   vec = VectorInit(10, 0, 0, 0);
    TEST_ASSERT_NULL( vec );
    // TODO: Should actually throw an exception to inform the user...
    VectorFree(vec);
+}
+
+void test_VectorInit_Invalid_InitialLen(void)
+{
+   // TODO
 }
 
 void test_VectorInit_ValidInputCombo_3DPoints(void)
@@ -205,7 +215,7 @@ void test_VectorInit_ValidInputCombo_3DPoints(void)
                )
          )
       {
-         vec = VectorInit(sizeof(struct MyData_S), initial_cap, max_cap);
+         vec = VectorInit(sizeof(struct MyData_S), initial_cap, max_cap, 0);
 
          if ( vec != NULL )
          {
@@ -251,7 +261,7 @@ void test_VectorInit_ValidInputCombo_PtrData(void)
                )
          )
       {
-         vec = VectorInit(sizeof(char *), initial_cap, max_cap);
+         vec = VectorInit(sizeof(char *), initial_cap, max_cap, 0);
 
          if ( vec != NULL )
          {
@@ -278,7 +288,7 @@ void test_VectorInit_CapacityLimit(void)
    // Now push things to the limit and try to create a vector at the system's limit.
    uint16_t iteration_counter = 0;
    struct Vector_S * vec = NULL;
-   TRY_INIT(vec, iteration_counter, 1, UINT32_MAX, UINT32_MAX);
+   TRY_INIT(vec, iteration_counter, 1, UINT32_MAX, UINT32_MAX, 0);
    TEST_ASSERT_EQUAL_size_t( 1, VectorElementSize(vec) );
    TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorCapacity(vec) );
    TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorMaxCapacity(vec) );
@@ -290,11 +300,16 @@ void test_VectorInit_ElementSzLimit(void)
    // Now push things to the limit and try to create a vector at the system's limit.
    uint16_t iteration_counter = 0;
    struct Vector_S * vec = NULL;
-   TRY_INIT(vec, iteration_counter, UINT32_MAX, 1, 1);
+   TRY_INIT(vec, iteration_counter, UINT32_MAX, 1, 1, 0);
    TEST_ASSERT_EQUAL_size_t( UINT32_MAX, VectorElementSize(vec) );
    TEST_ASSERT_EQUAL_UINT32( 1, VectorCapacity(vec) );
    TEST_ASSERT_EQUAL_UINT32( 1, VectorMaxCapacity(vec) );
    VectorFree(vec);
+}
+
+void test_VectorInit_InitialLen(void)
+{
+   // TODO
 }
 
 void test_VectorOpsOnNullVectors(void)
@@ -321,6 +336,7 @@ void test_VectorOpsOnNullVectors(void)
    TEST_ASSERT_NULL( VectorLastElement(NULL) );
    TEST_ASSERT_FALSE( VectorCpyLastElement(NULL, NULL) );
    TEST_ASSERT_FALSE( VectorClear(NULL) );
+   // TODO: Double-check I'm covering the full API here
 }
 
 void test_VectorFree(void)
@@ -328,7 +344,7 @@ void test_VectorFree(void)
    size_t i = 0;
    struct Vector_S * vec = NULL;
 
-   TRY_INIT(vec, i, sizeof(int), 10, 100);
+   TRY_INIT(vec, i, sizeof(int), 10, 100, 0);
 
    // No assertion I can declare here, but I can at least check that the
    // nothing crashes.
@@ -336,7 +352,7 @@ void test_VectorFree(void)
 }
 
 void test_VectorLength(void) {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
     int value = 42;
     VectorPush(vec, &value);
@@ -346,26 +362,26 @@ void test_VectorLength(void) {
 
 void test_VectorCapacity(void)
 {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_UINT32(10, VectorCapacity(vec));
     VectorFree(vec);
 }
 
 void test_VectorMaxCapacity(void) {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_UINT32(100, VectorMaxCapacity(vec));
     VectorFree(vec);
 }
 
 void test_VectorElementSize(void) {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_size_t(sizeof(int), VectorElementSize(vec));
     VectorFree(vec);
 }
 
 void test_VectorIsEmpty(void)
 {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_TRUE(VectorIsEmpty(vec));
     int value = 42;
     VectorPush(vec, &value);
@@ -378,7 +394,7 @@ void test_VectorIsFull(void)
    // Initialize a vector with a small capacity
    struct Vector_S *vec = NULL;
    unsigned int iteration_counter = 0;
-   TRY_INIT(vec, iteration_counter, sizeof(int), 3, 3);
+   TRY_INIT(vec, iteration_counter, sizeof(int), 3, 3, 0);
 
    // Verify the vector is not full initially
    TEST_ASSERT_FALSE(VectorIsFull(vec));
@@ -405,7 +421,7 @@ void test_VectorPush_SimplePush(void)
 {
    struct Vector_S * vec = NULL;
    unsigned int iteration_counter = 0;
-   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100);
+   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100, 0);
 
    int value1 = 42;
    int value2 = 84;
@@ -442,7 +458,7 @@ void test_VectorPush_UntilCapacity(void)
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
    unsigned int iterations_counter = 0;
-   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP );
+   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0 );
 
    // Now push until you've reached the initial capacity, and confirm along the
    // way that the element was truly pushed in...
@@ -514,7 +530,7 @@ void test_VectorPush_PastInitialCapacity(void)
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
    unsigned int iterations_counter = 0;
-   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), 100, MAX_CAP );
+   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), 100, MAX_CAP, 0 );
 
    // Fill to initial capacity
    struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
@@ -557,7 +573,7 @@ void test_VectorPush_PastMaxCapacity(void)
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
    unsigned int iterations_counter = 0;
-   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP );
+   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0 );
 
    // Fill to initial capacity
    struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
@@ -598,7 +614,7 @@ void test_VectorPush_IntoVecWithZeroMaxCap(void)
       .str = "Test Element",
       .id  = 0
    };
-   vec = VectorInit( sizeof(struct MyData_S), 0, 0 );
+   vec = VectorInit( sizeof(struct MyData_S), 0, 0, 0 );
    TEST_ASSERT_FALSE( VectorPush( vec, &test_element ) );
    TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
 }
@@ -607,7 +623,7 @@ void test_VectorInsertion_AtZeroWithVectorLessThanCapacity(void)
 {
    struct Vector_S * vec = NULL;
    unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100 );
+   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
 
    int val = 20;
    while ( VectorLength(vec) < 5 )
@@ -639,7 +655,7 @@ void test_VectorInsertion_AtZeroWithVectorAtCapacity(void)
 {
    struct Vector_S * vec = NULL;
    unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100 );
+   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
 
    int val = 20;
    while ( VectorLength(vec) < 10 )
@@ -669,7 +685,7 @@ void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void)
 {
    struct Vector_S * vec = NULL;
    unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100 );
+   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
 
    int val = 20;
    while ( VectorLength(vec) < 100 )
@@ -698,9 +714,9 @@ void test_VectorInsertion_AtEndEqualsVecPush(void)
    struct Vector_S * vec1 = NULL;
    struct Vector_S * vec2 = NULL;
    unsigned int iter = 0;
-   TRY_INIT( vec1, iter, sizeof(int), 10, 100 );
+   TRY_INIT( vec1, iter, sizeof(int), 10, 100, 0 );
    iter = 0;
-   TRY_INIT( vec2, iter, sizeof(int), 10, 100 );
+   TRY_INIT( vec2, iter, sizeof(int), 10, 100, 0 );
 
    iter = 0;
    int val = 20;
@@ -735,12 +751,75 @@ void test_VectorInsertion_AtEndEqualsVecPush(void)
 
 void test_VectorInsertion_AtMiddle(void)
 {
+   struct Vector_S * vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
 
+   int val = 20;
+   const size_t IDX_OF_INSERTION = 4;
+   while ( VectorLength(vec) < (IDX_OF_INSERTION * 2) )
+   {
+      (void)VectorPush(vec, &val);
+   }
+
+   // Do an insertion at the beginning. I expect everything downstream
+   // to have been shifted over as well.
+   int test_val = 100;
+   int * result;
+   while( !VectorInsertAt(vec, IDX_OF_INSERTION, &test_val) ); // Ensure insertion success
+   result = (int *)VectorGetElementAt(vec, IDX_OF_INSERTION);
+   TEST_ASSERT_EQUAL_INT(test_val, *result);
+   TEST_ASSERT_EQUAL_size_t(2*IDX_OF_INSERTION + 1, VectorLength(vec));
+   for ( size_t i = 1; i < VectorLength(vec); i++ )
+   {
+      if ( i == IDX_OF_INSERTION )  continue;
+
+      result = VectorGetElementAt(vec, i);
+      TEST_ASSERT_NOT_NULL(result);
+      TEST_ASSERT_EQUAL_INT( val, *result );
+   }
+
+   // Cleanup
+   VectorFree(vec);
+}
+
+void test_VectorInsertion_AtMiddleOfEmptyVec(void)
+{
+   struct Vector_S * vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
+
+   int val = 20;
+   const size_t IDX_OF_INSERTION = 4;
+   while ( VectorLength(vec) < (IDX_OF_INSERTION * 2) )
+   {
+      (void)VectorPush(vec, &val);
+   }
+
+   // Do an insertion at the beginning. I expect everything downstream
+   // to have been shifted over as well.
+   int test_val = 100;
+   int * result;
+   while( !VectorInsertAt(vec, IDX_OF_INSERTION, &test_val) ); // Ensure insertion success
+   result = (int *)VectorGetElementAt(vec, IDX_OF_INSERTION);
+   TEST_ASSERT_EQUAL_INT(test_val, *result);
+   TEST_ASSERT_EQUAL_size_t(2*IDX_OF_INSERTION + 1, VectorLength(vec));
+   for ( size_t i = 1; i < VectorLength(vec); i++ )
+   {
+      if ( i == IDX_OF_INSERTION )  continue;
+
+      result = VectorGetElementAt(vec, i);
+      TEST_ASSERT_NOT_NULL(result);
+      TEST_ASSERT_EQUAL_INT( val, *result );
+   }
+
+   // Cleanup
+   VectorFree(vec);
 }
 
 void test_VectorGetElementAt(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
    int *retrieved = (int *)VectorGetElementAt(vec, 0);
@@ -750,7 +829,7 @@ void test_VectorGetElementAt(void)
 }
 
 void test_VectorCpyElementAt(void) {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42, buffer;
    VectorPush(vec, &value);
    TEST_ASSERT_TRUE(VectorCpyElementAt(vec, 0, &buffer));
@@ -759,7 +838,7 @@ void test_VectorCpyElementAt(void) {
 }
 
 void test_VectorSetElementAt(void) {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int value1 = 42, value2 = 84;
    VectorPush(vec, &value1);
    TEST_ASSERT_TRUE(VectorSetElementAt(vec, 0, &value2));
@@ -768,7 +847,7 @@ void test_VectorSetElementAt(void) {
 }
 
 void test_VectorRemoveElementAt(void) {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42, buffer;
    VectorPush(vec, &value);
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, &buffer));
@@ -778,7 +857,7 @@ void test_VectorRemoveElementAt(void) {
 }
 
 void test_VectorLastElement(void) {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
    int *last = (int *)VectorLastElement(vec);
@@ -789,7 +868,7 @@ void test_VectorLastElement(void) {
 
 void test_VectorCpyLastElement(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100);
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42, buffer;
    VectorPush(vec, &value);
    TEST_ASSERT_TRUE(VectorCpyLastElement(vec, &buffer));
@@ -802,7 +881,7 @@ void test_VectorClear(void)
    struct Vector_S * vec = NULL;
    unsigned int iteration_counter = 0;
 
-   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100)
+   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100, 0)
    TEST_ASSERT_NOT_NULL(vec);
 
    int value = 42;
@@ -818,7 +897,7 @@ void test_VectorHardReset(void)
    struct Vector_S * vec = NULL;
    unsigned int iteration_counter = 0;
 
-   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100)
+   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100, 0)
    TEST_ASSERT_NOT_NULL(vec);
 
    // Add some elements to the vector
@@ -854,7 +933,7 @@ void test_VectorsAreEqual_SameVectors(void)
 {
    struct Vector_S * vec = NULL;
    unsigned int iter = 0;
-   TRY_INIT(vec, iter, sizeof(int), 10, 100);
+   TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
 
    iter = 0;
    int val = 10;

@@ -34,6 +34,9 @@ struct Vector_S;
  *                     Note that if max_capacity is larger than an internal limit
  *                     set within the implementation, that internal limit will be
  *                     used instead.
+ * @param initial_len  Initial length of the vector that allows the user to get
+ *                     some zero elements in to begin with. 0 if user will handle
+ *                     manual push/insertion operations to initial fill the vec.
  * 
  * @todo Exceptions
  *
@@ -41,7 +44,8 @@ struct Vector_S;
  */
 struct Vector_S * VectorInit( size_t element_size,
                               size_t initial_capacity,
-                              size_t max_capacity );
+                              size_t max_capacity,
+                              size_t initial_len );
 
 /**
  * @brief Frees the memory allocated for the vector.
@@ -130,6 +134,8 @@ bool VectorPush( struct Vector_S * self, const void * element );
  * 
  * This function inserts the given element into the vector at the specified
  * index, shifting all subsequent elements one position to the right.
+ *
+ * @note You are not allowed to insert past the length of the vector.
  *  
  * @param self Vector handle
  * @param idx The index at which the element should be inserted.

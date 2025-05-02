@@ -64,14 +64,16 @@ static void ShiftOneOver( struct Vector_S * self, size_t idx );
 
 struct Vector_S * VectorInit( size_t element_size,
                               size_t initial_capacity,
-                              size_t max_capacity )
+                              size_t max_capacity,
+                              size_t initial_len )
 {
    // Early return op
    // Invalid inputs
    if ( (element_size == 0) ||
         (initial_capacity > MAX_VECTOR_LENGTH) ||
         (max_capacity == 0) ||
-        (initial_capacity > max_capacity) )
+        (initial_capacity > max_capacity) ||
+        (initial_len > initial_capacity) )
    {
       // TODO: Vector constructor exception
       return NULL;
@@ -97,14 +99,20 @@ struct Vector_S * VectorInit( size_t element_size,
    {
       // TODO: Throw exception to inform user...
       NewVec->capacity = 0;
+      NewVec->len = 0;
    }
    else
    {
       NewVec->capacity = initial_capacity;
+      if ( initial_len > 0 )
+      {
+         memset( NewVec->arr, 0, (element_size * initial_len) );
+         NewVec->len = initial_len;
+      }
    }
 
    NewVec->element_size = element_size;
-   NewVec->len = 0;
+
    if ( max_capacity > MAX_VECTOR_LENGTH )
    {
       // TODO: Throw exception for max_capacity too large
