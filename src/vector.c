@@ -109,6 +109,10 @@ struct Vector_S * VectorInit( size_t element_size,
          memset( NewVec->arr, 0, (element_size * initial_len) );
          NewVec->len = initial_len;
       }
+      else
+      {
+         NewVec->len = 0;
+      }
    }
 
    NewVec->element_size = element_size;

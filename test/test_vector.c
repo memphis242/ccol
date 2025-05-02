@@ -1,7 +1,7 @@
 /*!
  * @file    test_vector.c
  * @brief   Test file for the the vector component
- * 
+ *
  * @author  Abdullah Almosalami @memphis242
  * @date    Tues Apr 19, 2025
  * @copyright MIT License
@@ -48,7 +48,8 @@ void test_VectorInit_ValidInputCombo_3DPoints(void);
 void test_VectorInit_ValidInputCombo_PtrData(void);
 void test_VectorInit_CapacityLimit(void);
 void test_VectorInit_ElementSzLimit(void);
-void test_VectorInit_InitialLen(void);
+void test_VectorInit_InitialLenLessThanInitialCap(void);
+void test_VectorInit_InitialLenSameAsInitialCap(void);
 void test_VectorOpsOnNullVectors(void);
 void test_VectorFree(void);
 void test_VectorLength(void);
@@ -100,7 +101,8 @@ int main(void)
    RUN_TEST(test_VectorInit_ValidInputCombo_PtrData);
    RUN_TEST(test_VectorInit_CapacityLimit);
    RUN_TEST(test_VectorInit_ElementSzLimit);
-   RUN_TEST(test_VectorInit_InitialLen);
+   RUN_TEST(test_VectorInit_InitialLenLessThanInitialCap);
+   RUN_TEST(test_VectorInit_InitialLenSameAsInitialCap);
    RUN_TEST(test_VectorOpsOnNullVectors);
    RUN_TEST(test_VectorFree);
    RUN_TEST(test_VectorLength);
@@ -162,7 +164,7 @@ void test_VectorInit_Invalid_ZeroElementSz(void)
    struct Vector_S * vec;
    vec = VectorInit(0, 20, 50, 0);
    TEST_ASSERT_NULL( vec );
-   VectorFree(vec); 
+   VectorFree(vec);
 }
 
 void test_VectorInit_Invalid_MaxCapLessThanInitCap(void)
@@ -170,7 +172,7 @@ void test_VectorInit_Invalid_MaxCapLessThanInitCap(void)
    struct Vector_S * vec;
    vec = VectorInit(0, 50, 20, 0);
    TEST_ASSERT_NULL( vec );
-   VectorFree(vec); 
+   VectorFree(vec);
 }
 
 void test_VectorInit_Invalid_ZeroMaxCap(void)
@@ -186,7 +188,11 @@ void test_VectorInit_Invalid_ZeroMaxCap(void)
 
 void test_VectorInit_Invalid_InitialLen(void)
 {
-   // TODO
+   struct Vector_S * vec;
+   vec = VectorInit( sizeof(int), 10, 100, 11 );
+   TEST_ASSERT_NULL( vec );
+   // TODO: Should actually throw an exception to inform the user...
+   VectorFree(vec);
 }
 
 void test_VectorInit_ValidInputCombo_3DPoints(void)
@@ -307,9 +313,44 @@ void test_VectorInit_ElementSzLimit(void)
    VectorFree(vec);
 }
 
-void test_VectorInit_InitialLen(void)
+void test_VectorInit_InitialLenLessThanInitialCap(void)
 {
-   // TODO
+   struct Vector_S * vec = NULL;
+   uint16_t iteration_counter = 0;
+   const size_t INIT_LEN = 5;
+   TRY_INIT(vec, iteration_counter, 50, INIT_LEN * 2, INIT_LEN * 10, INIT_LEN);
+   TEST_ASSERT_EQUAL_UINT32( INIT_LEN,     VectorLength(vec) );
+   TEST_ASSERT_EQUAL_UINT32( INIT_LEN * 2, VectorCapacity(vec) );
+   // Verify initial elements have been zero'd out
+   for ( size_t i = 0; i < INIT_LEN; i++ )
+   {
+      unsigned char * elm = (unsigned char *)VectorGetElementAt(vec, i);
+      for ( size_t j = 0; j < 50; j++ )
+      {
+         TEST_ASSERT_EQUAL_UINT8( 0, elm[j] );
+      }
+   }
+   VectorFree(vec);
+}
+
+void test_VectorInit_InitialLenSameAsInitialCap(void)
+{
+   struct Vector_S * vec = NULL;
+   uint16_t iteration_counter = 0;
+   const size_t INIT_LEN = 10;
+   TRY_INIT(vec, iteration_counter, 50, INIT_LEN, INIT_LEN * 10, INIT_LEN);
+   TEST_ASSERT_EQUAL_UINT32( INIT_LEN, VectorLength(vec) );
+   TEST_ASSERT_EQUAL_UINT32( INIT_LEN, VectorCapacity(vec) );
+   // Verify initial elements have been zero'd out
+   for ( size_t i = 0; i < INIT_LEN; i++ )
+   {
+      unsigned char * elm = (unsigned char *)VectorGetElementAt(vec, i);
+      for ( size_t j = 0; j < 50; j++ )
+      {
+         TEST_ASSERT_EQUAL_UINT8( 0, elm[j] );
+      }
+   }
+   VectorFree(vec);
 }
 
 void test_VectorOpsOnNullVectors(void)
@@ -598,7 +639,7 @@ void test_VectorPush_PastMaxCapacity(void)
       TEST_ASSERT_EQUAL_FLOAT( test_element.y, last_element->y );
       TEST_ASSERT_EQUAL_FLOAT( test_element.z, last_element->z );
    }
-   
+
    VectorFree(vec);
 }
 
