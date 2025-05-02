@@ -993,7 +993,7 @@ void test_VectorsAreEqual_SameVectors(void)
 
 void test_VectorsAreEqual_DifferentElementSz(void)
 {
-   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S *vec1 = VectorInit(sizeof(uint8_t), 10, 100, 0);
    struct Vector_S *vec2 = VectorInit(sizeof(float), 10, 100, 0);
 
    TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
