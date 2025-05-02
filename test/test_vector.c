@@ -993,25 +993,62 @@ void test_VectorsAreEqual_SameVectors(void)
 
 void test_VectorsAreEqual_DifferentElementSz(void)
 {
+   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S *vec2 = VectorInit(sizeof(float), 10, 100, 0);
 
+   TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
+
+   VectorFree(vec1);
+   VectorFree(vec2);
 }
 
 void test_VectorsAreEqual_DifferentLength(void)
 {
+   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
+   int value = 42;
+   VectorPush(vec1, &value);
+
+   TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
+
+   VectorFree(vec1);
+   VectorFree(vec2);
 }
 
 void test_VectorsAreEqual_DifferentCapacity(void)
 {
+   struct Vector_S *vec1 = VectorInit(sizeof(int), 5, 100, 0);
+   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
+   TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
+
+   VectorFree(vec1);
+   VectorFree(vec2);
 }
 
 void test_VectorsAreEqual_DifferentMaxCapacity(void)
 {
+   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 50, 0);
+   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
+   TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
+
+   VectorFree(vec1);
+   VectorFree(vec2);
 }
 
 void test_VectorsAreEqual_DifferentElementValues(void)
 {
+   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
+   int value1 = 42, value2 = 84;
+   VectorPush(vec1, &value1);
+   VectorPush(vec2, &value2);
+
+   TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
+
+   VectorFree(vec1);
+   VectorFree(vec2);
 }
