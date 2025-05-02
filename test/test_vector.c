@@ -122,7 +122,7 @@ int main(void)
    RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
    RUN_TEST(test_VectorInsertion_AtMiddle);
    RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
-//   RUN_TEST(test_VectorGetElementAt);
+   RUN_TEST(test_VectorGetElementAt);
 //   RUN_TEST(test_VectorCpyElementAt);
 //   RUN_TEST(test_VectorSetElementAt);
 //   RUN_TEST(test_VectorRemoveElementAt);
@@ -858,6 +858,7 @@ void test_VectorInsertion_AtMiddleOfEmptyVec(void)
    VectorFree(vec);
 }
 
+// This'll be the only get lmnt test because this fcn is used repeatedly elsewhere.
 void test_VectorGetElementAt(void)
 {
    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
