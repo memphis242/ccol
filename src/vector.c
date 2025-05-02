@@ -2,9 +2,9 @@
  * @file vector.c
  * @brief Implementation of a dynamic array (vector) in C.
  *
- * This file contains the implementation of a dynamic array, also known as a vector,
- * which provides functionalities for dynamic resizing, element access, and manipulation.
- * The underlying primitive data structure used is an array.
+ * This file contains the implementation of a dynamic array, also known as a 
+ * vector, which provides functionalities for dynamic resizing, element access, 
+ * and manipulation.
  *
  * @author Abdulla Almosalami (memphis242)
  * @date April 12, 2025
@@ -58,10 +58,11 @@ struct Vector_S
 
 /* Private Function Prototypes */
 static bool LocalVectorExpand( struct Vector_S * self );
-static void ShiftOneOver( struct Vector_S * self, size_t idx );
+static void ShiftOneOver( struct Vector_S * self, size_t idx, bool move_right );
 
 /* Public API Implementations */
 
+/******************************************************************************/
 struct Vector_S * VectorInit( size_t element_size,
                               size_t initial_capacity,
                               size_t max_capacity,
@@ -130,6 +131,7 @@ struct Vector_S * VectorInit( size_t element_size,
    return NewVec;
 }
 
+/******************************************************************************/
 void VectorFree( struct Vector_S * self )
 {
    if ( (self != NULL) && (self->arr != NULL) )
@@ -139,6 +141,7 @@ void VectorFree( struct Vector_S * self )
    free(self);
 }
 
+/******************************************************************************/
 size_t VectorLength( struct Vector_S * self )
 {
    if ( NULL == self )
@@ -148,6 +151,7 @@ size_t VectorLength( struct Vector_S * self )
    return self->len;
 }
 
+/******************************************************************************/
 size_t VectorCapacity( struct Vector_S * self )
 {
    if ( NULL == self )
@@ -157,6 +161,7 @@ size_t VectorCapacity( struct Vector_S * self )
    return self->capacity;
 }
 
+/******************************************************************************/
 size_t VectorMaxCapacity( struct Vector_S * self )
 {
    if ( NULL == self )
@@ -166,6 +171,7 @@ size_t VectorMaxCapacity( struct Vector_S * self )
    return self->max_capacity;
 }
 
+/******************************************************************************/
 size_t VectorElementSize( struct Vector_S * self )
 {
    if ( NULL == self )
@@ -175,6 +181,7 @@ size_t VectorElementSize( struct Vector_S * self )
    return self->element_size;
 }
 
+/******************************************************************************/
 bool VectorIsEmpty( struct Vector_S * self )
 {
    if ( NULL == self )
@@ -184,6 +191,7 @@ bool VectorIsEmpty( struct Vector_S * self )
    return IS_EMPTY(self);
 }
 
+/******************************************************************************/
 bool VectorIsFull( struct Vector_S * self )
 {
    if ( NULL == self )
@@ -193,6 +201,7 @@ bool VectorIsFull( struct Vector_S * self )
    return self->len == self->max_capacity;
 }
 
+/******************************************************************************/
 bool VectorPush( struct Vector_S * self, const void * restrict element )
 {
    // Early return op
@@ -230,6 +239,7 @@ bool VectorPush( struct Vector_S * self, const void * restrict element )
    return ret_val;
 }
 
+/******************************************************************************/
 bool VectorInsertAt( struct Vector_S * self,
                      size_t idx,
                      const void * restrict element )
@@ -259,7 +269,7 @@ bool VectorInsertAt( struct Vector_S * self,
    {
       if ( idx < self->len )
       {
-         ShiftOneOver(self, idx);
+         ShiftOneOver(self, idx, true);
       }
       void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, element, self->element_size );
@@ -273,6 +283,7 @@ bool VectorInsertAt( struct Vector_S * self,
    return ret_val;
 }
 
+/******************************************************************************/
 void * VectorGetElementAt( struct Vector_S * self, size_t idx )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == self->arr) )
@@ -283,6 +294,7 @@ void * VectorGetElementAt( struct Vector_S * self, size_t idx )
    return (void *)PTR_TO_IDX(self, idx);
 }
 
+/******************************************************************************/
 bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == self->arr) ||
@@ -296,15 +308,19 @@ bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data )
    return true;
 }
 
+/******************************************************************************/
 bool VectorSetElementAt( struct Vector_S * self,
                            size_t idx,
                            const void * restrict element )
 {
+   //TODO: Implement set element at.
    return false;
 }
 
+/******************************************************************************/
 bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data )
 {
+   //TODO: Implement remove element at.
    return false;
 }
 
@@ -339,6 +355,7 @@ void * VectorLastElement( struct Vector_S * self )
    return (void *)PTR_TO_IDX(self, (self->len - 1));
 }
 
+/******************************************************************************/
 bool VectorCpyLastElement( struct Vector_S * self, void * data )
 {
    if ( (NULL == self) || (NULL == self->arr) || (0 == self->len) ||
@@ -358,6 +375,7 @@ bool VectorCpyLastElement( struct Vector_S * self, void * data )
    return true;
 }
 
+/******************************************************************************/
 bool VectorClear( struct Vector_S * self )
 {
    if ( NULL == self )
@@ -369,6 +387,7 @@ bool VectorClear( struct Vector_S * self )
    return true;
 }
 
+/******************************************************************************/
 bool VectorHardReset( struct Vector_S * self )
 {
    if ( (NULL == self) || (NULL == self->arr) || (0 == self->element_size) )
@@ -384,11 +403,13 @@ bool VectorHardReset( struct Vector_S * self )
    return true;
 }
 
+/******************************************************************************/
 struct Vector_S * VectorDuplicate( struct Vector_S * self )
 {
    return NULL;
 }
 
+/******************************************************************************/
 bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b )
 {
    // Check for NULL pointers
@@ -420,6 +441,16 @@ bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b )
 
 /* Private Function Implementations */
 
+/**
+ * @brief Expands the capacity of the vector to accommodate additional elements.
+ *
+ * This function is used internally to increase the storage capacity of the vector
+ * when the current capacity is insufficient to hold new elements. It ensures that
+ * the vector can grow dynamically as needed.
+ *
+ * @param self A pointer to the Vector_S structure representing the vector.
+ * @return true if the expansion was successful, false otherwise.
+ */
 static bool LocalVectorExpand( struct Vector_S * self )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
@@ -463,8 +494,20 @@ static bool LocalVectorExpand( struct Vector_S * self )
    return ret_val;
 }
 
-// Shift to the right all elements from the idx onwards to length of the vector
-static void ShiftOneOver( struct Vector_S * self, size_t idx )
+/**
+ * @brief Shifts elements in the vector either to the left or right by one position.
+ * 
+ * This function moves all elements in the vector starting from the given index
+ * one position to the right or left, depending on the implementation, to make
+ * room for new elements or to fill gaps after an element is removed.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx The index at which the shift operation begins.
+ * @param move_right A boolean flag indicating the direction of the shift.
+ *        - If true, elements are shifted to the right.
+ *        - If false, elements are shifted to the left.
+ */
+static void ShiftOneOver( struct Vector_S * self, size_t idx, bool move_right )
 {
    assert( (self != NULL) &&
            (self->arr != NULL) &&
@@ -474,11 +517,25 @@ static void ShiftOneOver( struct Vector_S * self, size_t idx )
            (idx < MAX_VECTOR_LENGTH) &&
            (self->element_size > 0) );
 
-   // Start at the end and shift over to the right by one until we hit idx
-   for ( size_t i = self->len; i > idx; i-- )
+   if ( move_right )
    {
-      uint8_t * old_spot = PTR_TO_IDX(self, i - 1);
-      uint8_t * new_spot = PTR_TO_IDX(self, i);
-      memcpy( new_spot, old_spot, self->element_size );
+      // Start at the end and shift over to the right by one until we hit idx
+      for ( size_t i = self->len; i > idx; i-- )
+      {
+         uint8_t * old_spot = PTR_TO_IDX(self, i - 1);
+         uint8_t * new_spot = PTR_TO_IDX(self, i);
+         memcpy( new_spot, old_spot, self->element_size );
+      }
+   }
+   else // shift left
+   {
+      // Start at the one right of the idx and shift over to left by one until
+      // we hit the end
+      for ( size_t i = (idx + 1); i < self->len; i++ )
+      {
+         uint8_t * old_spot = PTR_TO_IDX(self, i);
+         uint8_t * new_spot = PTR_TO_IDX(self, i - 1);
+         memcpy( new_spot, old_spot, self->element_size );
+      }
    }
 }
