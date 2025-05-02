@@ -77,6 +77,12 @@ void test_VectorHardReset(void);
 void test_VectorDuplicate_SmallVector(void);
 void test_VectorDuplicate_ReallyLargeVector(void);
 void test_VectorDuplicate_NullVector(void);
+void test_VectorsAreEqual_SameVectors(void);
+void test_VectorsAreEqual_DifferentElementSz(void);
+void test_VectorsAreEqual_DifferentLength(void);
+void test_VectorsAreEqual_DifferentCapacity(void);
+void test_VectorsAreEqual_DifferentMaxCapacity(void);
+void test_VectorsAreEqual_DifferentElementValues(void);
 
 /* Meat of the Program */
 
@@ -120,6 +126,12 @@ int main(void)
 //   RUN_TEST(test_VectorDuplicate_SmallVector);
 //   RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
 //   RUN_TEST(test_VectorDuplicate_NullVector);
+   RUN_TEST(test_VectorsAreEqual_SameVectors);
+   RUN_TEST(test_VectorsAreEqual_DifferentElementSz);
+   RUN_TEST(test_VectorsAreEqual_DifferentLength);
+   RUN_TEST(test_VectorsAreEqual_DifferentCapacity);
+   RUN_TEST(test_VectorsAreEqual_DifferentMaxCapacity);
+   RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
 
    return UNITY_END();
 }
@@ -690,34 +702,35 @@ void test_VectorInsertion_AtEndEqualsVecPush(void)
    iter = 0;
    TRY_INIT( vec2, iter, sizeof(int), 10, 100 );
 
+   iter = 0;
    int val = 20;
-   while ( VectorLength(vec1) < 100 )
+   while ( (VectorLength(vec1) < 100) && (iter < 1000) )
    {
-      (void)VectorPush(vec1, &val);
-      val++;
+      bool result = VectorPush(vec1, &val);
+      if ( result) val++;
+      iter++;
    }
    val = 20;
    size_t idx = 0;
-   while ( VectorLength(vec2) < 100 )
+   iter = 0;
+   while ( (VectorLength(vec2) < 100) && (iter < 1000) )
    {
-      (void)VectorInsertAt(vec2, idx, &val);
-      val++;
-      idx++;
+      bool result = VectorInsertAt(vec2, idx, &val);
+      if ( result )
+      {
+         val++;
+         idx++;
+      }
+      iter++;
    }
+   // It is possible that the 1000 iteration attempts were not enough to insert
+   // the 100 elements depending on how much reallocations failed. Feels unlikely
+   // but Murphy, ya know.
 
-   // Try to do an insertion many times. This should fail.
-   // Also, elements in vector should basically remain intact.
-   int test_val = 100;
-   for ( size_t i = 0; i < 100; i++ )
-   {
-      TEST_ASSERT_FALSE( VectorInsertAt(vec, 0, &test_val) );
-   }
-   for ( size_t i = 0; i < 100; i++ )
-   {
-      TEST_ASSERT_EQUAL_INT( 20 + i, *( (int *)VectorGetElementAt(vec, i) ) );
-   }
+   TEST_ASSERT_TRUE( VectorsAreEqual(vec1, vec2) );
 
-   VectorFree(vec);
+   VectorFree(vec1);
+   VectorFree(vec2);
 }
 
 void test_VectorInsertion_AtMiddle(void)
@@ -835,4 +848,49 @@ void test_VectorHardReset(void)
    TEST_ASSERT_EQUAL_INT(0, *ptr_val3);
 
    VectorFree(vec);
+}
+
+void test_VectorsAreEqual_SameVectors(void)
+{
+   struct Vector_S * vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT(vec, iter, sizeof(int), 10, 100);
+
+   iter = 0;
+   int val = 10;
+   while ( (VectorLength(vec) < 5) && (iter < 100) )
+   {
+      bool result = VectorPush(vec, &val);
+      if ( result ) val += 5;
+   }
+
+   // Vector should obviously be equal to itself
+   TEST_ASSERT_TRUE( VectorsAreEqual(vec, vec) );
+
+   VectorFree(vec);
+}
+
+void test_VectorsAreEqual_DifferentElementSz(void)
+{
+
+}
+
+void test_VectorsAreEqual_DifferentLength(void)
+{
+
+}
+
+void test_VectorsAreEqual_DifferentCapacity(void)
+{
+
+}
+
+void test_VectorsAreEqual_DifferentMaxCapacity(void)
+{
+
+}
+
+void test_VectorsAreEqual_DifferentElementValues(void)
+{
+
 }

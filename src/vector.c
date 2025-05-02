@@ -245,12 +245,13 @@ bool VectorInsertAt( struct Vector_S * self,
 
    if ( successfully_expanded )
    {
-      if ( self->len > 0 )
+      if ( idx < self->len )
       {
          ShiftOneOver(self, idx);
       }
       void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, element, self->element_size );
+      self->len++;
    }
    else
    {
@@ -361,29 +362,31 @@ struct Vector_S * VectorDuplicate( struct Vector_S * self )
 
 bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b )
 {
-   if ( (NULL == a) || (NULL == b) )
-   {
-      return false;
-   }
-
-   bool ret_val = false;
+   // Check for NULL pointers
+   if ( (NULL == a) || (NULL == b) )   return false;
 
    // First check lengths
-   ret_val = (a->len == b->len);
+   if (a->len != b->len) return false;
+   
+   // Then check the element sizes
+   if (a->element_size != b->element_size) return false;
 
    // Then check capacities
-   ret_val = ret_val && (a->capacity == b->capacity);
+   if (a->capacity != b->capacity) return false;
 
    // Then check max capacities
-   ret_val = ret_val && (a->max_capacity == b->max_capacity);
+   if (a->max_capacity != b->max_capacity) return false;
 
    // Then check each element in the vector
-   if ( ret_val )
+   for ( size_t i = 0; i < a->len; i++ )
    {
-      for ( size_t i = 0; i <  )
+      if ( memcmp( PTR_TO_IDX(a,i), PTR_TO_IDX(b,i), a->element_size ) )
+      {
+         return false;
+      }
    }
 
-   return ret_val;
+   return true;
 }
 
 /* Private Function Implementations */
@@ -449,6 +452,4 @@ static void ShiftOneOver( struct Vector_S * self, size_t idx )
       uint8_t * new_spot = PTR_TO_IDX(self, i);
       memcpy( new_spot, old_spot, self->element_size );
    }
-   
-   self->len++;
 }
