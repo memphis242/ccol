@@ -139,6 +139,7 @@ int main(void)
    RUN_TEST(test_VectorsAreEqual_DifferentCapacity);
    RUN_TEST(test_VectorsAreEqual_DifferentMaxCapacity);
    RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
+   // TODO: Vector subrange unit tests.
 
    return UNITY_END();
 }
@@ -914,6 +915,7 @@ void test_VectorCpyLastElement(void)
    int value = 42, buffer;
    VectorPush(vec, &value);
    TEST_ASSERT_TRUE(VectorCpyLastElement(vec, &buffer));
+   TEST_ASSERT_NOT_EQUAL_size_t( &buffer, VectorGetElementAt(vec, 0) );
    TEST_ASSERT_EQUAL_INT(42, buffer);
    VectorFree(vec);
 }
