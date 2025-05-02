@@ -214,6 +214,21 @@ bool VectorSetElementAt( struct Vector_S * self,
 bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data );
 
 /**
+ * @brief Clears the element at the specified index in the vector.
+ *
+ * This function sets the element at the given index to a cleared state,
+ * effectively removing its value while maintaining the vector's structure.
+ * Use instead of VectorRemoveElementAt if you don't wish to shift and fill-in
+ * the gap.
+ *
+ * @param self Vector handle.
+ * @param idx Index of the element to clear.
+ * @return true if the element was successfully cleared, false otherwise
+ *         (e.g., if the index is out of bounds).
+ */
+bool VectorClearElementAt( struct Vector_S * self, size_t idx );
+
+/**
  * @brief Retrieves the last element in the vector.
  *
  * Provides access to the last element in the vector without removing it.

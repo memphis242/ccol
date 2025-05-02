@@ -73,6 +73,8 @@ void test_VectorGetElementAt(void);
 void test_VectorCpyElementAt(void);
 void test_VectorSetElementAt(void);
 void test_VectorRemoveElementAt(void);
+void test_VectorClearElementAt_Normal(void);
+void test_VectorClear_OORIdx(void);
 void test_VectorLastElement(void);
 void test_VectorCpyLastElement(void);
 void test_VectorClear(void);
@@ -126,6 +128,8 @@ int main(void)
 //   RUN_TEST(test_VectorCpyElementAt);
 //   RUN_TEST(test_VectorSetElementAt);
 //   RUN_TEST(test_VectorRemoveElementAt);
+   RUN_TEST(test_VectorClearElementAt_Normal);
+   RUN_TEST(test_VectorClear_OORIdx);
    RUN_TEST(test_VectorLastElement);
    RUN_TEST(test_VectorCpyLastElement);
    RUN_TEST(test_VectorClear);
@@ -896,6 +900,55 @@ void test_VectorRemoveElementAt(void) {
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, &buffer));
    TEST_ASSERT_EQUAL_INT(42, buffer);
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+   VectorFree(vec);
+}
+
+void test_VectorClearElementAt_Normal(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {42, 84, 126};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Clear the second element
+   TEST_ASSERT_TRUE(VectorClearElementAt(vec, 1));
+
+   // Verify the cleared element is zeroed out
+   int *cleared = (int *)VectorGetElementAt(vec, 1);
+   TEST_ASSERT_NOT_NULL(cleared);
+   TEST_ASSERT_EQUAL_INT(0, *cleared);
+
+   // Verify other elements remain unchanged
+   int *first = (int *)VectorGetElementAt(vec, 0);
+   int *third = (int *)VectorGetElementAt(vec, 2);
+   TEST_ASSERT_NOT_NULL(first);
+   TEST_ASSERT_NOT_NULL(third);
+   TEST_ASSERT_EQUAL_INT(42, *first);
+   TEST_ASSERT_EQUAL_INT(126, *third);
+
+   VectorFree(vec);
+}
+
+void test_VectorClear_OORIdx(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {42, 84, 126};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Attempt to clear an out-of-range index
+   TEST_ASSERT_FALSE(VectorClearElementAt(vec, 5)); // Index greater than length
+   TEST_ASSERT_FALSE(VectorClearElementAt(vec, UINT32_MAX)); // Extreme out-of-range index
+
+   // Verify that the vector remains unchanged
+   for (size_t i = 0; i < 3; i++) {
+      int *element = (int *)VectorGetElementAt(vec, i);
+      TEST_ASSERT_NOT_NULL(element);
+      TEST_ASSERT_EQUAL_INT(values[i], *element);
+   }
+
    VectorFree(vec);
 }
 

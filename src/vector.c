@@ -308,6 +308,23 @@ bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data )
    return false;
 }
 
+/******************************************************************************/
+bool VectorClearElementAt( struct Vector_S * self, size_t idx )
+{
+   if ( (NULL == self) || (NULL == self->arr) || (0 == self->len) ||
+        (idx >= self->len) )
+   {
+      return false;
+   }
+
+   assert(self->element_size > 0);
+
+   memset( (void *)PTR_TO_IDX(self, idx), 0, self->element_size );
+
+   return true;
+}
+
+/******************************************************************************/
 void * VectorLastElement( struct Vector_S * self )
 {
    if ( (NULL == self) || (NULL == self->arr) || (0 == self->len) )
