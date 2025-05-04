@@ -69,8 +69,13 @@ void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void);
 void test_VectorInsertion_AtEndEqualsVecPush(void);
 void test_VectorInsertion_AtMiddle(void);
 void test_VectorInsertion_AtMiddleOfEmptyVec(void);
-void test_VectorGetElementAt(void);
-void test_VectorCpyElementAt(void);
+void test_VectorGetElement_ValidIdx(void);
+void test_VectorGetElement_IdxPastLen(void);
+void test_VectorGetElement_IdxPastCap(void);
+void test_VectorCpyElement_ValidIdx(void);
+void test_VectorCpyElement_NullBufferPassedIn(void);
+void test_VectorCpyElement_IdxPastLen(void);
+void test_VectorCpyElement_IdxPastCap(void);
 void test_VectorSetElementAt(void);
 void test_VectorRemoveElementAt(void);
 void test_VectorClearElementAt_Normal(void);
@@ -124,8 +129,13 @@ int main(void)
    RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
    RUN_TEST(test_VectorInsertion_AtMiddle);
    RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
-   RUN_TEST(test_VectorGetElementAt);
-//   RUN_TEST(test_VectorCpyElementAt);
+   RUN_TEST(test_VectorGetElement_ValidIdx);
+   RUN_TEST(test_VectorGetElement_IdxPastLen);
+   RUN_TEST(test_VectorGetElement_IdxPastCap);
+   RUN_TEST(test_VectorCpyElement_ValidIdx);
+   RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
+   RUN_TEST(test_VectorCpyElement_IdxPastLen);
+   RUN_TEST(test_VectorCpyElement_IdxPastCap);
 //   RUN_TEST(test_VectorSetElementAt);
 //   RUN_TEST(test_VectorRemoveElementAt);
    RUN_TEST(test_VectorClearElementAt_Normal);
@@ -863,8 +873,7 @@ void test_VectorInsertion_AtMiddleOfEmptyVec(void)
    VectorFree(vec);
 }
 
-// This'll be the only get lmnt test because this fcn is used repeatedly elsewhere.
-void test_VectorGetElementAt(void)
+void test_VectorGetElement_ValidIdx(void)
 {
    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
@@ -875,12 +884,67 @@ void test_VectorGetElementAt(void)
    VectorFree(vec);
 }
 
-void test_VectorCpyElementAt(void) {
+void test_VectorGetElement_IdxPastLen(void)
+{
    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
-   int value = 42, buffer;
+   int value = 42;
+   VectorPush(vec, &value);
+   int *retrieved = (int *)VectorGetElementAt(vec, 1);
+   TEST_ASSERT_NULL(retrieved);
+   VectorFree(vec);
+}
+
+void test_VectorGetElement_IdxPastCap(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int value = 42;
+   VectorPush(vec, &value);
+   int *retrieved = (int *)VectorGetElementAt(vec, 10000000);
+   TEST_ASSERT_NULL(retrieved);
+   VectorFree(vec);
+}
+
+void test_VectorCpyElement_ValidIdx(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int value = 42;
+   int buffer;
    VectorPush(vec, &value);
    TEST_ASSERT_TRUE(VectorCpyElementAt(vec, 0, &buffer));
    TEST_ASSERT_EQUAL_INT(42, buffer);
+   VectorFree(vec);
+}
+
+void test_VectorCpyElement_NullBufferPassedIn(void)
+{
+   // Easy mistake to make for the user.
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int value = 42;
+   int * buffer = NULL;
+   VectorPush(vec, &value);
+   TEST_ASSERT_FALSE(VectorCpyElementAt(vec, 0, buffer));
+   VectorFree(vec);
+}
+
+void test_VectorCpyElement_IdxPastLen(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int value = 42;
+   int buffer = 0;
+   VectorPush(vec, &value);
+   TEST_ASSERT_FALSE(VectorCpyElementAt(vec, 1, &buffer));
+   TEST_ASSERT_EQUAL_INT(0, buffer);   // Confirm buffer unchanged
+   VectorFree(vec);
+}
+
+void test_VectorCpyElement_IdxPastCap(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int value = 42;
+   int buffer = 0;
+   VectorPush(vec, &value);
+   TEST_ASSERT_FALSE(VectorCpyElementAt(vec, 1000000000, &buffer));
+   TEST_ASSERT_EQUAL_INT(0, buffer);   // Confirm buffer unchanged
    VectorFree(vec);
 }
 
