@@ -76,7 +76,10 @@ void test_VectorCpyElement_ValidIdx(void);
 void test_VectorCpyElement_NullBufferPassedIn(void);
 void test_VectorCpyElement_IdxPastLen(void);
 void test_VectorCpyElement_IdxPastCap(void);
-void test_VectorSetElementAt(void);
+void test_VectorSetElement_AfterPushes(void);
+void test_VectorSetElement_AfterInitLen(void);
+void test_VectorSetElement_PastLen(void);
+void test_VectorSetElement_PastCap(void);
 void test_VectorRemoveElementAt(void);
 void test_VectorClearElementAt_Normal(void);
 void test_VectorClear_OORIdx(void);
@@ -136,7 +139,10 @@ int main(void)
    RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
    RUN_TEST(test_VectorCpyElement_IdxPastLen);
    RUN_TEST(test_VectorCpyElement_IdxPastCap);
-//   RUN_TEST(test_VectorSetElementAt);
+   RUN_TEST(test_VectorSetElement_AfterPushes);
+   RUN_TEST(test_VectorSetElement_AfterInitLen);
+   RUN_TEST(test_VectorSetElement_PastLen);
+   RUN_TEST(test_VectorSetElement_PastCap);
 //   RUN_TEST(test_VectorRemoveElementAt);
    RUN_TEST(test_VectorClearElementAt_Normal);
    RUN_TEST(test_VectorClear_OORIdx);
@@ -880,7 +886,7 @@ void test_VectorGetElement_ValidIdx(void)
    VectorPush(vec, &value);
    int *retrieved = (int *)VectorGetElementAt(vec, 0);
    TEST_ASSERT_NOT_NULL(retrieved);
-   TEST_ASSERT_EQUAL_INT(42, *retrieved);
+   TEST_ASSERT_EQUAL_INT(value, *retrieved);
    VectorFree(vec);
 }
 
@@ -911,7 +917,7 @@ void test_VectorCpyElement_ValidIdx(void)
    int buffer;
    VectorPush(vec, &value);
    TEST_ASSERT_TRUE(VectorCpyElementAt(vec, 0, &buffer));
-   TEST_ASSERT_EQUAL_INT(42, buffer);
+   TEST_ASSERT_EQUAL_INT(value, buffer);
    VectorFree(vec);
 }
 
@@ -948,12 +954,65 @@ void test_VectorCpyElement_IdxPastCap(void)
    VectorFree(vec);
 }
 
-void test_VectorSetElementAt(void) {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+void test_VectorSetElement_AfterPushes(void)
+{
+   struct Vector_S *vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
    int value1 = 42, value2 = 84;
    VectorPush(vec, &value1);
    TEST_ASSERT_TRUE(VectorSetElementAt(vec, 0, &value2));
-   TEST_ASSERT_EQUAL_INT(84, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(value2, *(int *)VectorGetElementAt(vec, 0));
+   VectorFree(vec);
+}
+
+void test_VectorSetElement_AfterInitLen(void)
+{
+   struct Vector_S *vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT(vec, iter, sizeof(int), 10, 100, 5);
+   int val = 5;
+   TEST_ASSERT_TRUE(VectorSetElementAt(vec, 0, &val));
+   TEST_ASSERT_TRUE(VectorSetElementAt(vec, 3, &val));
+   TEST_ASSERT_EQUAL_INT(val, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(val, *(int *)VectorGetElementAt(vec, 3));
+   VectorFree(vec);
+}
+void test_VectorSetElement_PastLen(void)
+{
+   struct Vector_S *vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
+   int value1 = 42, value2 = 84;
+   while ( VectorLength(vec) < 10 )
+   {
+      VectorPush(vec, &value1);
+   }
+   TEST_ASSERT_FALSE(VectorSetElementAt(vec, 10, &value2));
+   // Vector unaffected
+   for ( size_t i = 0; i < 10; i++ )
+   {
+      TEST_ASSERT_EQUAL_INT(value1, *(int *)VectorGetElementAt(vec, i));
+   }
+   VectorFree(vec);
+}
+
+void test_VectorSetElement_PastCap(void)
+{
+   struct Vector_S *vec = NULL;
+   unsigned int iter = 0;
+   TRY_INIT(vec, iter, sizeof(int), 10, 10, 0);
+   int value1 = 42, value2 = 84;
+   while ( VectorLength(vec) < 10 )
+   {
+      VectorPush(vec, &value1);
+   }
+   TEST_ASSERT_FALSE(VectorSetElementAt(vec, 10, &value2));
+   // Vector unaffected
+   for ( size_t i = 0; i < 10; i++ )
+   {
+      TEST_ASSERT_EQUAL_INT(value1, *(int *)VectorGetElementAt(vec, i));
+   }
    VectorFree(vec);
 }
 

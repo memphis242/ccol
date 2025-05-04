@@ -318,7 +318,16 @@ bool VectorSetElementAt( struct Vector_S * self,
                            const void * element )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == element) )
-   return false;
+   {
+      return false;
+   }
+
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+   memcpy( PTR_TO_IDX(self, idx), element, self->element_size );
+
+   return true;
 }
 
 /******************************************************************************/
