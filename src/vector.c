@@ -333,8 +333,30 @@ bool VectorSetElementAt( struct Vector_S * self,
 /******************************************************************************/
 bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data )
 {
-   //TODO: Implement remove element at.
-   return false;
+   if ( (NULL == self) || (idx >= self->len) || (self->len == 0) )
+   {
+      return false;
+   }
+
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+   assert(self->len <= self->capacity);
+   assert(self->capacity <= self->max_capacity);
+
+   if ( data != NULL )
+   {
+      memcpy(data, PTR_TO_IDX(self, idx), self->element_size);
+   }
+   ShiftOneOver(self, idx, false);
+   self->len--;
+
+   return true;
+}
+
+/******************************************************************************/
+bool VectorRemoveLastElement( struct Vector_S * self, void * data )
+{
+   return VectorRemoveElementAt( self, VectorLength(self) - 1, data );
 }
 
 /******************************************************************************/
@@ -547,8 +569,8 @@ static void ShiftOneOver( struct Vector_S * self, size_t idx, bool move_right )
    }
    else // shift left
    {
-      // Start at the one right of the idx and shift over to left by one until
-      // we hit the end
+      // Start at the one to the right of the idx and shift over to left by one
+      // until we hit the end
       for ( size_t i = (idx + 1); i < self->len; i++ )
       {
          uint8_t * old_spot = PTR_TO_IDX(self, i);

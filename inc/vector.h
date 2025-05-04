@@ -201,17 +201,35 @@ bool VectorSetElementAt( struct Vector_S * self,
  * @brief Removes an element from the vector at the specified index.
  *
  * Deletes the element at the given index and shifts subsequent elements to fill
- * the gap. Also, performs an internal memcpy() to the provided data buffer so that
- * any internal realloc()'s don't lead to unintended stale pointers. If data is
- * NULL, then the function skips the data copying.
+ * the gap. If the `data` pointer is not NULL, the data of the removed element
+ * is copied to the memory location pointed to by `data`.
+ * 
+ * @note No realloc is done to release memory.
+ * @todo TODO: Determine when it makes sense to realloc to release memory...
  *
  * @param self Vector handle
  * @param idx The index of the element to be removed, 0-indexed.
- * @param data Pointer to the data that will be returned.
+ * @param data Pointer to a memory location where the data of the removed element
+ *             will be copied. If NULL, the data is discarded.
  * 
  * @return true if the element was removed, false otherwise
  */
 bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data );
+
+/**
+ * @brief Removes the last element from the vector and optionally retrieves its data.
+ *
+ * This function removes the last element from the vector. If the `data` pointer
+ * is not NULL, the data of the removed element is copied to the memory location
+ * pointed to by `data`.
+ *
+ * @param self Vector handle
+ * @param data Pointer to a memory location where the data of the removed element
+ *             will be copied. If NULL, the data is discarded.
+ * @return true if the last element was successfully removed, false if the vector
+ *         is empty or an error occurred.
+ */
+bool VectorRemoveLastElement( struct Vector_S * self, void * data );
 
 /**
  * @brief Clears the element at the specified index in the vector.
