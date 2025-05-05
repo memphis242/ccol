@@ -16,6 +16,9 @@
 3. Strive for [MC/DC](https://en.wikipedia.org/wiki/Modified_condition/decision_coverage) coverage but 100% coverage here is not expected, because it tends to lead to violations of sub-point 2
 4. Unit tests should be short and simple. If you find yourself re-setting up an environment before running the function-under-test, split it out to another test case.
 5. Follow the [Four-Phase Test pattern](http://xunitpatterns.com/Four%20Phase%20Test.html).
+6. Whenever practical, test a _range_ of values rather than a single value in a test case.
+   - This may seem redundant but helps catch unexpected edge cases.
+   - If the range of values causes this single test case to take more than a few seconds to run, use a smaller subset.
 
 ## Encapsulation
 1. Don't expose the underlying implementation to the user. Use [opaque types](https://stackoverflow.com/questions/2301454/what-defines-an-opaque-type-in-c-and-when-are-they-necessary-and-or-useful).
