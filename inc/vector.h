@@ -298,6 +298,13 @@ bool VectorHardReset( struct Vector_S * self );
 
 /**
  * @brief Duplicates the vector passed in and returns a pointer to the result.
+ * 
+ * @note Performs a deep copy - i.e., the underlying data is also copied over
+ *       to a new location, so the returned object has no association to the
+ *       original.
+ *
+ * @note Memory is dynamically allocated for this duplicatation. The user is
+ *       responsible for free'ing this later (e.g., by calling VectorFree).
  *
  * @param self Vector handle
  */

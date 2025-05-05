@@ -199,9 +199,9 @@ int main(void)
 
    RUN_TEST(test_VectorHardReset);
 
-//   RUN_TEST(test_VectorDuplicate_SmallVector);
-//   RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
-//   RUN_TEST(test_VectorDuplicate_NullVector);
+   RUN_TEST(test_VectorDuplicate_SmallVector);
+   RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
+   RUN_TEST(test_VectorDuplicate_NullVector);
 
    RUN_TEST(test_VectorsAreEqual_SameVectors);
    RUN_TEST(test_VectorsAreEqual_DifferentElementSz);
@@ -1408,6 +1408,7 @@ void test_VectorClear(void)
    VectorFree(vec);
 }
 
+/******************************** Vector Reset *******************************/
 void test_VectorHardReset(void)
 {
    struct Vector_S * vec = NULL;
@@ -1445,6 +1446,82 @@ void test_VectorHardReset(void)
    VectorFree(vec);
 }
 
+/******************************* Vector Duplicate *****************************/
+void test_VectorDuplicate_SmallVector(void)
+{
+   struct Vector_S * original = NULL;
+   unsigned int iter = 0;
+   TRY_INIT(original, iter, sizeof(int), 10, 100, 0);
+
+   int values[] = {42, 84, 126};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(original, &values[i]);
+   }
+
+   struct Vector_S * duplicate = VectorDuplicate(original);
+   TEST_ASSERT_NOT_NULL(duplicate);
+
+   // Verify the duplicate matches the original
+   TEST_ASSERT_EQUAL_UINT32(VectorLength(original), VectorLength(duplicate));
+   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(original), VectorCapacity(duplicate));
+   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(original), VectorMaxCapacity(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorElementSize(original), VectorElementSize(duplicate));
+
+   for (size_t i = 0; i < VectorLength(original); i++) {
+      int *original_element = (int *)VectorGetElementAt(original, i);
+      int *duplicate_element = (int *)VectorGetElementAt(duplicate, i);
+      TEST_ASSERT_NOT_NULL(original_element);
+      TEST_ASSERT_NOT_NULL(duplicate_element);
+      TEST_ASSERT_EQUAL_INT(*original_element, *duplicate_element);
+   }
+
+   VectorFree(original);
+   VectorFree(duplicate);
+}
+
+void test_VectorDuplicate_ReallyLargeVector(void)
+{
+   struct Vector_S * original = NULL;
+   unsigned int iter = 0;
+   const size_t OriginalVecLen = 10000000;
+   TRY_INIT(original, iter, sizeof(uint8_t), OriginalVecLen, OriginalVecLen, 0);
+
+   for (size_t i = 0; i < OriginalVecLen; i++) {
+      const uint8_t val = 5;
+      VectorPush(original, &val);
+   }
+
+   struct Vector_S * duplicate = VectorDuplicate(original);
+   TEST_ASSERT_NOT_NULL(duplicate);
+
+   // Verify the duplicate matches the original
+   TEST_ASSERT_EQUAL_UINT32(VectorLength(original), VectorLength(duplicate));
+   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(original), VectorCapacity(duplicate));
+   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(original), VectorMaxCapacity(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorElementSize(original), VectorElementSize(duplicate));
+
+   for (size_t i = 0; i < VectorLength(original); i++) {
+      uint8_t * original_element  = (uint8_t *)VectorGetElementAt(original, i);
+      uint8_t * duplicate_element = (uint8_t *)VectorGetElementAt(duplicate, i);
+      TEST_ASSERT_NOT_NULL(original_element);
+      TEST_ASSERT_NOT_NULL(duplicate_element);
+      TEST_ASSERT_EQUAL_UINT8(*original_element, *duplicate_element);
+   }
+
+   VectorFree(original);
+   VectorFree(duplicate);
+}
+
+void test_VectorDuplicate_NullVector(void)
+{
+   struct Vector_S * original = NULL;
+
+   struct Vector_S * duplicate = VectorDuplicate(original);
+   TEST_ASSERT_NULL(duplicate);
+}
+
+
+/****************************** Vectors Are Equal *****************************/
 void test_VectorsAreEqual_SameVectors(void)
 {
    struct Vector_S * vec = NULL;

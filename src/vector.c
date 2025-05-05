@@ -446,7 +446,45 @@ bool VectorHardReset( struct Vector_S * self )
 /******************************************************************************/
 struct Vector_S * VectorDuplicate( struct Vector_S * self )
 {
-   return NULL;
+   if ( (NULL == self) ||
+        // Check for internal paradoxes within passed in vector...
+        (0 == self->element_size) ||
+        (self->len > self->capacity) ||
+        (self->capacity > self->max_capacity) ||
+        ( (self->len > 0) && (NULL == self->arr) ) )
+   {
+      return NULL;
+   }
+
+   struct Vector_S * Duplicate = (struct Vector_S *)malloc( sizeof(struct Vector_S) );
+   if ( NULL == Duplicate )
+   {
+      // TODO: Throw exception that the vector handle failed to get duplicated.
+      return NULL;
+   }
+
+   memcpy( Duplicate, self, sizeof(struct Vector_S) );
+   
+   Duplicate->arr = NULL;
+   if ( Duplicate->len > 0 )
+   {
+      Duplicate->arr = malloc( Duplicate->len * Duplicate->element_size );
+      if ( Duplicate->arr != NULL )
+      {
+         memcpy( Duplicate->arr,
+                 self->arr,
+                 Duplicate->len * Duplicate->element_size );
+      }
+      else
+      {
+         // TODO: Throw exception that underlying data failed to get duplicated.
+      }
+   }
+
+   // Duplicated vector _must not_ reference original vector's data!
+   assert( Duplicate->arr != self->arr );
+
+   return Duplicate;
 }
 
 /******************************************************************************/
