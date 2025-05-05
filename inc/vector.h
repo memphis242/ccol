@@ -326,20 +326,20 @@ void * VectorGetElementsInRange( struct Vector_S * self,
                                  size_t idx_start,
                                  size_t idx_end );
 
+void * VectorGetElementsFromStartToIdx( struct Vector_S * self,
+                                        size_t idx );
+
+void * VectorGetElementsFromIdxToEnd( struct Vector_S * self,
+                                      size_t idx );
+
 bool VectorCpyElementsInRange( struct Vector_S * self,
                                size_t idx_start,
                                size_t idx_end,
                                void * buffer );
 
-void * VectorGetElementsFromStartToIdx( struct Vector_S * self,
-                                        size_t idx );
-
 bool VectorCpyElementsFromStartToIdx( struct Vector_S * self,
                                       size_t idx,
                                       void * buffer );
-
-void * VectorGetElementsFromIdxToEnd( struct Vector_S * self,
-                                      size_t idx );
 
 bool VectorCpyElementsFromIdxToEnd( struct Vector_S * self,
                                     size_t idx,
@@ -362,4 +362,10 @@ bool VectorRemoveElementsInRange( struct Vector_S * self,
                                   size_t idx_start,
                                   size_t idx_end );
 
-// TODO: Support deep copies?
+bool VectorRemoveElementsFromStartToIdx( struct Vector_S * self,
+                                         size_t idx,
+                                         const void * data );
+
+bool VectorRemoveElementsFromIdxToEnd( struct Vector_S * self,
+                                       size_t idx,
+                                       const void * data );
