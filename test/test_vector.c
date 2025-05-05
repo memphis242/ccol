@@ -431,26 +431,32 @@ void test_VectorOpsOnNullVectors(void)
    // Call any API that takes in a pointer, and ensure appropriate behavior, or
    // that the application does not crash.
    VectorFree(NULL);
-   (void)VectorLength(NULL);
-   (void)VectorCapacity(NULL);
-   (void)VectorMaxCapacity(NULL);
-   (void)VectorElementSize(NULL);
-   TEST_ASSERT_TRUE( VectorIsEmpty(NULL) );
-   TEST_ASSERT_FALSE( VectorPush(NULL, NULL) );
-   TEST_ASSERT_FALSE( VectorInsertAt(NULL, 0, NULL) );
-   TEST_ASSERT_FALSE( VectorInsertAt(NULL, UINT32_MAX, NULL) );
-   TEST_ASSERT_NULL( VectorGetElementAt(NULL, 0) );
-   TEST_ASSERT_NULL( VectorGetElementAt(NULL, UINT32_MAX) );
-   TEST_ASSERT_FALSE( VectorCpyElementAt(NULL, 0, NULL) );
-   TEST_ASSERT_FALSE( VectorCpyElementAt(NULL, UINT32_MAX, NULL) );
-   TEST_ASSERT_FALSE( VectorSetElementAt(NULL, 0, NULL) );
-   TEST_ASSERT_FALSE( VectorSetElementAt(NULL, UINT32_MAX, NULL) );
-   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, 0, NULL) );
-   TEST_ASSERT_FALSE( VectorRemoveElementAt(NULL, UINT32_MAX, NULL) );
-   TEST_ASSERT_NULL( VectorLastElement(NULL) );
-   TEST_ASSERT_FALSE( VectorCpyLastElement(NULL, NULL) );
-   TEST_ASSERT_FALSE( VectorClear(NULL) );
-   // TODO: Double-check I'm covering the full API here
+   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(NULL));
+   TEST_ASSERT_EQUAL_UINT32(0, VectorCapacity(NULL));
+   TEST_ASSERT_EQUAL_UINT32(0, VectorMaxCapacity(NULL));
+   TEST_ASSERT_EQUAL_size_t(0, VectorElementSize(NULL));
+   TEST_ASSERT_TRUE(VectorIsEmpty(NULL));
+   TEST_ASSERT_FALSE(VectorIsFull(NULL));
+   TEST_ASSERT_FALSE(VectorPush(NULL, NULL));
+   TEST_ASSERT_FALSE(VectorInsertAt(NULL, 0, NULL));
+   TEST_ASSERT_FALSE(VectorInsertAt(NULL, UINT32_MAX, NULL));
+   TEST_ASSERT_NULL(VectorGetElementAt(NULL, 0));
+   TEST_ASSERT_NULL(VectorGetElementAt(NULL, UINT32_MAX));
+   TEST_ASSERT_FALSE(VectorCpyElementAt(NULL, 0, NULL));
+   TEST_ASSERT_FALSE(VectorCpyElementAt(NULL, UINT32_MAX, NULL));
+   TEST_ASSERT_FALSE(VectorSetElementAt(NULL, 0, NULL));
+   TEST_ASSERT_FALSE(VectorSetElementAt(NULL, UINT32_MAX, NULL));
+   TEST_ASSERT_FALSE(VectorRemoveElementAt(NULL, 0, NULL));
+   TEST_ASSERT_FALSE(VectorRemoveElementAt(NULL, UINT32_MAX, NULL));
+   TEST_ASSERT_NULL(VectorLastElement(NULL));
+   TEST_ASSERT_FALSE(VectorCpyLastElement(NULL, NULL));
+   TEST_ASSERT_FALSE(VectorClearElementAt(NULL, 0));
+   TEST_ASSERT_FALSE(VectorClear(NULL));
+   TEST_ASSERT_FALSE(VectorHardReset(NULL));
+   TEST_ASSERT_NULL(VectorDuplicate(NULL));
+   TEST_ASSERT_FALSE(VectorsAreEqual(NULL, NULL));
+   TEST_ASSERT_FALSE(VectorsAreEqual(NULL, (struct Vector_S *)1));
+   TEST_ASSERT_FALSE(VectorsAreEqual((struct Vector_S *)1, NULL));
 }
 
 /***************************** Simple Vector Ops ******************************/
