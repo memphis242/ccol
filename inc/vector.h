@@ -289,7 +289,8 @@ bool VectorClear( struct Vector_S * self );
  * @brief Sets all elements to 0 and resets the vector length to zero.
  *
  * Similar to VectorClear except all elements that were previously added will
- * be memset to 0.
+ * be memset to 0. This helps prevent old data from remaining in memory past
+ * this point (better for security/privacy purposes).
  *
  * @param self Vector handle
  */
