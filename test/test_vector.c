@@ -122,6 +122,12 @@ void test_VectorsAreEqual_DifferentCapacity(void);
 void test_VectorsAreEqual_DifferentMaxCapacity(void);
 void test_VectorsAreEqual_DifferentElementValues(void);
 
+void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void);
+void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void);
+void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void);
+void test_VectorSubRange_GetElementsFromIdx_InvalidIdx(void);
+void test_VectorSubRange_GetElementsFromIdx_InvalidVec(void);
+
 /* Meat of the Program */
 
 int main(void)
@@ -211,6 +217,11 @@ int main(void)
    RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
 
    // TODO: Vector subrange unit tests.
+   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
+   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
+   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_EmptyVec);
+   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidIdx);
+   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidVec);
 
    return UNITY_END();
 }
@@ -226,9 +237,6 @@ void tearDown(void)
 {
    // Do nothing
 }
-
-/* Computation */
-
 
 /************************ Vector Initialization Tests *************************/
 void test_VectorInit_Invalid_ZeroElementSz(void)
@@ -1526,7 +1534,6 @@ void test_VectorDuplicate_NullVector(void)
    TEST_ASSERT_NULL(duplicate);
 }
 
-
 /****************************** Vectors Are Equal *****************************/
 void test_VectorsAreEqual_SameVectors(void)
 {
@@ -1608,4 +1615,99 @@ void test_VectorsAreEqual_DifferentElementValues(void)
 
    VectorFree(vec1);
    VectorFree(vec2);
+}
+
+/************************ Vector Subrange: Get Elements ***********************/
+void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int * subrange = (int *)VectorSubRange_GetElementsFromIdx(vec, 2);
+   TEST_ASSERT_NOT_NULL(subrange);
+   TEST_ASSERT_EQUAL_INT(30, subrange[0]);
+   TEST_ASSERT_EQUAL_INT(40, subrange[1]);
+   TEST_ASSERT_EQUAL_INT(50, subrange[2]);
+
+   subrange[0] = 100;
+   TEST_ASSERT_EQUAL_INT( 100, *((int *)VectorGetElementAt(vec, 2)) );
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void)
+{
+   struct MyData_S
+   {
+      float x;
+      float y;
+      float z;
+   };
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
+
+   struct MyData_S values[5] =
+   {
+      { .x = 00.0f, .y = 10.0f, .z = -10.0f },
+      { .x = 01.0f, .y = 20.0f, .z = -20.0f },
+      { .x = 02.0f, .y = 30.0f, .z = -30.0f },
+      { .x = 03.0f, .y = 40.0f, .z = -40.0f },
+      { .x = 04.0f, .y = 50.0f, .z = -50.0f }
+   };
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct MyData_S * subrange =
+      (struct MyData_S *)VectorSubRange_GetElementsFromIdx(vec, 2);
+   TEST_ASSERT_NOT_NULL(subrange);
+   TEST_ASSERT_EQUAL_FLOAT( values[2].x, subrange[0].x );
+   TEST_ASSERT_EQUAL_FLOAT( values[2].y, subrange[0].y );
+   TEST_ASSERT_EQUAL_FLOAT( values[2].z, subrange[0].z );
+   TEST_ASSERT_EQUAL_FLOAT( values[3].x, subrange[1].x );
+   TEST_ASSERT_EQUAL_FLOAT( values[3].y, subrange[1].y );
+   TEST_ASSERT_EQUAL_FLOAT( values[3].z, subrange[1].z );
+   TEST_ASSERT_EQUAL_FLOAT( values[4].x, subrange[2].x );
+   TEST_ASSERT_EQUAL_FLOAT( values[4].y, subrange[2].y );
+   TEST_ASSERT_EQUAL_FLOAT( values[4].z, subrange[2].z );
+
+   subrange[1].z = 123.456f;
+   TEST_ASSERT_EQUAL_FLOAT(
+      123.456f,
+      ((struct MyData_S *)VectorGetElementAt(vec, 3))->z
+   );
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+
+   int * subrange = (int *)VectorSubRange_GetElementsFromIdx(vec, 0);
+   TEST_ASSERT_NULL(subrange);
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_GetElementsFromIdx_InvalidIdx(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int *subrange = (int *)VectorSubRange_GetElementsFromIdx(vec, 5);
+   TEST_ASSERT_NULL(subrange);
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_GetElementsFromIdx_InvalidVec(void)
+{
+   int *subrange = (int *)VectorSubRange_GetElementsFromIdx(NULL, 0);
+   TEST_ASSERT_NULL(subrange);
 }

@@ -321,16 +321,30 @@ bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b );
 
 
 /* Sub-Range Based Vector Operations */
+/* ---------------------------------------------------------------------------
+ * This API is provided as a convenience. Technically, one could perform all
+ * these operations using the get/set/cpy functions on individual indices.
+ * -------------------------------------------------------------------------*/
 
-void * VectorGetElementsInRange( struct Vector_S * self,
-                                 size_t idx_start,
-                                 size_t idx_end );
-
-void * VectorGetElementsFromStartToIdx( struct Vector_S * self,
-                                        size_t idx );
-
-void * VectorGetElementsFromIdxToEnd( struct Vector_S * self,
-                                      size_t idx );
+/**
+ * @brief Retrieves a range of elements from the vector.
+ *
+ * Returns a pointer to an array of elements in the specified range within the
+ * vector, starting at the idx provided.
+ * 
+ * @note The returned array directly references the underlying data structure!
+ *       The caller must be aware that modifications done on the returned array
+ *       affect the vector directly.
+ * @note The caller must also handle the bounds of the array based on knowledge
+ *       of the vector's length.
+ *
+ * @param self Pointer to the vector structure.
+ * @param idx_start The starting index of the range (inclusive).
+ * @return A pointer to the array of elements, or NULL if the inputs are invalid
+ *         or the vector was empty.
+ */
+void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
+                                          size_t idx );
 
 bool VectorCpyElementsInRange( struct Vector_S * self,
                                size_t idx_start,

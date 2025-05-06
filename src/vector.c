@@ -517,6 +517,27 @@ bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b )
    return true;
 }
 
+/* Sub-Range Based Vector Operations */
+
+/******************************************************************************/
+void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
+                                          size_t idx )
+{
+   if ( (NULL == self) ||
+        (idx > (self->len - 1)) ||
+        IS_EMPTY(self) )
+   {
+      return NULL;
+   }
+
+   assert(self->len > 0);
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+   return (void *)PTR_TO_IDX(self, idx);
+}
+
+
 /* Private Function Implementations */
 
 /**
