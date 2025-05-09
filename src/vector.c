@@ -524,7 +524,7 @@ void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
                                           size_t idx )
 {
    if ( (NULL == self) ||
-        (idx > (self->len - 1)) ||
+        (idx >= self->len) ||
         IS_EMPTY(self) )
    {
       return NULL;
@@ -535,6 +535,30 @@ void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
    assert(self->element_size > 0);
 
    return (void *)PTR_TO_IDX(self, idx);
+}
+
+bool VectorSubRange_CpyElementsInRange( struct Vector_S * self,
+                                        size_t idx_start,
+                                        size_t idx_end,
+                                        void * buffer )
+{
+   if ( (NULL == self) || (NULL == buffer) ||
+        (idx_start >= self->len) || (idx_end >= self->len) ||
+        (idx_start > idx_end)
+      )
+   {
+      return false;
+   }
+
+   assert(self->len > 0);
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+   uint8_t * ptr_to_start = PTR_TO_IDX(self, idx_start);
+   size_t idx_diff = (idx_end - idx_start) + 1; // inclusive copy!
+   memcpy( buffer, ptr_to_start, (idx_diff * self->element_size) );
+
+   return true;
 }
 
 

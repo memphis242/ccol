@@ -346,10 +346,26 @@ bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b );
 void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
                                           size_t idx );
 
-bool VectorCpyElementsInRange( struct Vector_S * self,
-                               size_t idx_start,
-                               size_t idx_end,
-                               void * buffer );
+/**
+ * @brief Copies elements from a specified range in the vector to a provided buffer.
+ * 
+ * @note Part of the idea of using this is to either not mutate the vector's
+ *       data or to use VectorSubRange_CpyElementsInRange() followed by
+ *       VectorSubRange_SetElementsInRange() with the same range.
+ *
+ * @param self Vector handle.
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (inclusive).
+ * @param buffer Pointer to the destination buffer where the elements will be copied.
+ *               The buffer must be large enough to hold all elements in the specified range.
+ * 
+ * @return true if the elements were successfully copied;
+ *         false otherwise (e.g., if indices are out of bounds).
+ */
+bool VectorSubRange_CpyElementsInRange( struct Vector_S * self,
+                                        size_t idx_start,
+                                        size_t idx_end,
+                                        void * buffer );
 
 bool VectorCpyElementsFromStartToIdx( struct Vector_S * self,
                                       size_t idx,

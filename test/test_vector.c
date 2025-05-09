@@ -128,6 +128,12 @@ void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void);
 void test_VectorSubRange_GetElementsFromIdx_InvalidIdx(void);
 void test_VectorSubRange_GetElementsFromIdx_InvalidVec(void);
 
+void test_VectorSubRange_CpyElementsInRange_ValidIdices_IntData(void);
+void test_VectorSubRange_CpyElementsInRange_ValidIndices_StructData(void);
+void test_VectorSubRange_CpyElementsInRange_EmptyVec(void);
+void test_VectorSubRange_CpyElementsInRange_InvalidIdx(void);
+void test_VectorSubRange_CpyElementsInRange_InvalidVec(void);
+
 /* Meat of the Program */
 
 int main(void)
@@ -222,6 +228,12 @@ int main(void)
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_EmptyVec);
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidIdx);
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidVec);
+
+   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIdices_IntData);
+   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIndices_StructData);
+   RUN_TEST(test_VectorSubRange_CpyElementsInRange_EmptyVec);
+   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidIdx);
+   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidVec);
 
    return UNITY_END();
 }
@@ -1710,4 +1722,101 @@ void test_VectorSubRange_GetElementsFromIdx_InvalidVec(void)
 {
    int *subrange = (int *)VectorSubRange_GetElementsFromIdx(NULL, 0);
    TEST_ASSERT_NULL(subrange);
+}
+
+/*********************** Vector Subrange: Copy Elements ***********************/
+
+void test_VectorSubRange_CpyElementsInRange_ValidIdices_IntData(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int buffer[3];
+   TEST_ASSERT_TRUE(VectorSubRange_CpyElementsInRange(vec, 1, 3, buffer));
+   TEST_ASSERT_EQUAL_INT(20, buffer[0]);
+   TEST_ASSERT_EQUAL_INT(30, buffer[1]);
+   TEST_ASSERT_EQUAL_INT(40, buffer[2]);
+
+   // Confirm that the underlying vector is _not_ mutated!
+   buffer[0] = 1;
+   buffer[1] = 1;
+   buffer[2] = 1;
+   int * data;
+   data = (int *)VectorGetElementAt(vec, 1);
+   TEST_ASSERT_EQUAL_INT(20, *data);
+   data = (int *)VectorGetElementAt(vec, 2);
+   TEST_ASSERT_EQUAL_INT(30, *data);
+   data = (int *)VectorGetElementAt(vec, 3);
+   TEST_ASSERT_EQUAL_INT(40, *data);
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_CpyElementsInRange_ValidIndices_StructData(void)
+{
+   struct MyData_S
+   {
+      float x;
+      float y;
+      float z;
+   };
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
+
+   struct MyData_S values[5] =
+   {
+      { .x = 1.0f, .y = 2.0f, .z = 3.0f },
+      { .x = 4.0f, .y = 5.0f, .z = 6.0f },
+      { .x = 7.0f, .y = 8.0f, .z = 9.0f },
+      { .x = 10.0f, .y = 11.0f, .z = 12.0f },
+      { .x = 13.0f, .y = 14.0f, .z = 15.0f }
+   };
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct MyData_S buffer[2];
+   TEST_ASSERT_TRUE(VectorSubRange_CpyElementsInRange(vec, 2, 3, buffer));
+   TEST_ASSERT_EQUAL_FLOAT(7.0f, buffer[0].x);
+   TEST_ASSERT_EQUAL_FLOAT(8.0f, buffer[0].y);
+   TEST_ASSERT_EQUAL_FLOAT(9.0f, buffer[0].z);
+   TEST_ASSERT_EQUAL_FLOAT(10.0f, buffer[1].x);
+   TEST_ASSERT_EQUAL_FLOAT(11.0f, buffer[1].y);
+   TEST_ASSERT_EQUAL_FLOAT(12.0f, buffer[1].z);
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_CpyElementsInRange_EmptyVec(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+
+   int buffer[3];
+   TEST_ASSERT_FALSE(VectorSubRange_CpyElementsInRange(vec, 0, 2, buffer));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_CpyElementsInRange_InvalidIdx(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int buffer[3];
+   TEST_ASSERT_FALSE(VectorSubRange_CpyElementsInRange(vec, 2, 5, buffer)); // End index out of range
+   TEST_ASSERT_FALSE(VectorSubRange_CpyElementsInRange(vec, 5, 6, buffer)); // Start index out of range
+   TEST_ASSERT_FALSE(VectorSubRange_CpyElementsInRange(vec, 2, 1, buffer)); // Start index > End index
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_CpyElementsInRange_InvalidVec(void)
+{
+   int buffer[3];
+   TEST_ASSERT_FALSE(VectorSubRange_CpyElementsInRange(NULL, 0, 2, buffer));
 }
