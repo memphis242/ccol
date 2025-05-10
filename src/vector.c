@@ -142,7 +142,7 @@ void VectorFree( struct Vector_S * self )
 }
 
 /******************************************************************************/
-size_t VectorLength( struct Vector_S * self )
+size_t VectorLength( const struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -152,7 +152,7 @@ size_t VectorLength( struct Vector_S * self )
 }
 
 /******************************************************************************/
-size_t VectorCapacity( struct Vector_S * self )
+size_t VectorCapacity( const struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -162,7 +162,7 @@ size_t VectorCapacity( struct Vector_S * self )
 }
 
 /******************************************************************************/
-size_t VectorMaxCapacity( struct Vector_S * self )
+size_t VectorMaxCapacity( const struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -172,7 +172,7 @@ size_t VectorMaxCapacity( struct Vector_S * self )
 }
 
 /******************************************************************************/
-size_t VectorElementSize( struct Vector_S * self )
+size_t VectorElementSize( const struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -182,7 +182,7 @@ size_t VectorElementSize( struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorIsEmpty( struct Vector_S * self )
+bool VectorIsEmpty( const struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -192,7 +192,7 @@ bool VectorIsEmpty( struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorIsFull( struct Vector_S * self )
+bool VectorIsFull( const struct Vector_S * self )
 {
    if ( NULL == self )
    {
@@ -284,7 +284,7 @@ bool VectorInsertAt( struct Vector_S * self,
 }
 
 /******************************************************************************/
-void * VectorGetElementAt( struct Vector_S * self, size_t idx )
+void * VectorGetElementAt( const struct Vector_S * self, size_t idx )
 {
    if ( (NULL == self) || (idx >= self->len) )
    {
@@ -297,7 +297,7 @@ void * VectorGetElementAt( struct Vector_S * self, size_t idx )
 }
 
 /******************************************************************************/
-bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data )
+bool VectorCpyElementAt( const struct Vector_S * self, size_t idx, void * data )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == data))
    {
@@ -376,7 +376,7 @@ bool VectorClearElementAt( struct Vector_S * self, size_t idx )
 }
 
 /******************************************************************************/
-void * VectorLastElement( struct Vector_S * self )
+void * VectorLastElement( const struct Vector_S * self )
 {
    if ( (NULL == self) || (0 == self->len) )
    {
@@ -392,7 +392,7 @@ void * VectorLastElement( struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorCpyLastElement( struct Vector_S * self, void * data )
+bool VectorCpyLastElement( const struct Vector_S * self, void * data )
 {
    if ( (NULL == self) || (0 == self->len) || (NULL == data) )
    {
@@ -444,7 +444,7 @@ bool VectorHardReset( struct Vector_S * self )
 }
 
 /******************************************************************************/
-struct Vector_S * VectorDuplicate( struct Vector_S * self )
+struct Vector_S * VectorDuplicate( const struct Vector_S * self )
 {
    if ( (NULL == self) ||
         // Check for internal paradoxes within passed in vector...
@@ -488,7 +488,7 @@ struct Vector_S * VectorDuplicate( struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b )
+bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b )
 {
    // Check for NULL pointers
    if ( (NULL == a) || (NULL == b) )   return false;
@@ -520,7 +520,7 @@ bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b )
 /* Sub-Range Based Vector Operations */
 
 /******************************************************************************/
-void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
+void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
                                           size_t idx )
 {
    if ( (NULL == self) ||
@@ -537,7 +537,7 @@ void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
    return (void *)PTR_TO_IDX(self, idx);
 }
 
-bool VectorSubRange_CpyElementsInRange( struct Vector_S * self,
+bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
                                         size_t idx_start,
                                         size_t idx_end,
                                         void * buffer )

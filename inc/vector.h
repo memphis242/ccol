@@ -65,7 +65,7 @@ void VectorFree( struct Vector_S * self );
  * 
  * @return The number of elements in the vector.
  */
-size_t VectorLength( struct Vector_S * self );
+size_t VectorLength( const struct Vector_S * self );
 
 /**
  * @brief Retrieves the current capacity of the vector.
@@ -76,7 +76,7 @@ size_t VectorLength( struct Vector_S * self );
  * 
  * @return The current capacity of the vector.
  */
-size_t VectorCapacity( struct Vector_S * self );
+size_t VectorCapacity( const struct Vector_S * self );
 
 /**
  * @brief Retrieves the maximum capacity of the vector.
@@ -87,7 +87,7 @@ size_t VectorCapacity( struct Vector_S * self );
  * 
  * @return The maximum capacity of the vector.
  */
-size_t VectorMaxCapacity( struct Vector_S * self );
+size_t VectorMaxCapacity( const struct Vector_S * self );
 
 /**
  * @brief Retrieves the size of each element in the vector.
@@ -98,7 +98,7 @@ size_t VectorMaxCapacity( struct Vector_S * self );
  * 
  * @return The size of each element in the vector.
  */
-size_t VectorElementSize( struct Vector_S * self );
+size_t VectorElementSize( const struct Vector_S * self );
 
 /**
  * @brief Checks if the vector is empty.
@@ -107,7 +107,7 @@ size_t VectorElementSize( struct Vector_S * self );
  * 
  * @return true if empty, false otherwise.
  */
-bool VectorIsEmpty( struct Vector_S * self );
+bool VectorIsEmpty( const struct Vector_S * self );
 
 /**
  * @brief Checks if the vector is full - i.e., at max capacity.
@@ -116,7 +116,7 @@ bool VectorIsEmpty( struct Vector_S * self );
  * 
  * @return true if full, false otherwise.
  */
-bool VectorIsFull( struct Vector_S * self );
+bool VectorIsFull( const struct Vector_S * self );
 
 /**
  * @brief Inserts an element at the _end_ of the vector.
@@ -163,7 +163,7 @@ bool VectorInsertAt( struct Vector_S * self,
  * @return A pointer to the element if the retrieval was successful, or NULL if
  *         something is off.
  */
-void * VectorGetElementAt( struct Vector_S * self, size_t idx );
+void * VectorGetElementAt( const struct Vector_S * self, size_t idx );
 
 /**
 * @brief Copies the element at the specified index in the vector to a provided buffer.
@@ -179,7 +179,7 @@ void * VectorGetElementAt( struct Vector_S * self, size_t idx );
 * @return true if the retrieval and copy were successful, false otherwise
 *         (e.g., if the index is out of bounds or data is NULL).
 */
-bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data );
+bool VectorCpyElementAt( const struct Vector_S * self, size_t idx, void * data );
 
 /**
  * @brief Sets the value of an element at the specified index in the vector.
@@ -194,8 +194,8 @@ bool VectorCpyElementAt( struct Vector_S * self, size_t idx, void * data );
  * @return true if the update was successful, false otherwise
  */
 bool VectorSetElementAt( struct Vector_S * self,
-                           size_t idx,
-                           const void * element );
+                         size_t idx,
+                         const void * element );
 
 /**
  * @brief Removes an element from the vector at the specified index.
@@ -259,7 +259,7 @@ bool VectorClearElementAt( struct Vector_S * self, size_t idx );
  * @return true if the last element was successfully retrieved and placed in data,
  *         false otherwise
  */
-void * VectorLastElement( struct Vector_S * self );
+void * VectorLastElement( const struct Vector_S * self );
 
 /**
  * @brief Copies the last element in the vector to a provided buffer.
@@ -274,7 +274,7 @@ void * VectorLastElement( struct Vector_S * self );
  * @return true if the last element was successfully copied to the buffer, false otherwise
  *         (e.g., if the vector is empty or data is NULL).
  */
-bool VectorCpyLastElement( struct Vector_S * self, void * data );
+bool VectorCpyLastElement( const struct Vector_S * self, void * data );
 
 /**
  * @brief Resets the vector length to zero, thereby losing track of old data.
@@ -308,7 +308,7 @@ bool VectorHardReset( struct Vector_S * self );
  *
  * @param self Vector handle
  */
-struct Vector_S * VectorDuplicate( struct Vector_S * self );
+struct Vector_S * VectorDuplicate( const struct Vector_S * self );
 
 /**
  * @brief Checks if two vectors are equivalent element-wise, length-wise,
@@ -317,7 +317,7 @@ struct Vector_S * VectorDuplicate( struct Vector_S * self );
  * @param a Vector handle for the first vector
  * @param b Vector handle for the second vector
  */
-bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b );
+bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b );
 
 
 /* Sub-Range Based Vector Operations */
@@ -343,7 +343,7 @@ bool VectorsAreEqual( struct Vector_S * a, struct Vector_S * b );
  * @return A pointer to the array of elements, or NULL if the inputs are invalid
  *         or the vector was empty.
  */
-void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
+void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
                                           size_t idx );
 
 /**
@@ -362,7 +362,7 @@ void * VectorSubRange_GetElementsFromIdx( struct Vector_S * self,
  * @return true if the elements were successfully copied;
  *         false otherwise (e.g., if indices are out of bounds).
  */
-bool VectorSubRange_CpyElementsInRange( struct Vector_S * self,
+bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
                                         size_t idx_start,
                                         size_t idx_end,
                                         void * buffer );
