@@ -561,6 +561,24 @@ bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
    return true;
 }
 
+bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector_S * self,
+                                               size_t idx,
+                                               void * buffer )
+{
+   return VectorSubRange_CpyElementsInRange(self, 0, idx, buffer);
+}
+
+bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
+                                             size_t idx,
+                                             void * buffer )
+{
+   if ( NULL == self )
+   {
+      return false;
+   }
+   return VectorSubRange_CpyElementsInRange(self, idx, self->len - 1, buffer);
+}
+
 
 /* Private Function Implementations */
 

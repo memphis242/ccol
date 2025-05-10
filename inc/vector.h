@@ -352,6 +352,9 @@ void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
  * @note Part of the idea of using this is to either not mutate the vector's
  *       data or to use VectorSubRange_CpyElementsInRange() followed by
  *       VectorSubRange_SetElementsInRange() with the same range.
+ * 
+ * @note Passing in a start and end index that are the same is equivalent to
+ *       VectorCpyElementAt that index.
  *
  * @param self Vector handle.
  * @param idx_start The starting index of the range (inclusive).
@@ -367,13 +370,35 @@ bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
                                         size_t idx_end,
                                         void * buffer );
 
-bool VectorCpyElementsFromStartToIdx( struct Vector_S * self,
-                                      size_t idx,
-                                      void * buffer );
+/**
+ * @brief Copies elements from the start of the vector to the specified index into a buffer.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx The index up to which elements will be copied (inclusive).
+ * @param buffer Pointer to the destination buffer where the elements will be copied.
+ *               The buffer must be large enough to hold the copied elements.
+ * 
+ * @return true if the operation is successful,
+ *         false otherwise (e.g., if idx is out of bounds).
+ */
+bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector_S * self,
+                                               size_t idx,
+                                               void * buffer );
 
-bool VectorCpyElementsFromIdxToEnd( struct Vector_S * self,
-                                    size_t idx,
-                                    void * buffer );
+/**
+ * @brief Copies elements from the specified index to the end of the vector into a provided buffer.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx The starting index from which elements will be copied (inclusive).
+ * @param buffer Pointer to the destination buffer where the elements will be copied.
+ *               The buffer must be large enough to hold all elements from idx to the end.
+ * 
+ * @return true if the operation is successful,
+ *         false otherwise (e.g., if idx is out of bounds)
+ */
+bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
+                                             size_t idx,
+                                             void * buffer );
 
 bool VectorSetElementsInRange( struct Vector_S * self,
                                size_t idx_start,
