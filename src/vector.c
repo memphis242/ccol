@@ -520,6 +520,8 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b )
 /* Sub-Range Based Vector Operations */
 
 /******************************************************************************/
+/******************************************************************************/
+
 void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
                                           size_t idx )
 {
@@ -536,6 +538,9 @@ void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
 
    return (void *)PTR_TO_IDX(self, idx);
 }
+
+/******************************************************************************/
+/******************************************************************************/
 
 bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
                                         size_t idx_start,
@@ -561,12 +566,16 @@ bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
    return true;
 }
 
+/******************************************************************************/
+
 bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector_S * self,
                                                size_t idx,
                                                void * buffer )
 {
    return VectorSubRange_CpyElementsInRange(self, 0, idx, buffer);
 }
+
+/******************************************************************************/
 
 bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
                                              size_t idx,
@@ -577,6 +586,32 @@ bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
       return false;
    }
    return VectorSubRange_CpyElementsInRange(self, idx, self->len - 1, buffer);
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
+bool VectorSubRange_SetElementsInRange( struct Vector_S * self,
+                                        size_t idx_start,
+                                        size_t idx_end,
+                                        const void * data )
+{
+   if ( (NULL == self) || (NULL == data) ||
+        (idx_start >= self->len) || (idx_end >= self->len) ||
+        (idx_start > idx_end) ) 
+   {
+      return false;
+   }
+
+   assert(self->len > 0);
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+   uint8_t * ptr_to_start = PTR_TO_IDX(self, idx_start);
+   size_t idx_diff = (idx_end - idx_start) + 1; // inclusive copy!
+   memcpy( ptr_to_start, data, (idx_diff * self->element_size) );
+
+   return true;
 }
 
 

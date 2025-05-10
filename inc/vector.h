@@ -401,10 +401,23 @@ bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
                                              size_t idx,
                                              void * buffer );
 
-bool VectorSetElementsInRange( struct Vector_S * self,
-                               size_t idx_start,
-                               size_t idx_end,
-                               const void * data );
+/**
+ * @brief Sets the elements of a vector within a specified range to the given data.
+ *
+ * This function updates the elements of the vector from the index `idx_start`
+ * to `idx_end` (inclusive) with the value pointed to by `data`.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (inclusive).
+ * @param data Pointer to the data to set for the specified range.
+ * @return true if the operation is successful, false otherwise (e.g., if the
+ *         indices are out of bounds or the vector is NULL).
+ */
+bool VectorSubRange_SetElementsInRange( struct Vector_S * self,
+                                        size_t idx_start,
+                                        size_t idx_end,
+                                        const void * data );
 
 bool VectorSetElementsFromStartToIdx( struct Vector_S * self,
                                       size_t idx,
