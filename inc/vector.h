@@ -322,8 +322,9 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b );
 
 /* Sub-Range Based Vector Operations */
 /* ---------------------------------------------------------------------------
- * This API is provided as a convenience. Technically, one could perform all
- * these operations using the get/set/cpy functions on individual indices.
+ * This API is provided as a convenience, but also for better efficiency.
+ * Technically, one could perform all these operations using the get/set/cpy
+ * functions on individual indices.
  * -------------------------------------------------------------------------*/
 
 /**
