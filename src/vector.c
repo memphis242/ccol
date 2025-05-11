@@ -581,7 +581,7 @@ bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
                                              size_t idx,
                                              void * buffer )
 {
-   if ( NULL == self )
+   if ( (NULL == self) || (NULL == buffer) )
    {
       return false;
    }
@@ -612,6 +612,29 @@ bool VectorSubRange_SetElementsInRange( struct Vector_S * self,
    memcpy( ptr_to_start, data, (idx_diff * self->element_size) );
 
    return true;
+}
+
+/******************************************************************************/
+
+bool VectorSubRange_SetElementsFromStartToIdx( struct Vector_S * self,
+                                               size_t idx,
+                                               const void * data )
+{
+   return VectorSubRange_SetElementsInRange( self, 0, idx, data );
+}
+
+/******************************************************************************/
+
+bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
+                                             size_t idx,
+                                             const void * data )
+{
+   if ( (NULL == self) || (NULL == data) )
+   {
+      return false;
+   }
+
+   return VectorSubRange_SetElementsInRange( self, idx, self->len - 1, data );
 }
 
 

@@ -167,6 +167,16 @@ void test_VectorSubRange_SetElementsInRange_InvalidIdx(void);
 void test_VectorSubRange_SetElementsInRange_InvalidVec(void);
 void test_VectorSubRange_SetElementsInRange_SameIdices(void);
 
+void test_VectorSubRange_SetElementsFromStartToIdx_ValidIdices_IntData(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_DoesNotMutate(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_ValidIndices_StructData(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_FullVector(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_FullVector_IncorrectEndIdx(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_EmptyVec(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_InvalidIdx(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_InvalidVec(void);
+void test_VectorSubRange_SetElementsFromStartToIdx_StartIdx(void);
+
 /* Meat of the Program */
 
 int main(void)

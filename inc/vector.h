@@ -374,7 +374,7 @@ bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
 /**
  * @brief Copies elements from the start of the vector to the specified index into a buffer.
  *
- * @param self Pointer to the Vector_S structure.
+ * @param self Vector handle.
  * @param idx The index up to which elements will be copied (inclusive).
  * @param buffer Pointer to the destination buffer where the elements will be copied.
  *               The buffer must be large enough to hold the copied elements.
@@ -389,7 +389,7 @@ bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector_S * self,
 /**
  * @brief Copies elements from the specified index to the end of the vector into a provided buffer.
  *
- * @param self Pointer to the Vector_S structure.
+ * @param self Vector handle.
  * @param idx The starting index from which elements will be copied (inclusive).
  * @param buffer Pointer to the destination buffer where the elements will be copied.
  *               The buffer must be large enough to hold all elements from idx to the end.
@@ -407,7 +407,7 @@ bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
  * This function updates the elements of the vector from the index `idx_start`
  * to `idx_end` (inclusive) with the value pointed to by `data`.
  *
- * @param self Pointer to the Vector_S structure.
+ * @param self Vector handle.
  * @param idx_start The starting index of the range (inclusive).
  * @param idx_end The ending index of the range (inclusive).
  * @param data Pointer to the data to set for the specified range.
@@ -419,13 +419,37 @@ bool VectorSubRange_SetElementsInRange( struct Vector_S * self,
                                         size_t idx_end,
                                         const void * data );
 
-bool VectorSetElementsFromStartToIdx( struct Vector_S * self,
-                                      size_t idx,
-                                      const void * data );
+/**
+ * @brief Sets the elements of the vector from the start up to the specified index.
+ *
+ * This function updates the elements of the vector from the beginning (index 0)
+ * up to the specified index `idx` with the provided data. The data is applied
+ * to all elements in the specified range.
+ *
+ * @param self Vector handle.
+ * @param idx The index up to which the elements will be set (inclusive).
+ * @param data Pointer to the data to be set for the elements.
+ * @return true if the operation is successful, false otherwise.
+ */
+bool VectorSubRange_SetElementsFromStartToIdx( struct Vector_S * self,
+                                               size_t idx,
+                                               const void * data );
 
-bool VectorSetElementsFromIdxToEnd( struct Vector_S * self,
-                                    size_t idx,
-                                    const void * data );
+/**
+ * @brief Sets the elements of the vector from the specified index to the end.
+ *
+ * This function updates the elements of the vector starting from the given
+ * index `idx` to the end of the vector with the provided data. The behavior
+ * of this function depends on the implementation of the `Vector_S` structure.
+ *
+ * @param self Vector handle.
+ * @param idx The starting index from which elements will be updated.
+ * @param data Pointer to the data to be set in the vector elements.
+ * @return `true` if the operation is successful, `false` otherwise.
+ */
+bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
+                                             size_t idx,
+                                             const void * data );
 
 bool VectorRemoveElementsInRange( struct Vector_S * self,
                                   size_t idx_start,
