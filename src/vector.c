@@ -439,6 +439,7 @@ bool VectorHardReset( struct Vector_S * self )
    {
       memset( PTR_TO_IDX(self, i), 0, self->element_size );
    }
+   free(self->arr);
    self->len = 0;
    return true;
 }

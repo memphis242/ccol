@@ -282,14 +282,14 @@ bool VectorClearElementAt( struct Vector_S * self, size_t idx );
  *
  * @param self Vector handle
  */
-bool VectorClear( struct Vector_S * self );
+bool VectorReset( struct Vector_S * self );
 
 /**
- * @brief Sets all elements to 0 and resets the vector length to zero.
+ * @brief Sets all elements to 0, resets the vector length to zero, and frees
+ *        the memory allocated for the vector's data.
  *
- * Similar to VectorClear except all elements that were previously added will
- * be memset to 0. This helps prevent old data from remaining in memory past
- * this point (better for security/privacy purposes).
+ * This might be more appropriate for privacy/security purposes (e.g., not
+ * leaving behind session data).
  *
  * @param self Vector handle
  */
