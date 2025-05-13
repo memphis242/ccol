@@ -435,11 +435,9 @@ bool VectorHardReset( struct Vector_S * self )
    assert(self->arr != NULL);
    assert(self->element_size > 0);
 
-   for ( size_t i = 0; i < self->len; i++ )
-   {
-      memset( PTR_TO_IDX(self, i), 0, self->element_size );
-   }
+   memset( self->arr, 0, self->len * self->element_size );
    free(self->arr);
+   self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
 }
@@ -695,9 +693,10 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
    assert(self->arr != NULL);
    assert(self->element_size > 0);
 
+   // TODO: Shift data N spots left, overwriting old data.
 
+   return true;
 }
-
 
 /* Private Function Implementations */
 
