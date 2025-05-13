@@ -320,11 +320,34 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b );
 
 
 /* Sub-Range Based Vector Operations */
-/* ---------------------------------------------------------------------------
- * This API is provided as a convenience, but also for better efficiency.
- * Technically, one could perform all these operations using the get/set/cpy
- * functions on individual indices.
- * -------------------------------------------------------------------------*/
+
+/**
+ * @brief Splits a vector at the specified index into two separate vectors.
+ *
+ * This function creates a new vector containing the elements from the specified
+ * index to the end of the original vector. The original vector's length
+ * reflects the split (becomes idx).
+ * 
+ * @note Passing in an idx of 0 results no action being taken and the returned
+ *       pointer to be NULL.
+ *
+ * @param self Pointer to the original vector to be split.
+ * @param idx The index at which to split the vector. Elements from this index
+ *            onward will be moved to the new vector.
+ * @return Pointer to the newly created vector containing the split elements,
+ *         or NULL if the operation fails (e.g., invalid index or memory
+ *         allocation error).
+ */
+struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx );
+
+bool VectorSubRange_PushElements( struct Vector_S * self,
+                                  size_t len,
+                                  void * data );
+
+bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
+                                      size_t idx,
+                                      size_t len,
+                                      void * data );
 
 /**
  * @brief Retrieves a range of elements from the vector.
@@ -337,6 +360,8 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b );
  *       affect the vector directly.
  * @note The caller must also handle the bounds of the array based on knowledge
  *       of the vector's length.
+ * @note The memory underlying the vector is assumed to be contiguous, so getting
+ *       a pointer to any index basically gives you access to all indices.
  *
  * @param self Pointer to the vector structure.
  * @param idx_start The starting index of the range (inclusive).
@@ -450,14 +475,39 @@ bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
                                              size_t idx,
                                              const void * data );
 
-bool VectorRemoveElementsInRange( struct Vector_S * self,
-                                  size_t idx_start,
-                                  size_t idx_end );
+/**
+ * @brief Removes elements from the vector within the specified range.
+ *
+ * This function removes elements from the vector starting from the index 
+ * `idx_start` up to, and including, the index `idx_end`. The indices 
+ * must be within the bounds of the vector, and `idx_start` must be less 
+ * than `idx_end`.
+ *
+ * @param self Vector handle.
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (inclusive).
+ * @return true if the elements were successfully removed, false otherwise.
+ */
+bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
+                                           size_t idx_start,
+                                           size_t idx_end );
 
-bool VectorRemoveElementsFromStartToIdx( struct Vector_S * self,
-                                         size_t idx,
-                                         const void * data );
+bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector_S * self,
+                                                  size_t idx,
+                                                  const void * data );
 
-bool VectorRemoveElementsFromIdxToEnd( struct Vector_S * self,
-                                       size_t idx,
-                                       const void * data );
+bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector_S * self,
+                                                size_t idx,
+                                                const void * data );
+
+bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
+                                          size_t idx_start,
+                                          size_t idx_end );
+
+bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector_S * self,
+                                                 size_t idx,
+                                                 const void * data );
+
+bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector_S * self,
+                                               size_t idx,
+                                               const void * data );

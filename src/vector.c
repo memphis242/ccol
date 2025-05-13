@@ -523,6 +523,46 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b )
 /******************************************************************************/
 /******************************************************************************/
 
+struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx )
+{
+   if ( (NULL == self) || (self->len == 0) || (self->capacity == 0) ||
+        (idx >= self->len) || (idx == 0) )
+   {
+      // TODO: Throw exception
+      return NULL;
+   }
+
+   assert(self->len > 0);
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+   size_t new_vec_len = self->len - idx;
+   struct Vector_S * new_vec = VectorInit( self->element_size,
+                                           new_vec_len * 2,
+                                           new_vec_len * 4,
+                                           new_vec_len );
+   if ( (NULL == new_vec) || (NULL == new_vec->arr) )
+   {
+      return NULL;
+   }
+
+   // NOTE: Don't mutate the original vector until after we've successfully
+   //       initialized the new vector!
+   self->len = idx;    // Does not include original element at idx
+   memcpy( new_vec->arr,
+           PTR_TO_IDX(self, idx),
+           new_vec_len * self->element_size );
+   
+   #ifdef NO_DATA_LEFT_BEHIND
+   memset( PTR_TO_IDX(self, idx), 0, new_vec_len * self->element_size );
+   #endif
+
+   return new_vec;
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
 void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
                                           size_t idx )
 {
@@ -636,6 +676,26 @@ bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
    }
 
    return VectorSubRange_SetElementsInRange( self, idx, self->len - 1, data );
+}
+
+/******************************************************************************/
+
+bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
+                                           size_t idx_start,
+                                           size_t idx_end )
+{
+   if ( (NULL == self) || (self->len == 0) ||
+        (idx_start > idx_end) ||
+        (idx_start > (self->len - 1)) || (idx_end > (self->len - 1)) )
+   {
+      return false;
+   }
+
+   assert(self->len > 0);
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+
 }
 
 
