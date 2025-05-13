@@ -1606,12 +1606,12 @@ void test_VectorHardReset(void)
    // TODO: Figure out how we can confirm the data was zero'd out and the memory
    //       allocated for it was free'd...
    // Get pointers to these values to check later
-   int * ptr_val1;
-   int * ptr_val2;
-   int * ptr_val3;
-   ptr_val1 = VectorGetElementAt(vec, 0);
-   ptr_val2 = VectorGetElementAt(vec, 1);
-   ptr_val3 = VectorGetElementAt(vec, 2);
+   // int * ptr_val1;
+   // int * ptr_val2;
+   // int * ptr_val3;
+   // ptr_val1 = VectorGetElementAt(vec, 0);
+   // ptr_val2 = VectorGetElementAt(vec, 1);
+   // ptr_val3 = VectorGetElementAt(vec, 2);
 
    // Perform a hard reset
    TEST_ASSERT_TRUE(VectorHardReset(vec));
