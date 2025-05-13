@@ -125,6 +125,13 @@ void test_VectorsAreEqual_DifferentCapacity(void);
 void test_VectorsAreEqual_DifferentMaxCapacity(void);
 void test_VectorsAreEqual_DifferentElementValues(void);
 
+void test_VectorSplitAt_ValidIdx(void);
+void test_VectorSplitAt_IdxZero(void);
+void test_VectorSplitAt_IdxPastLen(void);
+void test_VectorSplitAt_EmptyVector(void);
+void test_VectorSplitAt_NullVector(void);
+void test_VectorSplitAt_ValidIdx_StructData(void);
+
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void);
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void);
 void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void);
@@ -282,6 +289,13 @@ int main(void)
    RUN_TEST(test_VectorsAreEqual_DifferentCapacity);
    RUN_TEST(test_VectorsAreEqual_DifferentMaxCapacity);
    RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
+
+   RUN_TEST(test_VectorSplitAt_ValidIdx);
+   RUN_TEST(test_VectorSplitAt_IdxZero);
+   RUN_TEST(test_VectorSplitAt_IdxPastLen);
+   RUN_TEST(test_VectorSplitAt_EmptyVector);
+   RUN_TEST(test_VectorSplitAt_NullVector);
+   RUN_TEST(test_VectorSplitAt_ValidIdx_StructData);
 
    // TODO: Vector subrange unit tests.
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
@@ -1780,7 +1794,135 @@ void test_VectorsAreEqual_DifferentElementValues(void)
    VectorFree(vec2);
 }
 
+/************************ Vector Subrange: Banana Split ***********************/
+
+void test_VectorSplitAt_ValidIdx(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct Vector_S *split_vec = VectorSplitAt(vec, 2);
+   TEST_ASSERT_NOT_NULL(split_vec);
+
+   // Verify original vector
+   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(vec, 1));
+
+   // Verify split vector
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(split_vec));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(split_vec, 0));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(split_vec, 1));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGetElementAt(split_vec, 2));
+
+   VectorFree(vec);
+   VectorFree(split_vec);
+}
+
+void test_VectorSplitAt_IdxZero(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct Vector_S *split_vec = VectorSplitAt(vec, 0);
+   TEST_ASSERT_NULL(split_vec);
+
+   // Verify original vector remains unchanged
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   for (size_t i = 0; i < 5; i++) {
+      TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorSplitAt_IdxPastLen(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct Vector_S *split_vec = VectorSplitAt(vec, 10);
+   TEST_ASSERT_NULL(split_vec);
+
+   // Verify original vector remains unchanged
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   for (size_t i = 0; i < 5; i++) {
+      TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorSplitAt_EmptyVector(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+
+   struct Vector_S *split_vec = VectorSplitAt(vec, 0);
+   TEST_ASSERT_NULL(split_vec);
+
+   // Verify original vector remains unchanged
+   TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSplitAt_NullVector(void)
+{
+   struct Vector_S *split_vec = VectorSplitAt(NULL, 0);
+   TEST_ASSERT_NULL(split_vec);
+}
+
+void test_VectorSplitAt_ValidIdx_StructData(void)
+{
+   struct MyData_S
+   {
+      float x;
+      float y;
+      float z;
+   };
+   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
+
+   struct MyData_S values[5] =
+   {
+      { .x = 1.0f, .y = 2.0f, .z = 3.0f },
+      { .x = 4.0f, .y = 5.0f, .z = 6.0f },
+      { .x = 7.0f, .y = 8.0f, .z = 9.0f },
+      { .x = 10.0f, .y = 11.0f, .z = 12.0f },
+      { .x = 13.0f, .y = 14.0f, .z = 15.0f }
+   };
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct Vector_S *split_vec = VectorSplitAt(vec, 2);
+   TEST_ASSERT_NOT_NULL(split_vec);
+
+   // Verify original vector
+   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_FLOAT(1.0f, ((struct MyData_S *)VectorGetElementAt(vec, 0))->x);
+   TEST_ASSERT_EQUAL_FLOAT(4.0f, ((struct MyData_S *)VectorGetElementAt(vec, 1))->x);
+
+   // Verify split vector
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(split_vec));
+   TEST_ASSERT_EQUAL_FLOAT(7.0f, ((struct MyData_S *)VectorGetElementAt(split_vec, 0))->x);
+   TEST_ASSERT_EQUAL_FLOAT(10.0f, ((struct MyData_S *)VectorGetElementAt(split_vec, 1))->x);
+   TEST_ASSERT_EQUAL_FLOAT(13.0f, ((struct MyData_S *)VectorGetElementAt(split_vec, 2))->x);
+
+   VectorFree(vec);
+   VectorFree(split_vec);
+}
+
 /************************ Vector Subrange: Get Elements ***********************/
+
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void)
 {
    struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
