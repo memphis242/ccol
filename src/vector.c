@@ -297,6 +297,22 @@ void * VectorGetElementAt( const struct Vector_S * self, size_t idx )
 }
 
 /******************************************************************************/
+void * VectorLastElement( const struct Vector_S * self )
+{
+   if ( (NULL == self) || (0 == self->len) )
+   {
+      return NULL;
+   }
+
+   assert( self->len <= self->capacity );
+   assert( self->len <= self->max_capacity );
+   assert( (self->element_size * self->len) <= PTRDIFF_MAX );
+   assert( self->arr != NULL );
+
+   return (void *)PTR_TO_IDX(self, (self->len - 1));
+}
+
+/******************************************************************************/
 bool VectorCpyElementAt( const struct Vector_S * self, size_t idx, void * data )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == data))
@@ -309,6 +325,27 @@ bool VectorCpyElementAt( const struct Vector_S * self, size_t idx, void * data )
 
    (void)memcpy( data, (void *)PTR_TO_IDX(self, idx), self->element_size );
 
+   return true;
+}
+
+/******************************************************************************/
+bool VectorCpyLastElement( const struct Vector_S * self, void * data )
+{
+   if ( (NULL == self) || (0 == self->len) || (NULL == data) )
+   {
+      return false;
+   }
+
+   assert( self->len <= self->capacity );
+   assert( self->len <= self->max_capacity );
+   assert( self->element_size > 0 );
+   assert( (self->element_size * self->len) <= PTRDIFF_MAX );
+   assert( self->arr != NULL );
+
+   (void)memcpy( data,
+                 VectorLastElement(self),
+                 self->element_size );
+   
    return true;
 }
 
@@ -376,44 +413,7 @@ bool VectorClearElementAt( struct Vector_S * self, size_t idx )
 }
 
 /******************************************************************************/
-void * VectorLastElement( const struct Vector_S * self )
-{
-   if ( (NULL == self) || (0 == self->len) )
-   {
-      return NULL;
-   }
-
-   assert( self->len <= self->capacity );
-   assert( self->len <= self->max_capacity );
-   assert( (self->element_size * self->len) <= PTRDIFF_MAX );
-   assert( self->arr != NULL );
-
-   return (void *)PTR_TO_IDX(self, (self->len - 1));
-}
-
-/******************************************************************************/
-bool VectorCpyLastElement( const struct Vector_S * self, void * data )
-{
-   if ( (NULL == self) || (0 == self->len) || (NULL == data) )
-   {
-      return false;
-   }
-
-   assert( self->len <= self->capacity );
-   assert( self->len <= self->max_capacity );
-   assert( self->element_size > 0 );
-   assert( (self->element_size * self->len) <= PTRDIFF_MAX );
-   assert( self->arr != NULL );
-
-   (void)memcpy( data,
-                 VectorLastElement(self),
-                 self->element_size );
-   
-   return true;
-}
-
-/******************************************************************************/
-bool VectorClear( struct Vector_S * self )
+bool VectorReset( struct Vector_S * self )
 {
    if ( NULL == self )
    {

@@ -166,6 +166,21 @@ bool VectorInsertAt( struct Vector_S * self,
 void * VectorGetElementAt( const struct Vector_S * self, size_t idx );
 
 /**
+ * @brief Retrieves the last element in the vector.
+ *
+ * Provides access to the last element in the vector without removing it.
+ * Also, performs an internal memcpy() to the provided data buffer so that
+ * any internal realloc()'s don't lead to unintended stale pointers.
+ *
+ * @param self Vector handle
+ * @param data Pointer to the data that will be returned.
+ * 
+ * @return true if the last element was successfully retrieved and placed in data,
+ *         false otherwise
+ */
+void * VectorLastElement( const struct Vector_S * self );
+
+/**
 * @brief Copies the element at the specified index in the vector to a provided buffer.
 *
 * Copies the element at the given index into the provided data buffer. This ensures
@@ -180,6 +195,21 @@ void * VectorGetElementAt( const struct Vector_S * self, size_t idx );
 *         (e.g., if the index is out of bounds or data is NULL).
 */
 bool VectorCpyElementAt( const struct Vector_S * self, size_t idx, void * data );
+
+/**
+ * @brief Copies the last element in the vector to a provided buffer.
+ *
+ * Copies the last element in the vector into the provided data buffer. This ensures
+ * that any internal reallocations of the vector do not lead to unintended stale pointers.
+ *
+ * @param self Vector handle
+ * @param data Pointer to the buffer where the last element will be copied.
+ *             The buffer must be large enough to hold the element.
+ * 
+ * @return true if the last element was successfully copied to the buffer, false otherwise
+ *         (e.g., if the vector is empty or data is NULL).
+ */
+bool VectorCpyLastElement( const struct Vector_S * self, void * data );
 
 /**
  * @brief Sets the value of an element at the specified index in the vector.
@@ -247,39 +277,8 @@ bool VectorRemoveLastElement( struct Vector_S * self, void * data );
 bool VectorClearElementAt( struct Vector_S * self, size_t idx );
 
 /**
- * @brief Retrieves the last element in the vector.
- *
- * Provides access to the last element in the vector without removing it.
- * Also, performs an internal memcpy() to the provided data buffer so that
- * any internal realloc()'s don't lead to unintended stale pointers.
- *
- * @param self Vector handle
- * @param data Pointer to the data that will be returned.
- * 
- * @return true if the last element was successfully retrieved and placed in data,
- *         false otherwise
- */
-void * VectorLastElement( const struct Vector_S * self );
-
-/**
- * @brief Copies the last element in the vector to a provided buffer.
- *
- * Copies the last element in the vector into the provided data buffer. This ensures
- * that any internal reallocations of the vector do not lead to unintended stale pointers.
- *
- * @param self Vector handle
- * @param data Pointer to the buffer where the last element will be copied.
- *             The buffer must be large enough to hold the element.
- * 
- * @return true if the last element was successfully copied to the buffer, false otherwise
- *         (e.g., if the vector is empty or data is NULL).
- */
-bool VectorCpyLastElement( const struct Vector_S * self, void * data );
-
-/**
- * @brief Resets the vector length to zero, thereby losing track of old data.
- *
- * @note The allocated memory is not freed, allowing the vector to be reused.
+ * @brief Resets the vector length to zero but leaves the previously allocated
+ *        memory for the vector's data untouched.
  *
  * @param self Vector handle
  */
