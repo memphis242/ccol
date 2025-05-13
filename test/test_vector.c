@@ -107,8 +107,10 @@ void test_VectorRemoveElement_LastElement_WithBuf(void);
 void test_VectorRemoveElement_PastLen_WithBuf(void);
 
 void test_VectorClearElementAt_Normal(void);
-void test_VectorClear_OORIdx(void);
-void test_VectorClear(void);
+void test_VectorClearElementAt_InvalidIdx(void);
+
+void test_VectorReset_OORIdx(void);
+void test_VectorReset(void);
 
 void test_VectorHardReset(void);
 
@@ -263,8 +265,10 @@ int main(void)
    RUN_TEST(test_VectorRemoveElement_PastLen_WithBuf);
 
    RUN_TEST(test_VectorClearElementAt_Normal);
-   RUN_TEST(test_VectorClear_OORIdx);
-   RUN_TEST(test_VectorClear);
+   RUN_TEST(test_VectorClearElementAt_InvalidIdx);
+
+   RUN_TEST(test_VectorReset_OORIdx);
+   RUN_TEST(test_VectorReset);
 
    RUN_TEST(test_VectorHardReset);
 
@@ -583,7 +587,7 @@ void test_VectorOpsOnNullVectors(void)
    TEST_ASSERT_NULL(VectorLastElement(NULL));
    TEST_ASSERT_FALSE(VectorCpyLastElement(NULL, NULL));
    TEST_ASSERT_FALSE(VectorClearElementAt(NULL, 0));
-   TEST_ASSERT_FALSE(VectorClear(NULL));
+   TEST_ASSERT_FALSE(VectorReset(NULL));
    TEST_ASSERT_FALSE(VectorHardReset(NULL));
    TEST_ASSERT_NULL(VectorDuplicate(NULL));
    TEST_ASSERT_FALSE(VectorsAreEqual(NULL, NULL));
@@ -1517,7 +1521,31 @@ void test_VectorClearElementAt_Normal(void)
    VectorFree(vec);
 }
 
-void test_VectorClear_OORIdx(void)
+void test_VectorClearElementAt_InvalidIdx(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {42, 84, 126};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Attempt to clear an invalid index (greater than length)
+   TEST_ASSERT_FALSE(VectorClearElementAt(vec, 5));
+   TEST_ASSERT_FALSE(VectorClearElementAt(vec, UINT32_MAX));
+
+   // Verify that the vector remains unchanged
+   for (size_t i = 0; i < 3; i++) {
+      int *element = (int *)VectorGetElementAt(vec, i);
+      TEST_ASSERT_NOT_NULL(element);
+      TEST_ASSERT_EQUAL_INT(values[i], *element);
+   }
+
+   VectorFree(vec);
+}
+
+/******************************** Vector Resets *******************************/
+
+void test_VectorReset_OORIdx(void)
 {
    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
@@ -1539,7 +1567,7 @@ void test_VectorClear_OORIdx(void)
    VectorFree(vec);
 }
 
-void test_VectorClear(void)
+void test_VectorReset(void)
 {
    struct Vector_S * vec = NULL;
    unsigned int iteration_counter = 0;
@@ -1554,7 +1582,7 @@ void test_VectorClear(void)
    }
    TEST_ASSERT_FALSE(VectorIsEmpty(vec));
 
-   TEST_ASSERT_TRUE(VectorClear(vec));
+   TEST_ASSERT_TRUE(VectorReset(vec));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
 
    VectorFree(vec);
@@ -1575,6 +1603,8 @@ void test_VectorHardReset(void)
    VectorPush(vec, &value2);
    VectorPush(vec, &value3);
 
+   // TODO: Figure out how we can confirm the data was zero'd out and the memory
+   //       allocated for it was free'd...
    // Get pointers to these values to check later
    int * ptr_val1;
    int * ptr_val2;
@@ -1589,11 +1619,6 @@ void test_VectorHardReset(void)
    // Verify the vector is empty
    TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
-
-   // Verify all elements have been set to 0
-   TEST_ASSERT_EQUAL_INT(0, *ptr_val1);
-   TEST_ASSERT_EQUAL_INT(0, *ptr_val2);
-   TEST_ASSERT_EQUAL_INT(0, *ptr_val3);
 
    VectorFree(vec);
 }
