@@ -357,9 +357,27 @@ struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx );
  * @return Pointer to a new Vector_S containing the specified slice,
  *         or NULL if the indices are invalid or memory allocation fails.
  */
-struct Vector_S * VectorSlice( struct Vector_S * self,
+struct Vector_S * VectorSlice( const struct Vector_S * self,
                                size_t idx_start,
                                size_t idx_end );
+
+/**
+ * @brief Concatenates the contents of one vector onto another.
+ *
+ * This function appends all elements from the vector pointed to by
+ * `vec_to_append` to the end of the vector pointed to by `vec_to_append_onto`.
+ * 
+ * @note The vec_to_append is not mutated or free'd.
+ * @note The vec_to_append_onto is expanded if the length of the other vector
+ *       is too long.
+ *
+ * @param vec_to_append_onto Destination vector to which elements will be appended
+ * @param vec_to_append Source vector whose elements will be appended.
+ * @return true if the concatenation was successful,
+ *         false otherwise (e.g., on allocation failure).
+ */
+bool VectorConcatenate( struct Vector_S * vec_to_append_onto,
+                        const struct Vector_S * vec_to_append );
 
 bool VectorSubRange_PushElements( struct Vector_S * self,
                                   size_t len,

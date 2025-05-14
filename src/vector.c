@@ -558,7 +558,9 @@ struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx )
    return new_vec;
 }
 
-struct Vector_S * VectorSlice( struct Vector_S * self,
+/******************************************************************************/
+
+struct Vector_S * VectorSlice( const struct Vector_S * self,
                                size_t idx_start,
                                size_t idx_end )
 {
@@ -595,6 +597,70 @@ struct Vector_S * VectorSlice( struct Vector_S * self,
            new_vec_len * self->element_size );
    
    return new_vec;
+}
+
+/******************************************************************************/
+
+#define MAX_NUM_OF_EXPANSION_ITERATIONS   30
+bool VectorConcatenate( struct Vector_S * vec_to_append_onto,
+                        const struct Vector_S * vec_to_append )
+{
+   if ( (NULL == vec_to_append_onto) || (NULL == vec_to_append) )
+   {
+      return false;
+   }
+
+   // Expand the onto vector if necessary and copy the elements over
+   size_t new_vec_len = vec_to_append_onto->len + vec_to_append->len;
+   uint8_t loop_counter = 0;
+   if ( new_vec_len >= vec_to_append_onto->capacity )
+   {
+      if ( new_vec_len < vec_to_append_onto->max_capacity )
+      {
+         size_t orig_len = vec_to_append_onto->len;
+         bool successful_expansion;
+         do
+         {
+            successful_expansion = LocalVectorExpand(vec_to_append_onto);
+            loop_counter++;
+         } while ( successful_expansion &&
+                   /* Keep expanding til capacity is truly above the new len */
+                   (new_vec_len >= vec_to_append_onto->capacity) &&
+                   /* Terminate loop after an expansion of sufficient magnitude */
+                   (loop_counter < MAX_NUM_OF_EXPANSION_ITERATIONS) );
+         
+         if ( loop_counter >= MAX_NUM_OF_EXPANSION_ITERATIONS )
+         {
+            // Reclaim that memory
+            void * temp = realloc( vec_to_append_onto->arr, orig_len );
+            if ( temp != NULL )
+            {
+               vec_to_append_onto->arr = temp;
+            }
+            else
+            {
+               // TODO: Figure out what to do if realloc fails after trying to
+               //       reclaim an overgrown vec_to_append_onto.
+            }
+            return false;
+         }
+      }
+      else
+      {
+         // Can't accomodate the vector-to-append
+         return false;
+      }
+   }
+
+   // Presumably, we should have the capacity now to append elements, or have
+   // returns due to an inability to do as much.
+   assert( new_vec_len < vec_to_append_onto->capacity );
+
+   memcpy( PTR_TO_IDX(vec_to_append_onto, vec_to_append_onto->len),
+           vec_to_append->arr,
+           vec_to_append->len );
+
+   return true;
 }
 
 /******************************************************************************/
