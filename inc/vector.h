@@ -326,10 +326,11 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b );
  *
  * This function creates a new vector containing the elements from the specified
  * index to the end of the original vector. The original vector's length
- * reflects the split (becomes idx).
+ * is truncated accordingly, and thus _is_ mutated.
  * 
  * @note Passing in an idx of 0 results no action being taken and the returned
  *       pointer to be NULL.
+ * @note This will mutate the original vector.
  *
  * @param self Pointer to the original vector to be split.
  * @param idx The index at which to split the vector. Elements from this index
@@ -339,6 +340,26 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b );
  *         allocation error).
  */
 struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx );
+
+/**
+ * @brief Creates a slice (subvector) from the given vector.
+ *
+ * Returns a new vector that contains elements from the original vector
+ * starting at index `idx_start` (inclusive) and ending at `idx_end` (inclusive).
+ * VectorSplit would behave somewhat similarly if idx_end was the end of the
+ * original vector, however VectorSplit does _mutate_ the original vector,
+ * whereas this function does not mutate the original vector. The original vector
+ * remains an invariant through this function.
+ *
+ * @param self Pointer to the original Vector_S structure.
+ * @param idx_start The starting index of the slice (inclusive).
+ * @param idx_end The ending index of the slice (inclusive).
+ * @return Pointer to a new Vector_S containing the specified slice,
+ *         or NULL if the indices are invalid or memory allocation fails.
+ */
+struct Vector_S * VectorSlice( struct Vector_S * self,
+                               size_t idx_start,
+                               size_t idx_end );
 
 bool VectorSubRange_PushElements( struct Vector_S * self,
                                   size_t len,

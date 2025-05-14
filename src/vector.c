@@ -558,6 +558,45 @@ struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx )
    return new_vec;
 }
 
+struct Vector_S * VectorSlice( struct Vector_S * self,
+                               size_t idx_start,
+                               size_t idx_end )
+{
+   if ( (NULL == self) || (self->len == 0) || (self->capacity == 0) ||
+        (idx_start >= self->len) || (idx_end >= self->len) ||
+        (idx_start > idx_end) || (idx_end == 0) )
+   {
+      // TODO: Throw exception
+      return NULL;
+   }
+
+   // Slicing the whole vector is the same as duplication
+   if ( (0 == idx_start) && ((self->len - 1) == idx_end) )
+   {
+      return VectorDuplicate(self);
+   }
+
+   assert(self->len > 0);
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+   size_t new_vec_len = idx_end - idx_start + 1;   // inclusive of both indices
+   struct Vector_S * new_vec = VectorInit( self->element_size,
+                                           new_vec_len * 2,
+                                           new_vec_len * 4,
+                                           new_vec_len );
+   if ( (NULL == new_vec) || (NULL == new_vec->arr) )
+   {
+      return NULL;
+   }
+
+   memcpy( new_vec->arr,
+           PTR_TO_IDX(self, idx_start),
+           new_vec_len * self->element_size );
+   
+   return new_vec;
+}
+
 /******************************************************************************/
 /******************************************************************************/
 

@@ -132,6 +132,18 @@ void test_VectorSplitAt_EmptyVector(void);
 void test_VectorSplitAt_NullVector(void);
 void test_VectorSplitAt_ValidIdx_StructData(void);
 
+void test_VectorSlice_ValidIndices_IntData(void);
+void test_VectorSlice_ValidIndices_StructData(void);
+void test_VectorSlice_IdxStartEqualsIdxEnd(void);
+void test_VectorSlice_IdxStartZero(void);
+void test_VectorSlice_FullVector(void);
+void test_VectorSlice_IdxEndAtLastElement(void);
+void test_VectorSlice_EmptyVector(void);
+void test_VectorSlice_NullVector(void);
+void test_VectorSlice_IdxStartGreaterThanIdxEnd(void);
+void test_VectorSlice_IdxEndCommonMistake(void);
+void test_VectorSlice_IdxEndOutOfRange(void);
+
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void);
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void);
 void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void);
@@ -296,6 +308,18 @@ int main(void)
    RUN_TEST(test_VectorSplitAt_EmptyVector);
    RUN_TEST(test_VectorSplitAt_NullVector);
    RUN_TEST(test_VectorSplitAt_ValidIdx_StructData);
+
+   RUN_TEST(test_VectorSlice_ValidIndices_IntData);
+   RUN_TEST(test_VectorSlice_ValidIndices_StructData);
+   RUN_TEST(test_VectorSlice_IdxStartEqualsIdxEnd);
+   RUN_TEST(test_VectorSlice_IdxStartZero);
+   RUN_TEST(test_VectorSlice_FullVector);
+   RUN_TEST(test_VectorSlice_IdxEndAtLastElement);
+   RUN_TEST(test_VectorSlice_EmptyVector);
+   RUN_TEST(test_VectorSlice_NullVector);
+   RUN_TEST(test_VectorSlice_IdxStartGreaterThanIdxEnd);
+   RUN_TEST(test_VectorSlice_IdxEndCommonMistake);
+   RUN_TEST(test_VectorSlice_IdxEndOutOfRange);
 
    // TODO: Vector subrange unit tests.
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
@@ -1919,6 +1943,222 @@ void test_VectorSplitAt_ValidIdx_StructData(void)
 
    VectorFree(vec);
    VectorFree(split_vec);
+}
+
+/*************************** Vector Subrange: Slice ***************************/
+
+void test_VectorSlice_ValidIndices_IntData(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Slice from index 1 to 3 (inclusive)
+   struct Vector_S * slice = VectorSlice(vec, 1, 3);
+   TEST_ASSERT_NOT_NULL(slice);
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(slice, 0));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(slice, 1));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(slice, 2));
+
+   VectorFree(vec);
+   VectorFree(slice);
+}
+
+void test_VectorSlice_ValidIndices_StructData(void)
+{
+   struct MyData_S
+   {
+      float x;
+      float y;
+      float z;
+   };
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
+
+   struct MyData_S values[5] =
+   {
+      { .x = 1.0f, .y = 2.0f, .z = 3.0f },
+      { .x = 4.0f, .y = 5.0f, .z = 6.0f },
+      { .x = 7.0f, .y = 8.0f, .z = 9.0f },
+      { .x = 10.0f, .y = 11.0f, .z = 12.0f },
+      { .x = 13.0f, .y = 14.0f, .z = 15.0f }
+   };
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Slice from index 2 to 4 (inclusive)
+   struct Vector_S * slice = VectorSlice(vec, 2, 4);
+   TEST_ASSERT_NOT_NULL(slice);
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   struct MyData_S * elm = (struct MyData_S *)VectorGetElementAt(slice, 0);
+   TEST_ASSERT_EQUAL_FLOAT(7.0f, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(8.0f, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(9.0f, elm->z);
+   elm = (struct MyData_S *)VectorGetElementAt(slice, 1);
+   TEST_ASSERT_EQUAL_FLOAT(10.0f, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(11.0f, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(12.0f, elm->z);
+   elm = (struct MyData_S *)VectorGetElementAt(slice, 2);
+   TEST_ASSERT_EQUAL_FLOAT(13.0f, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(14.0f, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(15.0f, elm->z);
+
+   VectorFree(vec);
+   VectorFree(slice);
+}
+
+void test_VectorSlice_IdxStartEqualsIdxEnd(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Slice a single element
+   struct Vector_S * slice = VectorSlice(vec, 3, 3);
+   TEST_ASSERT_NOT_NULL(slice);
+   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(slice));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(slice, 0));
+
+   VectorFree(vec);
+   VectorFree(slice);
+}
+
+void test_VectorSlice_IdxStartZero(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Slice from start to index 2
+   struct Vector_S * slice = VectorSlice(vec, 0, 2);
+   TEST_ASSERT_NOT_NULL(slice);
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(slice, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(slice, 1));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(slice, 2));
+
+   VectorFree(vec);
+   VectorFree(slice);
+}
+
+void test_VectorSlice_FullVector(void)
+{
+   // Basically just like duplication
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Slice that is the full vector
+   struct Vector_S * slice = VectorSlice(vec, 0, 4);
+   // Duplicate, which should be equivalent
+   struct Vector_S * dup = VectorDuplicate(vec);
+
+   TEST_ASSERT_NOT_NULL(slice);
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(slice));
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(slice, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(slice, 1));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(slice, 2));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(slice, 3));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGetElementAt(slice, 4));
+
+   TEST_ASSERT_NOT_NULL(dup);
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(dup));
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(dup, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(dup, 1));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(dup, 2));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(dup, 3));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGetElementAt(dup, 4));
+
+   VectorFree(vec);
+   VectorFree(slice);
+   VectorFree(dup);
+}
+
+void test_VectorSlice_IdxEndAtLastElement(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // Slice from index 2 to last element
+   struct Vector_S * slice = VectorSlice(vec, 2, 4);
+   TEST_ASSERT_NOT_NULL(slice);
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(slice, 0));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(slice, 1));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGetElementAt(slice, 2));
+
+   VectorFree(vec);
+   VectorFree(slice);
+}
+
+void test_VectorSlice_EmptyVector(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+
+   struct Vector_S * slice = VectorSlice(vec, 0, 0);
+   TEST_ASSERT_NULL(slice);
+
+   VectorFree(vec);
+}
+
+void test_VectorSlice_NullVector(void)
+{
+   struct Vector_S *slice = VectorSlice(NULL, 0, 0);
+   TEST_ASSERT_NULL(slice);
+}
+
+void test_VectorSlice_IdxStartGreaterThanIdxEnd(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct Vector_S * slice = VectorSlice(vec, 3, 2);
+   TEST_ASSERT_NULL(slice);
+
+   VectorFree(vec);
+}
+
+void test_VectorSlice_IdxEndCommonMistake(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct Vector_S *slice = VectorSlice(vec, 1, VectorLength(vec));
+   TEST_ASSERT_NULL(slice);
+
+   VectorFree(vec);
+}
+
+void test_VectorSlice_IdxEndOutOfRange(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct Vector_S *slice = VectorSlice(vec, 1, 5);
+   TEST_ASSERT_NULL(slice);
+
+   VectorFree(vec);
 }
 
 /************************ Vector Subrange: Get Elements ***********************/
