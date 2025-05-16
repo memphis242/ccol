@@ -24,14 +24,11 @@
 // TODO: Add support for custom alloactors.
 
 /* Local Macro Definitions */
-// Constants
-#define EXPANSION_FACTOR            (2)   //TODO: Make the expansion factor user-configurable
-#define DEFAULT_INITIAL_CAPACITY    (10)  //! Not 1 because there would likely be a resize shortly after
-
-// Function-like
-#define IS_EMPTY(self)     ( 0 == (self)->len )
-#define PTR_TO_IDX(vec, idx) \
-      ( (uint8_t *)((vec)->arr) + ((vec)->element_size * (idx)) )
+// Macro constants
+#define EXPANSION_FACTOR                    (2)   //TODO: Make the expansion factor user-configurable
+#define DEFAULT_INITIAL_CAPACITY            (10)  //! Not 1 because there would likely be a resize shortly after
+#define DEFAULT_MAX_CAPACITY_FACTOR         (10)  //! How many multiples of initial capacity do we set max capacity by default
+#define DEFAULT_LEN_TO_CAPACITY_FACTOR      (2)   //! How many multiples of length should capacity be set to by default
 
 // Enforce a maximum length to help prevent extreme memory requests
 #define TENTATIVE_MAX_VEC_LEN UINT32_MAX
@@ -45,6 +42,19 @@
 #else
    #define MAX_VECTOR_LENGTH TENTATIVE_MAX_VEC_LEN
 #endif
+
+// Function-like macros
+
+#define IS_EMPTY(self)     ( 0 == (self)->len )
+
+/**
+ * PTR_TO_IDX - Calculates the pointer to the element at a given index in a vector.
+ * @vec: Pointer to the vector structure containing the array and element size.
+ * @idx: Index of the element to access.
+ */
+#define PTR_TO_IDX(vec, idx) \
+      ( (uint8_t *)((vec)->arr) + ((vec)->element_size * (idx)) )
+
 
 /* Local Datatypes */
 struct Vector_S
@@ -601,66 +611,81 @@ struct Vector_S * VectorSlice( const struct Vector_S * self,
 
 /******************************************************************************/
 
-#define MAX_NUM_OF_EXPANSION_ITERATIONS   30
-bool VectorConcatenate( struct Vector_S * vec_to_append_onto,
-                        const struct Vector_S * vec_to_append )
+struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
+                                     const struct Vector_S * v2 )
 {
-   if ( (NULL == vec_to_append_onto) || (NULL == vec_to_append) )
+   if ( (NULL == v1) || (NULL == v2) ||
+        (v1->element_size != v2->element_size) ||
+        (v2->len > (MAX_VECTOR_LENGTH - v1->len)) // Unsupported length
+      )
    {
-      return false;
+      return NULL;
    }
 
-   // Expand the onto vector if necessary and copy the elements over
-   size_t new_vec_len = vec_to_append_onto->len + vec_to_append->len;
-   uint8_t loop_counter = 0;
-   if ( new_vec_len >= vec_to_append_onto->capacity )
+   assert(
+      ( (v1->len > 0) && (v1->arr != NULL) ) ||
+        (0 == v1->len)
+   );
+   assert(
+      ( (v2->len > 0) && (v2->arr != NULL) ) ||
+        (0 == v2->len)
+   );
+   assert(v1->element_size > 0);
+   assert(v2->element_size > 0);
+   assert(v1->element_size == v2->element_size);
+
+   struct Vector_S * NewVec = NULL;
+   // If one of the vectors is empty, simply create a duplicate of the non-empty
+   // vector. If both vectors are empty, create an empty vector.
+   if ( (0 == v1->len) && (0 == v2->len) )
    {
-      if ( new_vec_len < vec_to_append_onto->max_capacity )
+      NewVec = VectorInit( v1->element_size,
+                           DEFAULT_INITIAL_CAPACITY,
+                           DEFAULT_INITIAL_CAPACITY * DEFAULT_MAX_CAPACITY_FACTOR,
+                           0 );
+   }
+
+   else if ( (v1->len > 0)  && (v2->len == 0) )
+   {
+      NewVec = VectorDuplicate(v1);
+   }
+   else if ( (v1->len == 0) && (v2->len > 0) )
+   {
+      NewVec = VectorDuplicate(v2);
+   }
+
+   else  // Both must be non-empty
+   {
+      size_t new_vec_len = v1->len + v2->len;
+      size_t new_vec_cap = MAX_VECTOR_LENGTH;
+      if ( v2->capacity < (MAX_VECTOR_LENGTH - v1->capacity) )
       {
-         size_t orig_len = vec_to_append_onto->len;
-         bool successful_expansion;
-         do
-         {
-            successful_expansion = LocalVectorExpand(vec_to_append_onto);
-            loop_counter++;
-         } while ( successful_expansion &&
-                   /* Keep expanding til capacity is truly above the new len */
-                   (new_vec_len >= vec_to_append_onto->capacity) &&
-                   /* Terminate loop after an expansion of sufficient magnitude */
-                   (loop_counter < MAX_NUM_OF_EXPANSION_ITERATIONS) );
-         
-         if ( loop_counter >= MAX_NUM_OF_EXPANSION_ITERATIONS )
-         {
-            // Reclaim that memory
-            void * temp = realloc( vec_to_append_onto->arr, orig_len );
-            if ( temp != NULL )
-            {
-               vec_to_append_onto->arr = temp;
-            }
-            else
-            {
-               // TODO: Figure out what to do if realloc fails after trying to
-               //       reclaim an overgrown vec_to_append_onto.
-            }
-            return false;
-         }
+         new_vec_cap = v1->capacity + v2->capacity;
+      }
+      size_t new_vec_max_cap = MAX_VECTOR_LENGTH;
+      if ( v2->max_capacity < (MAX_VECTOR_LENGTH - v1->max_capacity) )
+      {
+         new_vec_cap = v1->max_capacity + v2->max_capacity;
+      }
+
+      NewVec = VectorInit( v1->element_size,
+                           new_vec_cap,
+                           new_vec_max_cap,
+                           new_vec_len );
+      if ( (NewVec != NULL) && (NewVec->arr != NULL) )
+      {
+         memcpy( NewVec->arr,                 v1->arr, (v1->len * v1->element_size) );
+         memcpy( PTR_TO_IDX(NewVec, v1->len), v2->arr, (v2->len * v2->element_size) );
       }
       else
       {
-         // Can't accomodate the vector-to-append
-         return false;
+         // Something failed in creating the vector...
+         VectorFree(NewVec);
+         NewVec = NULL; // We'll return NULL
       }
    }
 
-   // Presumably, we should have the capacity now to append elements, or have
-   // returns due to an inability to do as much.
-   assert( new_vec_len < vec_to_append_onto->capacity );
-
-   memcpy( PTR_TO_IDX(vec_to_append_onto, vec_to_append_onto->len),
-           vec_to_append->arr,
-           vec_to_append->len );
-
-   return true;
+   return NewVec;
 }
 
 /******************************************************************************/

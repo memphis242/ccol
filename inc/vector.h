@@ -362,22 +362,28 @@ struct Vector_S * VectorSlice( const struct Vector_S * self,
                                size_t idx_end );
 
 /**
- * @brief Concatenates the contents of one vector onto another.
+ * @brief Concatenates two vectors into a new vector.
  *
- * This function appends all elements from the vector pointed to by
- * `vec_to_append` to the end of the vector pointed to by `vec_to_append_onto`.
+ * This function creates a new vector that contains all elements of `v1`
+ * followed by all elements of `v2`. Neither input vector is mutated.
  * 
- * @note The vec_to_append is not mutated or free'd.
- * @note The vec_to_append_onto is expanded if the length of the other vector
- *       is too long.
+ * @note The two vectors must at least have elements of the same size. Of course,
+ *       you probably shouldn't mix datatypes that are the same size but there's
+ *       not practical way for this library to distinguish datatypes of the same
+ *       size, so that's up to you friend.
+ * 
+ * @note Empty vectors are allowed.
+ * 
+ * @note If the sum of the vector lengths of both vectors is greater than the
+ *       max size supported by this library, the operation will fail and NULL
+ *       will be returned.
  *
- * @param vec_to_append_onto Destination vector to which elements will be appended
- * @param vec_to_append Source vector whose elements will be appended.
- * @return true if the concatenation was successful,
- *         false otherwise (e.g., on allocation failure).
+ * @param v1 The first vector (elements will appear first in the result).
+ * @param v2 The second vector (elements will appear after v1's elements).
+ * @return Pointer to the newly allocated concatenated vector, or NULL on failure.
  */
-bool VectorConcatenate( struct Vector_S * vec_to_append_onto,
-                        const struct Vector_S * vec_to_append );
+struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
+                                     const struct Vector_S * v2 );
 
 bool VectorSubRange_PushElements( struct Vector_S * self,
                                   size_t len,
