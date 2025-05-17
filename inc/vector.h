@@ -377,6 +377,9 @@ struct Vector_S * VectorSlice( const struct Vector_S * self,
  * @note If the sum of the vector lengths of both vectors is greater than the
  *       max size supported by this library, the operation will fail and NULL
  *       will be returned.
+ * 
+ * @note The resultant vector shall have a length, capacity, and max capacity
+ *       that is a sum of the argument vectors.
  *
  * @param v1 The first vector (elements will appear first in the result).
  * @param v2 The second vector (elements will appear after v1's elements).

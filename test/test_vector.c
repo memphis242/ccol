@@ -144,13 +144,14 @@ void test_VectorSlice_IdxStartGreaterThanIdxEnd(void);
 void test_VectorSlice_IdxEndCommonMistake(void);
 void test_VectorSlice_IdxEndOutOfRange(void);
 
-void test_VectorConcatenate_BasicAppend_Ints(void);
-void test_VectorConcatenate_AppendLargeToSmall(void);
-void test_VectorConcatenate_EmptyAppend(void);
-void test_VectorConcatenate_AppendToEmpty(void);
-void test_VectorConcatenate_OffByOne_LastElementPreserved(void);
-void test_VectorConcatenate_InsufficientCapacity(void);
+void test_VectorConcatenate_BasicUse(void);
+void test_VectorConcatenate_VecsNotMutated(void);
+void test_VectorConcatenate_OneVecIsEmpty(void);
+void test_VectorConcatenate_BothVecsEmpty(void);
+void test_VectorConcatenate_FullVectors(void);
 void test_VectorConcatenate_NullArguments(void);
+void test_VectorConcatenate_DifferentElementSizes(void);
+void test_VectorConcatenate_ConcatenateSplitRoundTrip(void);
 
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void);
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void);
@@ -329,7 +330,15 @@ int main(void)
    RUN_TEST(test_VectorSlice_IdxEndCommonMistake);
    RUN_TEST(test_VectorSlice_IdxEndOutOfRange);
 
-   // TODO: Vector subrange unit tests.
+   RUN_TEST(test_VectorConcatenate_BasicUse);
+   RUN_TEST(test_VectorConcatenate_VecsNotMutated);
+   RUN_TEST(test_VectorConcatenate_OneVecIsEmpty);
+   RUN_TEST(test_VectorConcatenate_BothVecsEmpty);
+   RUN_TEST(test_VectorConcatenate_FullVectors);
+   RUN_TEST(test_VectorConcatenate_NullArguments);
+   RUN_TEST(test_VectorConcatenate_DifferentElementSizes);
+   RUN_TEST(test_VectorConcatenate_ConcatenateSplitRoundTrip);
+
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_EmptyVec);
@@ -2171,7 +2180,191 @@ void test_VectorSlice_IdxEndOutOfRange(void)
 
 /*********************** Vector Subrange: Concatenation ***********************/
 
+void test_VectorConcatenate_BasicUse(void)
+{
+   struct Vector_S * v1 = VectorInit(sizeof(int), 5, 10, 0);
+   struct Vector_S * v2 = VectorInit(sizeof(int), 5, 10, 0);
+   int vals1[] = {1, 2, 3};
+   int vals2[] = {4, 5};
 
+   for (size_t i = 0; i < 3; i++) VectorPush(v1, &vals1[i]);
+   for (size_t i = 0; i < 2; i++) VectorPush(v2, &vals2[i]);
+
+   struct Vector_S * cat = VectorConcatenate(v1, v2);
+
+   TEST_ASSERT_NOT_NULL(cat);
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(cat));
+   TEST_ASSERT_EQUAL_UINT32(10, VectorCapacity(cat));
+   TEST_ASSERT_EQUAL_UINT32(20, VectorMaxCapacity(cat));
+   for (size_t i = 0; i < 3; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(vals1[i], *(int*)VectorGetElementAt(cat, i));
+   }
+   for (size_t i = 0; i < 2; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(vals2[i], *(int*)VectorGetElementAt(cat, i+3));
+   }
+   
+   VectorFree(v1);
+   VectorFree(v2);
+   VectorFree(cat);
+}
+
+void test_VectorConcatenate_VecsNotMutated(void)
+{
+   struct Vector_S * v1 = VectorInit(sizeof(int), 5, 10, 0);
+   struct Vector_S * v2 = VectorInit(sizeof(int), 5, 10, 0);
+   int vals1[] = {1, 2, 3};
+   int vals2[] = {4, 5};
+
+   for (size_t i = 0; i < 3; i++) VectorPush(v1, &vals1[i]);
+   for (size_t i = 0; i < 2; i++) VectorPush(v2, &vals2[i]);
+   struct Vector_S * v1_dup = VectorDuplicate(v1);
+   struct Vector_S * v2_dup = VectorDuplicate(v2);
+
+   struct Vector_S * cat = VectorConcatenate(v1, v2);
+
+   TEST_ASSERT_EQUAL_INT( 1, vals1[0] );
+   TEST_ASSERT_EQUAL_INT( 2, vals1[1] );
+   TEST_ASSERT_EQUAL_INT( 3, vals1[2] );
+   TEST_ASSERT_EQUAL_INT( 3, VectorLength(v1) );
+   TEST_ASSERT_EQUAL_INT( 5, VectorCapacity(v1) );
+   TEST_ASSERT_EQUAL_INT( 10, VectorMaxCapacity(v1) );
+   TEST_ASSERT_TRUE( VectorsAreEqual(v1, v1_dup) );
+
+   TEST_ASSERT_EQUAL_INT( 4, vals2[0] );
+   TEST_ASSERT_EQUAL_INT( 5, vals2[1] );
+   TEST_ASSERT_EQUAL_INT( 2, VectorLength(v2) );
+   TEST_ASSERT_EQUAL_INT( 5, VectorCapacity(v2) );
+   TEST_ASSERT_EQUAL_INT( 10, VectorMaxCapacity(v2) );
+   TEST_ASSERT_TRUE( VectorsAreEqual(v2, v2_dup) );
+   
+   VectorFree(v1); VectorFree(v1_dup);
+   VectorFree(v2); VectorFree(v2_dup);
+   VectorFree(cat);
+}
+
+void test_VectorConcatenate_OneVecIsEmpty(void)
+{
+   struct Vector_S * v1 = VectorInit(sizeof(int), 5, 10, 0);
+   struct Vector_S * v2 = VectorInit(sizeof(int), 5, 10, 0);
+   int vals1[] = {1, 2, 3};
+   for (size_t i = 0; i < 3; i++) VectorPush(v1, &vals1[i]);
+   TEST_ASSERT_TRUE(VectorIsEmpty(v2));
+
+   struct Vector_S * cat = VectorConcatenate(v1, v2);
+
+   TEST_ASSERT_NOT_NULL(cat);
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(cat));
+   for (size_t i = 0; i < 3; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(vals1[i], *(int*)VectorGetElementAt(cat, i));
+   }
+
+   VectorFree(v1);
+   VectorFree(v2);
+   VectorFree(cat);
+}
+
+void test_VectorConcatenate_BothVecsEmpty(void)
+{
+   struct Vector_S * v1 = VectorInit(sizeof(int), 5, 10, 0);
+   struct Vector_S * v2 = VectorInit(sizeof(int), 5, 10, 0);
+   TEST_ASSERT_TRUE(VectorIsEmpty(v1));
+   TEST_ASSERT_TRUE(VectorIsEmpty(v2));
+
+   struct Vector_S * cat = VectorConcatenate(v1, v2);
+
+   TEST_ASSERT_NOT_NULL(cat);
+   TEST_ASSERT_TRUE(VectorIsEmpty(cat));
+
+   VectorFree(v1);
+   VectorFree(v2);
+   VectorFree(cat);
+}
+
+void test_VectorConcatenate_FullVectors(void)
+{
+   struct Vector_S * v1 = VectorInit(sizeof(int), 3, 3, 0);
+   struct Vector_S * v2 = VectorInit(sizeof(int), 2, 2, 0);
+   int vals1[] = {1, 2, 3};
+   int vals2[] = {4, 5};
+   for (size_t i = 0; i < 3; i++) VectorPush(v1, &vals1[i]);
+   for (size_t i = 0; i < 2; i++) VectorPush(v2, &vals2[i]);
+   TEST_ASSERT_TRUE(VectorIsFull(v1));
+   TEST_ASSERT_TRUE(VectorIsFull(v2));
+
+   struct Vector_S * cat = VectorConcatenate(v1, v2);
+
+   TEST_ASSERT_NOT_NULL(cat);
+   TEST_ASSERT_EQUAL_INT(5, VectorLength(cat));
+   TEST_ASSERT_TRUE(VectorIsFull(cat));
+
+   VectorFree(v1);
+   VectorFree(v2);
+   VectorFree(cat);
+}
+
+void test_VectorConcatenate_NullArguments(void)
+{
+   struct Vector_S * v1 = VectorInit(sizeof(int), 2, 2, 0);
+   struct Vector_S * cat = VectorConcatenate(NULL, v1);
+   TEST_ASSERT_NULL(cat);
+   cat = VectorConcatenate(v1, NULL);
+   TEST_ASSERT_NULL(cat);
+   cat = VectorConcatenate(NULL, NULL);
+   TEST_ASSERT_NULL(cat);
+   VectorFree(v1);
+}
+
+void test_VectorConcatenate_DifferentElementSizes(void)
+{
+   struct Vector_S * v1 = VectorInit(sizeof(int), 2, 2, 0);
+   struct Vector_S * v2 = VectorInit(sizeof(double), 2, 2, 0);
+
+   struct Vector_S * cat = VectorConcatenate(v1, v2);
+   TEST_ASSERT_NULL(cat);
+
+   VectorFree(v1);
+   VectorFree(v2);
+}
+
+void test_VectorConcatenate_ConcatenateSplitRoundTrip(void)
+{
+   // Concatenate and split at may be considered somewhat inverse operations.
+   // Check that they behave that way. Note that capacity and max capacity are
+   // not inverted through these operations.
+   struct Vector_S * v1 = VectorInit(sizeof(int), 5, 10, 0);
+   struct Vector_S * v2 = VectorInit(sizeof(int), 5, 10, 0);
+   int vals1[] = {1, 2, 3};
+   int vals2[] = {4, 5};
+
+   for (size_t i = 0; i < 3; i++) VectorPush(v1, &vals1[i]);
+   for (size_t i = 0; i < 2; i++) VectorPush(v2, &vals2[i]);
+
+   struct Vector_S * cat = VectorConcatenate(v1, v2);
+   struct Vector_S * v2_from_split = VectorSplitAt(cat, 3);
+
+   TEST_ASSERT_EQUAL_INT( VectorLength(v1), VectorLength(cat) );
+   for (size_t i = 0; i < 3; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(
+         *(int*)VectorGetElementAt(v1,  i),
+         *(int*)VectorGetElementAt(cat, i) );
+   }
+   TEST_ASSERT_EQUAL_INT( VectorLength(v2), VectorLength(v2_from_split) );
+   for (size_t i = 0; i < 2; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(
+         *(int*)VectorGetElementAt(v2,            i),
+         *(int*)VectorGetElementAt(v2_from_split, i));
+   }
+   
+   VectorFree(v1);
+   VectorFree(v2);
+   VectorFree(v2_from_split);
+   VectorFree(cat);
+}
 
 /************************ Vector Subrange: Get Elements ***********************/
 

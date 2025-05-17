@@ -665,7 +665,7 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
       size_t new_vec_max_cap = MAX_VECTOR_LENGTH;
       if ( v2->max_capacity < (MAX_VECTOR_LENGTH - v1->max_capacity) )
       {
-         new_vec_cap = v1->max_capacity + v2->max_capacity;
+         new_vec_max_cap = v1->max_capacity + v2->max_capacity;
       }
 
       NewVec = VectorInit( v1->element_size,
