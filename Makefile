@@ -203,7 +203,7 @@ test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS)
 $(PATH_RESULTS)%.txt: $(PATH_BUILD)%.$(TARGET_EXTENSION) $(COLORIZE_UNITY_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
-	@echo "\033[36mRunning\033[0m $<..."
+	@echo -e "\033[36mRunning\033[0m $<..."
 	@echo
 	-./$< 2>&1 | tee $@ | python $(COLORIZE_UNITY_SCRIPT)
 
