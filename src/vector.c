@@ -68,6 +68,7 @@ struct Vector_S
 
 /* Private Function Prototypes */
 static bool LocalVectorExpand( struct Vector_S * self );
+static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len );
 static void ShiftOneOver( struct Vector_S * self, size_t idx, bool move_right );
 
 /* Public API Implementations */
@@ -691,6 +692,48 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
 /******************************************************************************/
 /******************************************************************************/
 
+bool VectorSubRange_PushElements( struct Vector_S * self,
+                                  const void * data,
+                                  size_t len )
+{
+   if ( (NULL == self) || (NULL == data) ||
+        ( (self->len + len) > self->max_capacity ) || (len == 0) )
+   {
+      // TODO: Throw exception
+      return false;
+   }
+
+   assert( self->len <= self->capacity );
+   assert( self->capacity <= self->max_capacity );
+   assert( (self->len == 0) || ( (self->len > 0) && (self->arr != NULL) ) );
+
+   // Ensure there's space
+   bool successfully_expanded = true;
+   if ( (self->len + len) >= self->capacity )
+   {
+      successfully_expanded = LocalVectorExpandBy(
+                                       self,
+                                       /* Expand relative to capacity, not len*/
+                                       len - (self->capacity - self->len) );
+   }
+
+   if ( successfully_expanded )
+   {
+      void * insertion_spot = (void *)PTR_TO_IDX(self, self->len);
+      memcpy( insertion_spot, data, (self->element_size * len) );
+      self->len += len;
+   }
+   else
+   {
+      return false;
+   }
+
+   return true;
+}
+
+/******************************************************************************/
+/******************************************************************************/
+
 void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
                                           size_t idx )
 {
@@ -832,30 +875,24 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
 
 /**
  * @brief Expands the capacity of the vector to accommodate additional elements.
- *
- * This function is used internally to increase the storage capacity of the vector
- * when the current capacity is insufficient to hold new elements. It ensures that
- * the vector can grow dynamically as needed.
- *
- * @param self A pointer to the Vector_S structure representing the vector.
+ * 
+ * @param self Vector handle.
  * @return true if the expansion was successful, false otherwise.
  */
 static bool LocalVectorExpand( struct Vector_S * self )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
-   assert( (self != NULL) &&
-           (self->element_size != 0) &&
-           (self->arr != NULL) &&
-           (self->len <= self->capacity) &&
-           (self->len <= self->max_capacity) ); 
+   assert(self != NULL);
+   assert(self->element_size != 0);
+   assert(self->arr != NULL);
+   assert(self->len <= self->capacity);
+   assert(self->len <= self->max_capacity); 
 
    // If we're already at max capacity, can't expand further.
    if ( self->capacity == self->max_capacity )
    {
       return false;
    }
-
-   bool ret_val = false;
 
    // First determine new capacity, and then realloc.
    size_t new_capacity;
@@ -877,10 +914,44 @@ static bool LocalVectorExpand( struct Vector_S * self )
    {
       self->arr = new_ptr;
       self->capacity = new_capacity;
-      ret_val = true;
+      return true;
    }
 
-   return ret_val;
+   return false;
+}
+
+/**
+ * @brief Expands the capacity of the vector by a specified number of elements.
+ *
+ * @param self Vector handle.
+ * @param add_len The number of additional elements to expand the capacity by.
+ * @return true if the expansion was successful; false otherwise.
+ */
+static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
+{
+   // Since this is a purely internal function, I will destructively assert at any invalid inputs
+   assert(self != NULL);
+   assert(self->element_size != 0);
+   assert(self->arr != NULL);
+   assert(self->len <= self->capacity);
+   assert(self->len <= self->max_capacity); 
+
+   // If there's no space in the vector, we can't expand
+   if ( (self->capacity + add_len) > self->max_capacity )
+   {
+      return false;
+   }
+
+   size_t new_capacity = self->capacity + add_len;
+   void * new_ptr = realloc( self->arr, (self->element_size * new_capacity) );
+   if ( new_ptr != NULL )
+   {
+      self->arr = new_ptr;
+      self->capacity = new_capacity;
+      return true;
+   }
+
+   return false;
 }
 
 /**

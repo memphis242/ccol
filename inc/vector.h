@@ -388,9 +388,24 @@ struct Vector_S * VectorSlice( const struct Vector_S * self,
 struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
                                      const struct Vector_S * v2 );
 
+/**
+ * @brief Pushes several elements into the vector.
+ *
+ * This function would be the equivalent of looping VectorPush(), but is more
+ * efficient because the elements are pushed together as a block rather than
+ * over separate function calls.
+ * 
+ * @note This function assumes the elements inside of data are of the same
+ *       type as the elements in the vector.
+ *
+ * @param self Vector handle.
+ * @param data Pointer to the source data to be copied into the vector.
+ * @param len Number of elements to push into the vector.
+ * @return true if the elements were successfully pushed; false otherwise.
+ */
 bool VectorSubRange_PushElements( struct Vector_S * self,
-                                  size_t len,
-                                  void * data );
+                                  const void * data,
+                                  size_t len );
 
 bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
                                       size_t idx,

@@ -153,6 +153,15 @@ void test_VectorConcatenate_NullArguments(void);
 void test_VectorConcatenate_DifferentElementSizes(void);
 void test_VectorConcatenate_ConcatenateSplitRoundTrip(void);
 
+void test_VectorSubRange_PushElements_ValidInts(void);
+void test_VectorSubRange_PushElements_ValidStructs(void);
+void test_VectorSubRange_PushElements_ExpandCapacity(void);
+void test_VectorSubRange_PushElements_ZeroLen(void);
+void test_VectorSubRange_PushElements_NullVec(void);
+void test_VectorSubRange_PushElements_NullData(void);
+void test_VectorSubRange_PushElements_ExceedsMaxCapacity(void);
+void test_VectorSubRange_PushElements_ExactlyMaxCapacity(void);
+
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void);
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void);
 void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void);
@@ -338,6 +347,15 @@ int main(void)
    RUN_TEST(test_VectorConcatenate_NullArguments);
    RUN_TEST(test_VectorConcatenate_DifferentElementSizes);
    RUN_TEST(test_VectorConcatenate_ConcatenateSplitRoundTrip);
+
+   RUN_TEST(test_VectorSubRange_PushElements_ValidInts);
+   RUN_TEST(test_VectorSubRange_PushElements_ValidStructs);
+   RUN_TEST(test_VectorSubRange_PushElements_ExpandCapacity);
+   RUN_TEST(test_VectorSubRange_PushElements_ZeroLen);
+   RUN_TEST(test_VectorSubRange_PushElements_NullVec);
+   RUN_TEST(test_VectorSubRange_PushElements_NullData);
+   RUN_TEST(test_VectorSubRange_PushElements_ExceedsMaxCapacity);
+   RUN_TEST(test_VectorSubRange_PushElements_ExactlyMaxCapacity);
 
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
@@ -2364,6 +2382,114 @@ void test_VectorConcatenate_ConcatenateSplitRoundTrip(void)
    VectorFree(v2);
    VectorFree(v2_from_split);
    VectorFree(cat);
+}
+
+/************************ Vector Subrange: Get Elements ***********************/
+
+void test_VectorSubRange_PushElements_ValidInts(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 5, 10, 0);
+   int data[] = {1, 2, 3};
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 3));
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   for (size_t i = 0; i < 3; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ValidStructs(void)
+{
+   struct MyData_S {
+      float x, y, z;
+   };
+   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 2, 10, 0);
+   struct MyData_S data[2] =
+   {
+      { .x = 1.0f, .y = 2.0f, .z = 3.0f},
+      { .x = 4.0f, .y = 5.0f, .z = 6.0f}
+   };
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 2));
+   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   struct MyData_S * elm = (struct MyData_S *)VectorGetElementAt(vec, 0);
+   TEST_ASSERT_EQUAL_FLOAT(1.0f, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(2.0f, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(3.0f, elm->z);
+   elm = (struct MyData_S *)VectorGetElementAt(vec, 1);
+   TEST_ASSERT_EQUAL_FLOAT(4.0f, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(5.0f, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(6.0f, elm->z);
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ExpandCapacity(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   int data[] = {1, 2, 3, 4};
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
+   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+   for (size_t i = 0; i < 4; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ZeroLen(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   int data[] = {1, 2, 3};
+
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 0));
+   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_NullVec(void)
+{
+   int data[] = {1, 2, 3};
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(NULL, data, 3));
+}
+
+void test_VectorSubRange_PushElements_NullData(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, NULL, 3));
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ExceedsMaxCapacity(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
+   int data[] = {1, 2, 3, 4, 5};
+
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 5));
+   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ExactlyMaxCapacity(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
+   int data[] = {1, 2, 3, 4};
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
+   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+   for (size_t i = 0; i < 4; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
 }
 
 /************************ Vector Subrange: Get Elements ***********************/
