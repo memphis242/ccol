@@ -734,9 +734,9 @@ bool VectorSubRange_PushElements( struct Vector_S * self,
 /******************************************************************************/
 
 bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
-                                      size_t idx,
-                                      size_t dlen,
-                                      const void * data )
+                                      size_t idx, 
+                                      const void * data,
+                                      size_t dlen )
 {
    if ( (NULL == self) || (NULL == data) ||
         ( (self->len + dlen) > self->max_capacity ) || (dlen == 0) ||

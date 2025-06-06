@@ -2418,7 +2418,7 @@ void test_VectorSubRange_InsertElementsAt_ValidInts(void)
 
    int insert[] = {3, 4};
    // Insert at index 2 (before 5)
-   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 2, 2, insert));
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 2, insert, 2));
    TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGetElementAt(vec, 0));
    TEST_ASSERT_EQUAL_INT(2, *(int *)VectorGetElementAt(vec, 1));
@@ -2439,7 +2439,7 @@ void test_VectorSubRange_InsertElementsAt_ValidStructs(void)
 
    struct MyData_S insert[2] = { {7,8,9}, {10,11,12} };
    // Insert at index 1
-   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, 2, insert));
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, insert, 2));
 
    TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
 
@@ -2468,7 +2468,7 @@ void test_VectorSubRange_InsertElementsAt_ExpandCapacity(void)
 
    int insert[] = {3, 4, 5};
    // Insert at index 1, should expand capacity
-   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, 3, insert));
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, insert, 3));
 
    TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
 
@@ -2488,7 +2488,7 @@ void test_VectorSubRange_InsertElementsAt_ZeroLen(void)
    int data[] = {1, 2, 3};
    VectorPush(vec, &data[0]);
 
-   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, 0, data));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, data, 0));
    TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
 
    VectorFree(vec);
@@ -2497,14 +2497,14 @@ void test_VectorSubRange_InsertElementsAt_ZeroLen(void)
 void test_VectorSubRange_InsertElementsAt_NullVec(void)
 {
    int data[] = {1, 2, 3};
-   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(NULL, 0, 2, data));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(NULL, 0, data, 2));
 }
 
 void test_VectorSubRange_InsertElementsAt_NullData(void)
 {
    struct Vector_S * vec = VectorInit(sizeof(int), 2, 10, 0);
    VectorPush(vec, &(int){1});
-   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, 1, NULL));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, NULL, 1));
 
    VectorFree(vec);
 }
@@ -2517,7 +2517,7 @@ void test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity(void)
    VectorPush(vec, &data[0]);
 
    // Would exceed max capacity (1+5 > 4)
-   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, 5, data));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, data, 5));
    TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
 
    VectorFree(vec);
@@ -2531,7 +2531,7 @@ void test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity(void)
    VectorPush(vec, &data[0]);
 
    // Insert 3 elements at index 1, total will be 4 (max)
-   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, 2, &data[1]));
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, &data[1], 2));
    
    TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
 
@@ -2550,15 +2550,14 @@ void test_VectorSubRange_InsertElementsAt_InvalidIdx(void)
    int data[] = {1, 2, 3};
    VectorPush(vec, &data[0]);
 
-   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 2, 2, &data[1]));
-   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 4, 2, &data[1]));
-   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 1000, 2, &data[1]));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 2, &data[1], 2));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 4, &data[1], 2));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 1000, &data[1], 2));
    
    TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
 
    VectorFree(vec);
 }
-
 
 /************************ Vector Subrange: Get Elements ***********************/
 

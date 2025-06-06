@@ -416,14 +416,14 @@ bool VectorSubRange_PushElements( struct Vector_S * self,
  *
  * @param self Vector handle.
  * @param idx  Index at which to insert the new elements.
- * @param dlen Number of elements to insert.
  * @param data Pointer to the data to be inserted (not mutated).
+ * @param dlen Number of elements to insert.
  * @return true if the insertion was successful, false otherwise (e.g., on allocation failure or invalid index).
  */
 bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
-                                      size_t idx,
-                                      size_t dlen,
-                                      const void * data );
+                                      size_t idx, 
+                                      const void * data,
+                                      size_t dlen );
 
 /**
  * @brief Retrieves a range of elements from the vector.
