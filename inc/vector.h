@@ -407,10 +407,23 @@ bool VectorSubRange_PushElements( struct Vector_S * self,
                                   const void * data,
                                   size_t len );
 
+/**
+ * @brief Inserts a range of elements into the vector at the specified index.
+ *
+ * This function inserts `len` elements from the memory pointed to by `data`
+ * into the vector `self` starting at position `idx`. The elements after the
+ * insertion point are shifted to make room for the new elements.
+ *
+ * @param self Vector handle.
+ * @param idx  Index at which to insert the new elements.
+ * @param dlen Number of elements to insert.
+ * @param data Pointer to the data to be inserted (not mutated).
+ * @return true if the insertion was successful, false otherwise (e.g., on allocation failure or invalid index).
+ */
 bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
                                       size_t idx,
-                                      size_t len,
-                                      void * data );
+                                      size_t dlen,
+                                      const void * data );
 
 /**
  * @brief Retrieves a range of elements from the vector.

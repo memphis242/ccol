@@ -732,6 +732,48 @@ bool VectorSubRange_PushElements( struct Vector_S * self,
 }
 
 /******************************************************************************/
+
+bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
+                                      size_t idx,
+                                      size_t dlen,
+                                      const void * data )
+{
+   if ( (NULL == self) || (NULL == data) ||
+        ( (self->len + dlen) > self->max_capacity ) || (dlen == 0) ||
+        (idx >= self->len) )
+   {
+      // TODO: Throw exception
+      return false;
+   }
+
+   assert( self->len <= self->capacity );
+   assert( self->capacity <= self->max_capacity );
+   assert( (self->len == 0) || ( (self->len > 0) && (self->arr != NULL) ) );
+
+   // Ensure there's space
+   bool successfully_expanded = true;
+   if ( (self->len + dlen) >= self->capacity )
+   {
+      successfully_expanded = LocalVectorExpandBy(
+                                       self,
+                                       /* Expand relative to capacity, not len*/
+                                       dlen - (self->capacity - self->len) );
+   }
+
+   if ( successfully_expanded )
+   {
+      void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
+      memcpy( insertion_spot, data, (self->element_size * dlen) );
+      self->len += dlen;
+   }
+   else
+   {
+      return false;
+   }
+
+   return true;
+}
+
 /******************************************************************************/
 
 void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,

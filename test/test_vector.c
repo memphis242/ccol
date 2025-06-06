@@ -162,6 +162,16 @@ void test_VectorSubRange_PushElements_NullData(void);
 void test_VectorSubRange_PushElements_ExceedsMaxCapacity(void);
 void test_VectorSubRange_PushElements_ExactlyMaxCapacity(void);
 
+void test_VectorSubRange_InsertElementsAt_ValidInts(void);
+void test_VectorSubRange_InsertElementsAt_ValidStructs(void);
+void test_VectorSubRange_InsertElementsAt_ExpandCapacity(void);
+void test_VectorSubRange_InsertElementsAt_ZeroLen(void);
+void test_VectorSubRange_InsertElementsAt_NullVec(void);
+void test_VectorSubRange_InsertElementsAt_NullData(void);
+void test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity(void);
+void test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity(void);
+void test_VectorSubRange_InsertElementsAt_InvalidIdx(void);
+
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void);
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void);
 void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void);
@@ -356,6 +366,16 @@ int main(void)
    RUN_TEST(test_VectorSubRange_PushElements_NullData);
    RUN_TEST(test_VectorSubRange_PushElements_ExceedsMaxCapacity);
    RUN_TEST(test_VectorSubRange_PushElements_ExactlyMaxCapacity);
+
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_ValidInts);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_ValidStructs);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_ExpandCapacity);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_ZeroLen);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_NullVec);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_NullData);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_InvalidIdx);
 
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
    RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
@@ -2383,6 +2403,162 @@ void test_VectorConcatenate_ConcatenateSplitRoundTrip(void)
    VectorFree(v2_from_split);
    VectorFree(cat);
 }
+
+/********************** Vector Subrange: Insert Elements **********************/
+
+void test_VectorSubRange_InsertElementsAt_ValidInts(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 5, 10, 0);
+
+   int initial[] = {1, 2, 5};
+   for (size_t i = 0; i < 3; i++) 
+   {
+      VectorPush(vec, &initial[i]);
+   }
+
+   int insert[] = {3, 4};
+   // Insert at index 2 (before 5)
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 2, 2, insert));
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(2, *(int *)VectorGetElementAt(vec, 1));
+   TEST_ASSERT_EQUAL_INT(3, *(int *)VectorGetElementAt(vec, 2));
+   TEST_ASSERT_EQUAL_INT(4, *(int *)VectorGetElementAt(vec, 3));
+   TEST_ASSERT_EQUAL_INT(5, *(int *)VectorGetElementAt(vec, 4));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_ValidStructs(void)
+{
+   struct MyData_S { int x, y, z; };
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 4, 10, 0);
+
+   struct MyData_S initial[2] = { {1,2,3}, {4,5,6} };
+   for (size_t i = 0; i < 2; i++)  VectorPush(vec, &initial[i]);
+
+   struct MyData_S insert[2] = { {7,8,9}, {10,11,12} };
+   // Insert at index 1
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, 2, insert));
+
+   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+
+   struct MyData_S * elm = (struct MyData_S *)VectorGetElementAt(vec, 1);
+   TEST_ASSERT_EQUAL_FLOAT(7, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(8, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(9, elm->z);
+   elm = (struct MyData_S *)VectorGetElementAt(vec, 2);
+   TEST_ASSERT_EQUAL_FLOAT(10, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(11, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(12, elm->z);
+   elm = (struct MyData_S *)VectorGetElementAt(vec, 3);
+   TEST_ASSERT_EQUAL_FLOAT(4, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(5, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(6, elm->z);
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_ExpandCapacity(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 10, 0);
+
+   int initial[] = {1, 2};
+   for (size_t i = 0; i < 2; i++) VectorPush(vec, &initial[i]);
+
+   int insert[] = {3, 4, 5};
+   // Insert at index 1, should expand capacity
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, 3, insert));
+
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+
+   TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(3, *(int *)VectorGetElementAt(vec, 1));
+   TEST_ASSERT_EQUAL_INT(4, *(int *)VectorGetElementAt(vec, 2));
+   TEST_ASSERT_EQUAL_INT(5, *(int *)VectorGetElementAt(vec, 3));
+   TEST_ASSERT_EQUAL_INT(2, *(int *)VectorGetElementAt(vec, 4));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_ZeroLen(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 10, 0);
+
+   int data[] = {1, 2, 3};
+   VectorPush(vec, &data[0]);
+
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, 0, data));
+   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_NullVec(void)
+{
+   int data[] = {1, 2, 3};
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(NULL, 0, 2, data));
+}
+
+void test_VectorSubRange_InsertElementsAt_NullData(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 10, 0);
+   VectorPush(vec, &(int){1});
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, 1, NULL));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 4, 0);
+
+   int data[] = {1, 2, 3, 4, 5};
+   VectorPush(vec, &data[0]);
+
+   // Would exceed max capacity (1+5 > 4)
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 0, 5, data));
+   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 4, 0);
+
+   int data[] = {1, 2, 3};
+   VectorPush(vec, &data[0]);
+
+   // Insert 3 elements at index 1, total will be 4 (max)
+   TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, 2, &data[1]));
+   
+   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+
+   TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(2, *(int *)VectorGetElementAt(vec, 1));
+   TEST_ASSERT_EQUAL_INT(3, *(int *)VectorGetElementAt(vec, 2));
+   TEST_ASSERT_EQUAL_INT(3, *(int *)VectorGetElementAt(vec, 3)); // last inserted value
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_InvalidIdx(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 4, 0);
+
+   int data[] = {1, 2, 3};
+   VectorPush(vec, &data[0]);
+
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 2, 2, &data[1]));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 4, 2, &data[1]));
+   TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 1000, 2, &data[1]));
+   
+   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+
+   VectorFree(vec);
+}
+
 
 /************************ Vector Subrange: Get Elements ***********************/
 
