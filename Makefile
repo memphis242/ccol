@@ -2,6 +2,30 @@
 
 ################################# The Prelude ##################################
 
+.PHONY: release
+.PHONY: release-vec
+.PHONY: debug
+.PHONY: debug-vec
+.PHONY: test-vec test-all
+
+test-vec:
+	@$(MAKE) _test BUILD_TYPE=TEST DS=vector
+
+test-all:
+	@$(MAKE) --always-make test-vec
+
+release:
+	@$(MAKE) lib BUILD_TYPE=RELEASE DS=ALL
+
+release-vec:
+	@$(MAKE) lib BUILD_TYPE=RELEASE DS=vector
+
+debug:
+	@$(MAKE) lib BUILD_TYPE=DEBUG DS=ALL
+
+debug-vec:
+	@$(MAKE) lib BUILD_TYPE=DEBUG DS=vector
+
 CLEANUP = rm -f
 MKDIR = mkdir -p
 TARGET_EXTENSION=exe
@@ -75,8 +99,6 @@ TEST_LIST_FILE = $(patsubst %.$(TARGET_EXTENSION), $(PATH_BUILD)%.lst, $(notdir 
 TEST_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_TEST_FILES)))
 RESULTS = $(patsubst %.c, $(PATH_RESULTS)%.txt, $(notdir $(SRC_TEST_FILES)))
 
-$(info TEST_OBJ_FILES: $(TEST_OBJ_FILES))
-
 ifeq ($(BUILD_TYPE), TEST)
   BUILD_DIRS += $(PATH_RESULTS)
 else ifeq ($(BUILD_TYPE), PROFILE)
@@ -145,20 +167,16 @@ CFLAGS_TEST = \
          $(COMPILER_SANITIZERS) $(COMPILER_OPTIMIZATION_LEVEL_DEBUG)
 
 ifeq ($(BUILD_TYPE), RELEASE)
-$(info CFLAGS for release)
 CFLAGS += -DNDEBUG $(COMPILER_OPTIMIZATION_LEVEL_SPEED)
 
 else ifeq ($(BUILD_TYPE), BENCHMARK)
-$(info CFLAGS for benchmarking)
 CFLAGS += -DNDEBUG $(COMPILER_OPTIMIZATION_LEVEL_SPEED)
 
 else ifeq ($(BUILD_TYPE), PROFILE)
-$(info CFLAGS for profiling)
 CFLAGS += -DNDEBUG $(COMPILER_OPTIMIZATION_LEVEL_DEBUG) -pg
 LDFLAGS += -pg
 
 else
-$(info CFLAGS for debugging)
 CFLAGS += $(COMPILER_SANITIZERS) $(COMPILER_OPTIMIZATION_LEVEL_DEBUG)
 endif
 
@@ -193,8 +211,7 @@ $(LIB_FILE): $(DS_OBJ_FILES) $(BUILD_DIRS)
 	ar rcs $@ $<
 
 ######################## Test Rules ########################
-.PHONY: test
-test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS)
+_test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS)
 	@echo
 	@echo -e "\033[36mAll tests completed!\033[0m"
 	@echo
