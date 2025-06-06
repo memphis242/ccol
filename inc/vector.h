@@ -400,12 +400,12 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
  *
  * @param self Vector handle.
  * @param data Pointer to the source data to be copied into the vector.
- * @param len Number of elements to push into the vector.
+ * @param dlen Number of elements to push into the vector.
  * @return true if the elements were successfully pushed; false otherwise.
  */
 bool VectorSubRange_PushElements( struct Vector_S * self,
                                   const void * data,
-                                  size_t len );
+                                  size_t dlen );
 
 /**
  * @brief Inserts a range of elements into the vector at the specified index.

@@ -170,6 +170,7 @@ void test_VectorSubRange_InsertElementsAt_NullVec(void);
 void test_VectorSubRange_InsertElementsAt_NullData(void);
 void test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity(void);
 void test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity(void);
+void test_VectorSubRange_InsertElementsAt_Push_Equivalence(void);
 void test_VectorSubRange_InsertElementsAt_InvalidIdx(void);
 
 void test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData(void);
@@ -245,32 +246,32 @@ int main(void)
 {
    UNITY_BEGIN();
 
-   RUN_TEST(test_VectorInit_Invalid_ZeroElementSz);
-   RUN_TEST(test_VectorInit_Invalid_MaxCapLessThanInitCap);
-   RUN_TEST(test_VectorInit_Invalid_ZeroMaxCap);
-   RUN_TEST(test_VectorInit_Invalid_InitialLen);
-   RUN_TEST(test_VectorInit_ValidInputCombo_3DPoints);
-   RUN_TEST(test_VectorInit_ValidInputCombo_PtrData);
-   RUN_TEST(test_VectorInit_CapacityLimit);
-   RUN_TEST(test_VectorInit_ElementSzLimit);
-   RUN_TEST(test_VectorInit_InitialLenLessThanInitialCap);
-   RUN_TEST(test_VectorInit_InitialLenSameAsInitialCap);
-
-   RUN_TEST(test_VectorOpsOnNullVectors);
-
-   RUN_TEST(test_VectorFree);
-   RUN_TEST(test_VectorLength);
-   RUN_TEST(test_VectorCapacity);
-   RUN_TEST(test_VectorMaxCapacity);
-   RUN_TEST(test_VectorElementSize);
-   RUN_TEST(test_VectorIsEmpty);
-   RUN_TEST(test_VectorIsFull);
-
-   RUN_TEST(test_VectorPush_SimplePush);
-   RUN_TEST(test_VectorPush_UntilCapacity);
-   RUN_TEST(test_VectorPush_PastInitialCapacity);
-   RUN_TEST(test_VectorPush_PastMaxCapacity);
-   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
+//   RUN_TEST(test_VectorInit_Invalid_ZeroElementSz);
+//   RUN_TEST(test_VectorInit_Invalid_MaxCapLessThanInitCap);
+//   RUN_TEST(test_VectorInit_Invalid_ZeroMaxCap);
+//   RUN_TEST(test_VectorInit_Invalid_InitialLen);
+//   RUN_TEST(test_VectorInit_ValidInputCombo_3DPoints);
+//   RUN_TEST(test_VectorInit_ValidInputCombo_PtrData);
+//   RUN_TEST(test_VectorInit_CapacityLimit);
+//   RUN_TEST(test_VectorInit_ElementSzLimit);
+//   RUN_TEST(test_VectorInit_InitialLenLessThanInitialCap);
+//   RUN_TEST(test_VectorInit_InitialLenSameAsInitialCap);
+//
+//   RUN_TEST(test_VectorOpsOnNullVectors);
+//
+//   RUN_TEST(test_VectorFree);
+//   RUN_TEST(test_VectorLength);
+//   RUN_TEST(test_VectorCapacity);
+//   RUN_TEST(test_VectorMaxCapacity);
+//   RUN_TEST(test_VectorElementSize);
+//   RUN_TEST(test_VectorIsEmpty);
+//   RUN_TEST(test_VectorIsFull);
+//
+//   RUN_TEST(test_VectorPush_SimplePush);
+//   RUN_TEST(test_VectorPush_UntilCapacity);
+//   RUN_TEST(test_VectorPush_PastInitialCapacity);
+//   RUN_TEST(test_VectorPush_PastMaxCapacity);
+//   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
 
    RUN_TEST(test_VectorInsertion_AtZeroWithVectorLessThanCapacity);
    RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
@@ -279,22 +280,22 @@ int main(void)
    RUN_TEST(test_VectorInsertion_AtMiddle);
    RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
 
-   RUN_TEST(test_VectorGetElement_ValidIdx);
-   RUN_TEST(test_VectorGetElement_IdxPastLen);
-   RUN_TEST(test_VectorGetElement_IdxPastCap);
-   RUN_TEST(test_VectorLastElement);
-
-   RUN_TEST(test_VectorCpyElement_ValidIdx);
-   RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
-   RUN_TEST(test_VectorCpyElement_IdxPastLen);
-   RUN_TEST(test_VectorCpyElement_IdxPastCap);
-   RUN_TEST(test_VectorCpyLastElement);
-   RUN_TEST(test_VectorRoundTrip_CpyElementToSetElement);
-
-   RUN_TEST(test_VectorSetElement_AfterPushes);
-   RUN_TEST(test_VectorSetElement_AfterInitLen);
-   RUN_TEST(test_VectorSetElement_PastLen);
-   RUN_TEST(test_VectorSetElement_PastCap);
+//   RUN_TEST(test_VectorGetElement_ValidIdx);
+//   RUN_TEST(test_VectorGetElement_IdxPastLen);
+//   RUN_TEST(test_VectorGetElement_IdxPastCap);
+//   RUN_TEST(test_VectorLastElement);
+//
+//   RUN_TEST(test_VectorCpyElement_ValidIdx);
+//   RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
+//   RUN_TEST(test_VectorCpyElement_IdxPastLen);
+//   RUN_TEST(test_VectorCpyElement_IdxPastCap);
+//   RUN_TEST(test_VectorCpyLastElement);
+//   RUN_TEST(test_VectorRoundTrip_CpyElementToSetElement);
+//
+//   RUN_TEST(test_VectorSetElement_AfterPushes);
+//   RUN_TEST(test_VectorSetElement_AfterInitLen);
+//   RUN_TEST(test_VectorSetElement_PastLen);
+//   RUN_TEST(test_VectorSetElement_PastCap);
 
    RUN_TEST(test_VectorRemoveElement_AtZeroWithVectorPartiallyFull);
    RUN_TEST(test_VectorRemoveElement_AtZeroWithSinglePresentElement);
@@ -311,52 +312,52 @@ int main(void)
    RUN_TEST(test_VectorRemoveElement_LastElement_WithBuf);
    RUN_TEST(test_VectorRemoveElement_PastLen_WithBuf);
 
-   RUN_TEST(test_VectorClearElementAt_Normal);
-   RUN_TEST(test_VectorClearElementAt_InvalidIdx);
-
-   RUN_TEST(test_VectorReset_OORIdx);
-   RUN_TEST(test_VectorReset);
-
-   RUN_TEST(test_VectorHardReset);
-
-   RUN_TEST(test_VectorDuplicate_SmallVector);
-   RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
-   RUN_TEST(test_VectorDuplicate_NullVector);
-
-   RUN_TEST(test_VectorsAreEqual_SameVectors);
-   RUN_TEST(test_VectorsAreEqual_DifferentElementSz);
-   RUN_TEST(test_VectorsAreEqual_DifferentLength);
-   RUN_TEST(test_VectorsAreEqual_DifferentCapacity);
-   RUN_TEST(test_VectorsAreEqual_DifferentMaxCapacity);
-   RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
-
-   RUN_TEST(test_VectorSplitAt_ValidIdx);
-   RUN_TEST(test_VectorSplitAt_IdxZero);
-   RUN_TEST(test_VectorSplitAt_IdxPastLen);
-   RUN_TEST(test_VectorSplitAt_EmptyVector);
-   RUN_TEST(test_VectorSplitAt_NullVector);
-   RUN_TEST(test_VectorSplitAt_ValidIdx_StructData);
-
-   RUN_TEST(test_VectorSlice_ValidIndices_IntData);
-   RUN_TEST(test_VectorSlice_ValidIndices_StructData);
-   RUN_TEST(test_VectorSlice_IdxStartEqualsIdxEnd);
-   RUN_TEST(test_VectorSlice_IdxStartZero);
-   RUN_TEST(test_VectorSlice_FullVector);
-   RUN_TEST(test_VectorSlice_IdxEndAtLastElement);
-   RUN_TEST(test_VectorSlice_EmptyVector);
-   RUN_TEST(test_VectorSlice_NullVector);
-   RUN_TEST(test_VectorSlice_IdxStartGreaterThanIdxEnd);
-   RUN_TEST(test_VectorSlice_IdxEndCommonMistake);
-   RUN_TEST(test_VectorSlice_IdxEndOutOfRange);
-
-   RUN_TEST(test_VectorConcatenate_BasicUse);
-   RUN_TEST(test_VectorConcatenate_VecsNotMutated);
-   RUN_TEST(test_VectorConcatenate_OneVecIsEmpty);
-   RUN_TEST(test_VectorConcatenate_BothVecsEmpty);
-   RUN_TEST(test_VectorConcatenate_FullVectors);
-   RUN_TEST(test_VectorConcatenate_NullArguments);
-   RUN_TEST(test_VectorConcatenate_DifferentElementSizes);
-   RUN_TEST(test_VectorConcatenate_ConcatenateSplitRoundTrip);
+//   RUN_TEST(test_VectorClearElementAt_Normal);
+//   RUN_TEST(test_VectorClearElementAt_InvalidIdx);
+//
+//   RUN_TEST(test_VectorReset_OORIdx);
+//   RUN_TEST(test_VectorReset);
+//
+//   RUN_TEST(test_VectorHardReset);
+//
+//   RUN_TEST(test_VectorDuplicate_SmallVector);
+//   RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
+//   RUN_TEST(test_VectorDuplicate_NullVector);
+//
+//   RUN_TEST(test_VectorsAreEqual_SameVectors);
+//   RUN_TEST(test_VectorsAreEqual_DifferentElementSz);
+//   RUN_TEST(test_VectorsAreEqual_DifferentLength);
+//   RUN_TEST(test_VectorsAreEqual_DifferentCapacity);
+//   RUN_TEST(test_VectorsAreEqual_DifferentMaxCapacity);
+//   RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
+//
+//   RUN_TEST(test_VectorSplitAt_ValidIdx);
+//   RUN_TEST(test_VectorSplitAt_IdxZero);
+//   RUN_TEST(test_VectorSplitAt_IdxPastLen);
+//   RUN_TEST(test_VectorSplitAt_EmptyVector);
+//   RUN_TEST(test_VectorSplitAt_NullVector);
+//   RUN_TEST(test_VectorSplitAt_ValidIdx_StructData);
+//
+//   RUN_TEST(test_VectorSlice_ValidIndices_IntData);
+//   RUN_TEST(test_VectorSlice_ValidIndices_StructData);
+//   RUN_TEST(test_VectorSlice_IdxStartEqualsIdxEnd);
+//   RUN_TEST(test_VectorSlice_IdxStartZero);
+//   RUN_TEST(test_VectorSlice_FullVector);
+//   RUN_TEST(test_VectorSlice_IdxEndAtLastElement);
+//   RUN_TEST(test_VectorSlice_EmptyVector);
+//   RUN_TEST(test_VectorSlice_NullVector);
+//   RUN_TEST(test_VectorSlice_IdxStartGreaterThanIdxEnd);
+//   RUN_TEST(test_VectorSlice_IdxEndCommonMistake);
+//   RUN_TEST(test_VectorSlice_IdxEndOutOfRange);
+//
+//   RUN_TEST(test_VectorConcatenate_BasicUse);
+//   RUN_TEST(test_VectorConcatenate_VecsNotMutated);
+//   RUN_TEST(test_VectorConcatenate_OneVecIsEmpty);
+//   RUN_TEST(test_VectorConcatenate_BothVecsEmpty);
+//   RUN_TEST(test_VectorConcatenate_FullVectors);
+//   RUN_TEST(test_VectorConcatenate_NullArguments);
+//   RUN_TEST(test_VectorConcatenate_DifferentElementSizes);
+//   RUN_TEST(test_VectorConcatenate_ConcatenateSplitRoundTrip);
 
    RUN_TEST(test_VectorSubRange_PushElements_ValidInts);
    RUN_TEST(test_VectorSubRange_PushElements_ValidStructs);
@@ -375,74 +376,75 @@ int main(void)
    RUN_TEST(test_VectorSubRange_InsertElementsAt_NullData);
    RUN_TEST(test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity);
    RUN_TEST(test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity);
+   RUN_TEST(test_VectorSubRange_InsertElementsAt_Push_Equivalence);
    RUN_TEST(test_VectorSubRange_InsertElementsAt_InvalidIdx);
 
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidVec);
-
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_EmptyVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_SameIdices);
-
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_StartIdx);
-
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_FullVector);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EmptyVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EndIdx);
-
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_EmptyVec);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidVec);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_SameIdices);
-   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsInRng);
-
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_IntData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_StructData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_StartIdx);
-   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsStartToIdx);
-
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_IntData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_StructData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_FullVector);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EmptyVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx);
-   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd);
+//   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
+//   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
+//   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_EmptyVec);
+//   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidIdx);
+//   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidVec);
+//
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIdices_IntData);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_DoesNotMutate);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIndices_StructData);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector_IncorrectEndIdx);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_EmptyVec);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidIdx);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidVec);
+//   RUN_TEST(test_VectorSubRange_CpyElementsInRange_SameIdices);
+//
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIdices_IntData);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_DoesNotMutate);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIndices_StructData);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector_IncorrectEndIdx);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_EmptyVec);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidIdx);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidVec);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_StartIdx);
+//
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIdices_IntData);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_DoesNotMutate);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIndices_StructData);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_FullVector);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EmptyVec);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidIdx);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidVec);
+//   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EndIdx);
+//
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIdices_IntData);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_DoesNotMutate);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIndices_StructData);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector_IncorrectEndIdx);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_EmptyVec);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidIdx);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidVec);
+//   RUN_TEST(test_VectorSubRange_SetElementsInRange_SameIdices);
+//   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsInRng);
+//
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_IntData);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_DoesNotMutate);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_StructData);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector_IncorrectEndIdx);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_EmptyVec);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidIdx);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidVec);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_StartIdx);
+//   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsStartToIdx);
+//
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_IntData);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_DoesNotMutate);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_StructData);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_FullVector);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EmptyVec);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidIdx);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidVec);
+//   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx);
+//   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd);
 
    return UNITY_END();
 }
@@ -2404,6 +2406,115 @@ void test_VectorConcatenate_ConcatenateSplitRoundTrip(void)
    VectorFree(cat);
 }
 
+/*********************** Vector Subrange: Push Elements ***********************/
+
+void test_VectorSubRange_PushElements_ValidInts(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 5, 10, 0);
+   int data[] = {1, 2, 3};
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 3));
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   for (size_t i = 0; i < 3; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ValidStructs(void)
+{
+   struct MyData_S {
+      float x, y, z;
+   };
+   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 2, 10, 0);
+   struct MyData_S data[2] =
+   {
+      { .x = 1.0f, .y = 2.0f, .z = 3.0f},
+      { .x = 4.0f, .y = 5.0f, .z = 6.0f}
+   };
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 2));
+   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   struct MyData_S * elm = (struct MyData_S *)VectorGetElementAt(vec, 0);
+   TEST_ASSERT_EQUAL_FLOAT(1.0f, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(2.0f, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(3.0f, elm->z);
+   elm = (struct MyData_S *)VectorGetElementAt(vec, 1);
+   TEST_ASSERT_EQUAL_FLOAT(4.0f, elm->x);
+   TEST_ASSERT_EQUAL_FLOAT(5.0f, elm->y);
+   TEST_ASSERT_EQUAL_FLOAT(6.0f, elm->z);
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ExpandCapacity(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   int data[] = {1, 2, 3, 4};
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
+   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+   for (size_t i = 0; i < 4; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ZeroLen(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   int data[] = {1, 2, 3};
+
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 0));
+   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_NullVec(void)
+{
+   int data[] = {1, 2, 3};
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(NULL, data, 3));
+}
+
+void test_VectorSubRange_PushElements_NullData(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, NULL, 3));
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ExceedsMaxCapacity(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
+   int data[] = {1, 2, 3, 4, 5};
+
+   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 5));
+   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_PushElements_ExactlyMaxCapacity(void)
+{
+   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
+   int data[] = {1, 2, 3, 4};
+
+   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
+   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+   TEST_ASSERT_EQUAL_UINT32(4, VectorCapacity(vec));
+   for (size_t i = 0; i < 4; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
 /********************** Vector Subrange: Insert Elements **********************/
 
 void test_VectorSubRange_InsertElementsAt_ValidInts(void)
@@ -2534,6 +2645,7 @@ void test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity(void)
    TEST_ASSERT_TRUE(VectorSubRange_InsertElementsAt(vec, 1, &data[1], 2));
    
    TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+   TEST_ASSERT_EQUAL_UINT32(4, VectorCapacity(vec));
 
    TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGetElementAt(vec, 0));
    TEST_ASSERT_EQUAL_INT(2, *(int *)VectorGetElementAt(vec, 1));
@@ -2541,6 +2653,28 @@ void test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity(void)
    TEST_ASSERT_EQUAL_INT(3, *(int *)VectorGetElementAt(vec, 3)); // last inserted value
 
    VectorFree(vec);
+}
+
+void test_VectorSubRange_InsertElementsAt_Push_Equivalence(void)
+{
+   struct Vector_S * vecpush = VectorInit(sizeof(int), 5, 10, 0);
+   struct Vector_S * vecinsert = VectorInit(sizeof(int), 5, 10, 0);
+
+   int data[] = {1, 2, 3};
+   int val = 0;
+   VectorPush(vecpush, &val);
+   VectorPush(vecinsert, &val);
+   VectorSubRange_PushElements(vecpush, data, 3);
+   VectorSubRange_InsertElementsAt(vecinsert, 1, data, 3);
+
+   for ( size_t i=0; i < 4; i++ )
+   {
+      TEST_ASSERT_EQUAL_INT( *(int *)VectorGetElementAt(vecpush, i),
+                             *(int *)VectorGetElementAt(vecinsert, i) );
+   }
+
+   VectorFree(vecpush);
+   VectorFree(vecinsert);
 }
 
 void test_VectorSubRange_InsertElementsAt_InvalidIdx(void)
@@ -2555,114 +2689,6 @@ void test_VectorSubRange_InsertElementsAt_InvalidIdx(void)
    TEST_ASSERT_FALSE(VectorSubRange_InsertElementsAt(vec, 1000, &data[1], 2));
    
    TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
-
-   VectorFree(vec);
-}
-
-/************************ Vector Subrange: Get Elements ***********************/
-
-void test_VectorSubRange_PushElements_ValidInts(void)
-{
-   struct Vector_S * vec = VectorInit(sizeof(int), 5, 10, 0);
-   int data[] = {1, 2, 3};
-
-   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 3));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
-   for (size_t i = 0; i < 3; i++)
-   {
-      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
-   }
-
-   VectorFree(vec);
-}
-
-void test_VectorSubRange_PushElements_ValidStructs(void)
-{
-   struct MyData_S {
-      float x, y, z;
-   };
-   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 2, 10, 0);
-   struct MyData_S data[2] =
-   {
-      { .x = 1.0f, .y = 2.0f, .z = 3.0f},
-      { .x = 4.0f, .y = 5.0f, .z = 6.0f}
-   };
-
-   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 2));
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
-   struct MyData_S * elm = (struct MyData_S *)VectorGetElementAt(vec, 0);
-   TEST_ASSERT_EQUAL_FLOAT(1.0f, elm->x);
-   TEST_ASSERT_EQUAL_FLOAT(2.0f, elm->y);
-   TEST_ASSERT_EQUAL_FLOAT(3.0f, elm->z);
-   elm = (struct MyData_S *)VectorGetElementAt(vec, 1);
-   TEST_ASSERT_EQUAL_FLOAT(4.0f, elm->x);
-   TEST_ASSERT_EQUAL_FLOAT(5.0f, elm->y);
-   TEST_ASSERT_EQUAL_FLOAT(6.0f, elm->z);
-
-   VectorFree(vec);
-}
-
-void test_VectorSubRange_PushElements_ExpandCapacity(void)
-{
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
-   int data[] = {1, 2, 3, 4};
-
-   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
-   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
-   for (size_t i = 0; i < 4; i++)
-   {
-      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
-   }
-
-   VectorFree(vec);
-}
-
-void test_VectorSubRange_PushElements_ZeroLen(void)
-{
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
-   int data[] = {1, 2, 3};
-
-   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 0));
-   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
-
-   VectorFree(vec);
-}
-
-void test_VectorSubRange_PushElements_NullVec(void)
-{
-   int data[] = {1, 2, 3};
-   TEST_ASSERT_FALSE(VectorSubRange_PushElements(NULL, data, 3));
-}
-
-void test_VectorSubRange_PushElements_NullData(void)
-{
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
-   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, NULL, 3));
-   VectorFree(vec);
-}
-
-void test_VectorSubRange_PushElements_ExceedsMaxCapacity(void)
-{
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
-   int data[] = {1, 2, 3, 4, 5};
-
-   TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 5));
-   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
-
-   VectorFree(vec);
-}
-
-void test_VectorSubRange_PushElements_ExactlyMaxCapacity(void)
-{
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
-   int data[] = {1, 2, 3, 4};
-
-   TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
-   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
-   for (size_t i = 0; i < 4; i++)
-   {
-      TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGetElementAt(vec, i));
-   }
 
    VectorFree(vec);
 }

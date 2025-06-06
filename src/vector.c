@@ -69,7 +69,8 @@ struct Vector_S
 /* Private Function Prototypes */
 static bool LocalVectorExpand( struct Vector_S * self );
 static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len );
-static void ShiftOneOver( struct Vector_S * self, size_t idx, bool move_right );
+static void ShiftNOver( struct Vector_S * self, size_t idx,
+                        bool move_right, size_t n );
 
 /* Public API Implementations */
 
@@ -280,7 +281,7 @@ bool VectorInsertAt( struct Vector_S * self,
    {
       if ( idx < self->len )
       {
-         ShiftOneOver(self, idx, true);
+         ShiftNOver(self, idx, true, 1);
       }
       void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, element, self->element_size );
@@ -395,7 +396,10 @@ bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data )
    {
       memcpy(data, PTR_TO_IDX(self, idx), self->element_size);
    }
-   ShiftOneOver(self, idx, false);
+   if ( idx < (self->len - 1) )
+   {
+      ShiftNOver(self, idx + 1, false, 1);
+   }
    self->len--;
 
    return true;
@@ -694,10 +698,10 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
 
 bool VectorSubRange_PushElements( struct Vector_S * self,
                                   const void * data,
-                                  size_t len )
+                                  size_t dlen )
 {
    if ( (NULL == self) || (NULL == data) ||
-        ( (self->len + len) > self->max_capacity ) || (len == 0) )
+        ( (self->len + dlen) > self->max_capacity ) || (dlen == 0) )
    {
       // TODO: Throw exception
       return false;
@@ -709,19 +713,19 @@ bool VectorSubRange_PushElements( struct Vector_S * self,
 
    // Ensure there's space
    bool successfully_expanded = true;
-   if ( (self->len + len) >= self->capacity )
+   if ( (self->len + dlen) > self->capacity )
    {
       successfully_expanded = LocalVectorExpandBy(
                                        self,
                                        /* Expand relative to capacity, not len*/
-                                       len - (self->capacity - self->len) );
+                                       dlen - (self->capacity - self->len) );
    }
 
    if ( successfully_expanded )
    {
       void * insertion_spot = (void *)PTR_TO_IDX(self, self->len);
-      memcpy( insertion_spot, data, (self->element_size * len) );
-      self->len += len;
+      memcpy( insertion_spot, data, (self->element_size * dlen) );
+      self->len += dlen;
    }
    else
    {
@@ -740,7 +744,7 @@ bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
 {
    if ( (NULL == self) || (NULL == data) ||
         ( (self->len + dlen) > self->max_capacity ) || (dlen == 0) ||
-        (idx >= self->len) )
+        (idx > self->len) )
    {
       // TODO: Throw exception
       return false;
@@ -752,7 +756,7 @@ bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
 
    // Ensure there's space
    bool successfully_expanded = true;
-   if ( (self->len + dlen) >= self->capacity )
+   if ( (self->len + dlen) > self->capacity )
    {
       successfully_expanded = LocalVectorExpandBy(
                                        self,
@@ -762,6 +766,10 @@ bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
 
    if ( successfully_expanded )
    {
+      if ( idx < self->len )
+      {
+         ShiftNOver(self, idx, true, dlen);
+      }
       void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, data, (self->element_size * dlen) );
       self->len += dlen;
@@ -1000,32 +1008,41 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
  * @brief Shifts elements in the vector either to the left or right by one position.
  * 
  * This function moves all elements in the vector starting from the given index
- * one position to the right or left, depending on the implementation, to make
- * room for new elements or to fill gaps after an element is removed.
+ * n positions to the right or left.
+ * 
+ * @note This function won't automatically expand capacity. Make sure there's
+ *       room before calling this function to shift right, or it will fail.
+ * 
+ * @note This function will also fail if you try to shift left by more than the
+ *       length of the vector.
  *
  * @param self Pointer to the Vector_S structure.
  * @param idx The index at which the shift operation begins.
+ * @param n Number of indices to shift by.
  * @param move_right A boolean flag indicating the direction of the shift.
  *        - If true, elements are shifted to the right.
  *        - If false, elements are shifted to the left.
  */
-static void ShiftOneOver( struct Vector_S * self, size_t idx, bool move_right )
+static void ShiftNOver( struct Vector_S * self, size_t idx,
+                        bool move_right, size_t n )
 {
-   assert( (self != NULL) &&
-           (self->arr != NULL) &&
-           (self->len < self->capacity) &&
-            // Don't try to shift data past the data range of the array
-           (idx < self->len) &&
-           (idx < MAX_VECTOR_LENGTH) &&
-           (self->element_size > 0) );
+   assert(self != NULL);
+   assert(self->arr != NULL);
+   assert(self->len < self->capacity);
+   // Don't try to shift data past the data range of the array
+   assert(idx < self->len);
+   assert( (move_right && ((n + self->len) <= self->capacity)) || (!move_right && (n <= self->len)) );
+   // Extra checks to trap paradox states
+   assert(idx < MAX_VECTOR_LENGTH);
+   assert(self->element_size > 0);
 
    if ( move_right )
    {
-      // Start at the end and shift over to the right by one until we hit idx
+      // Start at the end and shift over to the right until we hit idx
       for ( size_t i = self->len; i > idx; i-- )
       {
          uint8_t * old_spot = PTR_TO_IDX(self, i - 1);
-         uint8_t * new_spot = PTR_TO_IDX(self, i);
+         uint8_t * new_spot = PTR_TO_IDX(self, (i + n) - 1);
          memcpy( new_spot, old_spot, self->element_size );
       }
    }
@@ -1033,10 +1050,10 @@ static void ShiftOneOver( struct Vector_S * self, size_t idx, bool move_right )
    {
       // Start at the one to the right of the idx and shift over to left by one
       // until we hit the end
-      for ( size_t i = (idx + 1); i < self->len; i++ )
+      for ( size_t i = idx; i < self->len; i++ )
       {
          uint8_t * old_spot = PTR_TO_IDX(self, i);
-         uint8_t * new_spot = PTR_TO_IDX(self, i - 1);
+         uint8_t * new_spot = PTR_TO_IDX(self, i - (n - 1) - 1);
          memcpy( new_spot, old_spot, self->element_size );
       }
    }
