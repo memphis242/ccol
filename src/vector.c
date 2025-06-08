@@ -414,7 +414,8 @@ bool VectorRemoveLastElement( struct Vector_S * self, void * data )
 /******************************************************************************/
 bool VectorClearElementAt( struct Vector_S * self, size_t idx )
 {
-   if ( (NULL == self) || (0 == self->len) || (idx >= self->len) )
+   if ( (NULL == self) || (NULL == self->arr) ||
+        (0 == self->len) || (idx >= self->len) )
    {
       return false;
    }
@@ -978,6 +979,31 @@ bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
    memset( (void *)PTR_TO_IDX(self, idx_start), 0, self->element_size * (idx_end - idx_start + 1) );
 
    return true;
+}
+
+/******************************************************************************/
+
+bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector_S * self,
+                                                 size_t idx )
+{
+   return VectorSubRange_ClearElementsInRange(self, 0, idx);
+}
+
+/******************************************************************************/
+
+bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector_S * self,
+                                               size_t idx )
+{
+   if ( (NULL == self) || (0 == self->len) ) return false;
+   return VectorSubRange_ClearElementsInRange(self, idx, self->len - 1);
+}
+
+/******************************************************************************/
+
+bool VectorClearAll( struct Vector_S * self )
+{
+   if ( (NULL == self) || (0 == self->len) ) return false;
+   return VectorSubRange_ClearElementsInRange(self, 0, self->len - 1);
 }
 
 /******************************************************************************/

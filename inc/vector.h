@@ -595,10 +595,7 @@ bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector_S * self,
                                                 void * buf );
 
 /**
- * @brief Clears the elements in the specified range within the vector.
- *
- * This function clears (memsets sets to zero) the elements in the vector in the
- * range specified by the indices (inclusive).
+ * @brief Clears (memsets sets to zero) the elements in the specified range.
  *
  * @param self Vector handle.
  * @param idx_start The starting index of the range to clear (inclusive).
@@ -610,10 +607,35 @@ bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
                                           size_t idx_start,
                                           size_t idx_end );
 
+/**
+ * @brief Clears (memsets sets to zero) elements in the vector from the start up
+ *        to the specified index, inclusively.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx The index up to which elements should be cleared (inclusive).
+ * @return true if the operation was successful, false otherwise (e.g., if idx
+ *         is out of bounds).
+ */
 bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector_S * self,
-                                                 size_t idx,
-                                                 const void * data );
+                                                 size_t idx );
 
+/**
+ * @brief Clears (memsets sets to zero) elements in the vector from the index
+ *        provided up to the end of the vector, inclusively.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx The index from which elements should be cleared (inclusive).
+ * @return true if the operation was successful, false otherwise (e.g., if idx
+ *         is out of bounds).
+ */
 bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector_S * self,
-                                               size_t idx,
-                                               const void * data );
+                                               size_t idx );
+
+/**
+ * @brief Clears (memset to zero) all elements in the vector.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @return true if the operation was successful, false otherwise (e.g., if idx
+ *         is out of bounds).
+ */
+bool VectorClearAll( struct Vector_S * self );
