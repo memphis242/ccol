@@ -754,6 +754,11 @@ bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
    assert( self->capacity <= self->max_capacity );
    assert( (self->len == 0) || ( (self->len > 0) && (self->arr != NULL) ) );
 
+   if ( dlen == 1 )
+   {
+      return VectorInsertAt(self, idx, data);
+   }
+
    // Ensure there's space
    bool successfully_expanded = true;
    if ( (self->len + dlen) > self->capacity )
@@ -922,6 +927,25 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
       return VectorRemoveElementAt(self, idx_start, buf);
    }
 
+   size_t num_of_removed = idx_end - idx_start + 1;
+   if ( NULL != buf )
+   {
+      VectorSubRange_CpyElementsInRange(self, idx_start, idx_end, buf);
+   }
+   // Only need to shift over if the removal does not include the end
+   if ( idx_end < (self->len - 1) )
+   {
+      ShiftNOver(self, idx_end + 1, false, num_of_removed);
+   }
+#ifdef SECURE_REMOVAL
+   else
+   {
+      // Zero out that leftover data
+      VectorSubRange_ClearElementsInRange(self, idx_start, idx_end);
+   }
+#endif
+   self->len -= num_of_removed;
+
    return true;
 }
 
@@ -1009,7 +1033,7 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
 }
 
 /**
- * @brief Shifts elements in the vector either to the left or right by one position.
+ * @brief Shifts elements in the vector either to the left or right from a given idx.
  * 
  * This function moves all elements in the vector starting from the given index
  * n positions to the right or left.
@@ -1052,8 +1076,7 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
    }
    else // shift left
    {
-      // Start at the one to the right of the idx and shift over to left by one
-      // until we hit the end
+      // Start at the one to the right of the idx and shift over to left by n
       for ( size_t i = idx; i < self->len; i++ )
       {
          uint8_t * old_spot = PTR_TO_IDX(self, i);
