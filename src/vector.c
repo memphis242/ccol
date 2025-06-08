@@ -904,9 +904,9 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
                                            size_t idx_end,
                                            void * buf )
 {
-   if ( (NULL == self) || (self->len == 0) ||
-        (idx_start > idx_end) ||
-        (idx_start > (self->len - 1)) || (idx_end > (self->len - 1)) )
+   if ( (NULL == self) || (NULL == self->arr) ||
+        (idx_start >= self->len) || (idx_end >= self->len) ||
+        (idx_start > idx_end) || (self->len == 0) ) 
    {
       return false;
    }
