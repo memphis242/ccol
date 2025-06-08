@@ -458,6 +458,17 @@ int main(void)
    RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx);
    RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd);
 
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_Normal);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_NormalWithBuf);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AllElements);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_EmptyVec);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AtBeginning);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AtEnd);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_EmptyVec);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_InvalidIndices);
+   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_InvalidVec);
+   RUN_TEST(test_VectorSubRange_RoundTrip_InsertAndRemove);
+
    return UNITY_END();
 }
 
@@ -716,7 +727,7 @@ void test_VectorFree(void)
 }
 
 void test_VectorLength(void) {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+    struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
     int value = 42;
     VectorPush(vec, &value);
@@ -726,26 +737,26 @@ void test_VectorLength(void) {
 
 void test_VectorCapacity(void)
 {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+    struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_UINT32(10, VectorCapacity(vec));
     VectorFree(vec);
 }
 
 void test_VectorMaxCapacity(void) {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+    struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_UINT32(100, VectorMaxCapacity(vec));
     VectorFree(vec);
 }
 
 void test_VectorElementSize(void) {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+    struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_EQUAL_size_t(sizeof(int), VectorElementSize(vec));
     VectorFree(vec);
 }
 
 void test_VectorIsEmpty(void)
 {
-    struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+    struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
     TEST_ASSERT_TRUE(VectorIsEmpty(vec));
     int value = 42;
     VectorPush(vec, &value);
@@ -756,7 +767,7 @@ void test_VectorIsEmpty(void)
 void test_VectorIsFull(void)
 {
    // Initialize a vector with a small capacity
-   struct Vector_S *vec = NULL;
+   struct Vector_S * vec = NULL;
    unsigned int iteration_counter = 0;
    TRY_INIT(vec, iteration_counter, sizeof(int), 3, 3, 0);
 
@@ -1123,7 +1134,7 @@ void test_VectorInsertion_AtMiddle(void)
 
    int val = 20;
    const size_t IDX_OF_INSERTION = 4;
-   while ( VectorLength(vec) < (IDX_OF_INSERTION * 2) )
+   while ( VectorLength(vec) < (IDX_OF_INSERTION *2) )
    {
       (void)VectorPush(vec, &val);
    }
@@ -1157,7 +1168,7 @@ void test_VectorInsertion_AtMiddleOfEmptyVec(void)
 
    int val = 20;
    const size_t IDX_OF_INSERTION = 4;
-   while ( VectorLength(vec) < (IDX_OF_INSERTION * 2) )
+   while ( VectorLength(vec) < (IDX_OF_INSERTION *2) )
    {
       (void)VectorPush(vec, &val);
    }
@@ -1186,10 +1197,10 @@ void test_VectorInsertion_AtMiddleOfEmptyVec(void)
 /******************************** Vector Gets *********************************/
 void test_VectorGetElement_ValidIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
-   int *retrieved = (int *)VectorGetElementAt(vec, 0);
+   int * retrieved = (int *)VectorGetElementAt(vec, 0);
    TEST_ASSERT_NOT_NULL(retrieved);
    TEST_ASSERT_EQUAL_INT(value, *retrieved);
    VectorFree(vec);
@@ -1197,30 +1208,30 @@ void test_VectorGetElement_ValidIdx(void)
 
 void test_VectorGetElement_IdxPastLen(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
-   int *retrieved = (int *)VectorGetElementAt(vec, 1);
+   int * retrieved = (int *)VectorGetElementAt(vec, 1);
    TEST_ASSERT_NULL(retrieved);
    VectorFree(vec);
 }
 
 void test_VectorGetElement_IdxPastCap(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
-   int *retrieved = (int *)VectorGetElementAt(vec, 10000000);
+   int * retrieved = (int *)VectorGetElementAt(vec, 10000000);
    TEST_ASSERT_NULL(retrieved);
    VectorFree(vec);
 }
 
 void test_VectorLastElement(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
-   int *last = (int *)VectorLastElement(vec);
+   int * last = (int *)VectorLastElement(vec);
    TEST_ASSERT_NOT_NULL(last);
    TEST_ASSERT_EQUAL_INT(42, *last);
    VectorFree(vec);
@@ -1229,7 +1240,7 @@ void test_VectorLastElement(void)
 /**************************** Vector Copy Element *****************************/
 void test_VectorCpyElement_ValidIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    int buffer;
    VectorPush(vec, &value);
@@ -1241,7 +1252,7 @@ void test_VectorCpyElement_ValidIdx(void)
 void test_VectorCpyElement_NullBufferPassedIn(void)
 {
    // Easy mistake to make for the user.
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    int * buffer = NULL;
    VectorPush(vec, &value);
@@ -1251,7 +1262,7 @@ void test_VectorCpyElement_NullBufferPassedIn(void)
 
 void test_VectorCpyElement_IdxPastLen(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    int buffer = 0;
    VectorPush(vec, &value);
@@ -1262,7 +1273,7 @@ void test_VectorCpyElement_IdxPastLen(void)
 
 void test_VectorCpyElement_IdxPastCap(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    int buffer = 0;
    VectorPush(vec, &value);
@@ -1273,7 +1284,7 @@ void test_VectorCpyElement_IdxPastCap(void)
 
 void test_VectorCpyLastElement(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42, buffer;
    VectorPush(vec, &value);
    TEST_ASSERT_TRUE(VectorCpyLastElement(vec, &buffer));
@@ -1284,7 +1295,7 @@ void test_VectorCpyLastElement(void)
 
 void test_VectorRoundTrip_CpyElementToSetElement(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    int buffer;
    VectorPush(vec, &value);
@@ -1299,7 +1310,7 @@ void test_VectorRoundTrip_CpyElementToSetElement(void)
 /******************************** Vector Sets *********************************/
 void test_VectorSetElement_AfterPushes(void)
 {
-   struct Vector_S *vec = NULL;
+   struct Vector_S * vec = NULL;
    unsigned int iter = 0;
    TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
    int value1 = 42, value2 = 84;
@@ -1311,7 +1322,7 @@ void test_VectorSetElement_AfterPushes(void)
 
 void test_VectorSetElement_AfterInitLen(void)
 {
-   struct Vector_S *vec = NULL;
+   struct Vector_S * vec = NULL;
    unsigned int iter = 0;
    TRY_INIT(vec, iter, sizeof(int), 10, 100, 5);
    int val = 5;
@@ -1323,7 +1334,7 @@ void test_VectorSetElement_AfterInitLen(void)
 }
 void test_VectorSetElement_PastLen(void)
 {
-   struct Vector_S *vec = NULL;
+   struct Vector_S * vec = NULL;
    unsigned int iter = 0;
    TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
    int value1 = 42, value2 = 84;
@@ -1342,7 +1353,7 @@ void test_VectorSetElement_PastLen(void)
 
 void test_VectorSetElement_PastCap(void)
 {
-   struct Vector_S *vec = NULL;
+   struct Vector_S * vec = NULL;
    unsigned int iter = 0;
    TRY_INIT(vec, iter, sizeof(int), 10, 10, 0);
    int value1 = 42, value2 = 84;
@@ -1362,7 +1373,7 @@ void test_VectorSetElement_PastCap(void)
 /****************************** Vector Removals *******************************/
 void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1378,7 +1389,7 @@ void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull(void)
 
 void test_VectorRemoveElement_AtZeroWithSinglePresentElement(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
 
@@ -1390,7 +1401,7 @@ void test_VectorRemoveElement_AtZeroWithSinglePresentElement(void)
 
 void test_VectorRemoveElement_AtZeroWithEmptyVector(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
 
    TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 0, NULL));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
@@ -1400,7 +1411,7 @@ void test_VectorRemoveElement_AtZeroWithEmptyVector(void)
 
 void test_VectorRemoveElement_AtMiddle(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1416,7 +1427,7 @@ void test_VectorRemoveElement_AtMiddle(void)
 
 void test_VectorRemoveElement_AtLen(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1461,7 +1472,7 @@ void test_VectorRemoveElement_LastElement(void)
 
 void test_VectorRemoveElement_PastLen(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1475,7 +1486,7 @@ void test_VectorRemoveElement_PastLen(void)
 
 void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull_WithBuf(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1493,7 +1504,7 @@ void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull_WithBuf(void)
 
 void test_VectorRemoveElement_AtZeroWithSinglePresentElement_WithBuf(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int value = 42;
    VectorPush(vec, &value);
 
@@ -1507,7 +1518,7 @@ void test_VectorRemoveElement_AtZeroWithSinglePresentElement_WithBuf(void)
 
 void test_VectorRemoveElement_AtZeroWithEmptyVector_WithBuf(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
 
    int buffer = 52;
    TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 0, &buffer));
@@ -1519,7 +1530,7 @@ void test_VectorRemoveElement_AtZeroWithEmptyVector_WithBuf(void)
 
 void test_VectorRemoveElement_AtMiddle_WithBuf(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1537,7 +1548,7 @@ void test_VectorRemoveElement_AtMiddle_WithBuf(void)
 
 void test_VectorRemoveElement_AtLen_WithBuf(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1587,7 +1598,7 @@ void test_VectorRemoveElement_LastElement_WithBuf(void)
 
 void test_VectorRemoveElement_PastLen_WithBuf(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1603,7 +1614,7 @@ void test_VectorRemoveElement_PastLen_WithBuf(void)
 /******************************** Vector Clears *******************************/
 void test_VectorClearElementAt_Normal(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1613,13 +1624,13 @@ void test_VectorClearElementAt_Normal(void)
    TEST_ASSERT_TRUE(VectorClearElementAt(vec, 1));
 
    // Verify the cleared element is zeroed out
-   int *cleared = (int *)VectorGetElementAt(vec, 1);
+   int * cleared = (int *)VectorGetElementAt(vec, 1);
    TEST_ASSERT_NOT_NULL(cleared);
    TEST_ASSERT_EQUAL_INT(0, *cleared);
 
    // Verify other elements remain unchanged
-   int *first = (int *)VectorGetElementAt(vec, 0);
-   int *third = (int *)VectorGetElementAt(vec, 2);
+   int * first = (int *)VectorGetElementAt(vec, 0);
+   int * third = (int *)VectorGetElementAt(vec, 2);
    TEST_ASSERT_NOT_NULL(first);
    TEST_ASSERT_NOT_NULL(third);
    TEST_ASSERT_EQUAL_INT(42, *first);
@@ -1630,7 +1641,7 @@ void test_VectorClearElementAt_Normal(void)
 
 void test_VectorClearElementAt_InvalidIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1642,7 +1653,7 @@ void test_VectorClearElementAt_InvalidIdx(void)
 
    // Verify that the vector remains unchanged
    for (size_t i = 0; i < 3; i++) {
-      int *element = (int *)VectorGetElementAt(vec, i);
+      int * element = (int *)VectorGetElementAt(vec, i);
       TEST_ASSERT_NOT_NULL(element);
       TEST_ASSERT_EQUAL_INT(values[i], *element);
    }
@@ -1654,7 +1665,7 @@ void test_VectorClearElementAt_InvalidIdx(void)
 
 void test_VectorReset_OORIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -1666,7 +1677,7 @@ void test_VectorReset_OORIdx(void)
 
    // Verify that the vector remains unchanged
    for (size_t i = 0; i < 3; i++) {
-      int *element = (int *)VectorGetElementAt(vec, i);
+      int * element = (int *)VectorGetElementAt(vec, i);
       TEST_ASSERT_NOT_NULL(element);
       TEST_ASSERT_EQUAL_INT(values[i], *element);
    }
@@ -1752,11 +1763,11 @@ void test_VectorDuplicate_SmallVector(void)
    TEST_ASSERT_EQUAL_size_t(VectorElementSize(original), VectorElementSize(duplicate));
 
    for (size_t i = 0; i < VectorLength(original); i++) {
-      int *original_element = (int *)VectorGetElementAt(original, i);
-      int *duplicate_element = (int *)VectorGetElementAt(duplicate, i);
+      int * original_element = (int *)VectorGetElementAt(original, i);
+      int * duplicate_element = (int *)VectorGetElementAt(duplicate, i);
       TEST_ASSERT_NOT_NULL(original_element);
       TEST_ASSERT_NOT_NULL(duplicate_element);
-      TEST_ASSERT_EQUAL_INT(*original_element, *duplicate_element);
+      TEST_ASSERT_EQUAL_INT(* original_element, *duplicate_element);
    }
 
    VectorFree(original);
@@ -1789,7 +1800,7 @@ void test_VectorDuplicate_ReallyLargeVector(void)
       uint8_t * duplicate_element = (uint8_t *)VectorGetElementAt(duplicate, i);
       TEST_ASSERT_NOT_NULL(original_element);
       TEST_ASSERT_NOT_NULL(duplicate_element);
-      TEST_ASSERT_EQUAL_UINT8(*original_element, *duplicate_element);
+      TEST_ASSERT_EQUAL_UINT8(* original_element, *duplicate_element);
    }
 
    VectorFree(original);
@@ -1827,8 +1838,8 @@ void test_VectorsAreEqual_SameVectors(void)
 
 void test_VectorsAreEqual_DifferentElementSz(void)
 {
-   struct Vector_S *vec1 = VectorInit(sizeof(uint8_t), 10, 100, 0);
-   struct Vector_S *vec2 = VectorInit(sizeof(float), 10, 100, 0);
+   struct Vector_S * vec1 = VectorInit(sizeof(uint8_t), 10, 100, 0);
+   struct Vector_S * vec2 = VectorInit(sizeof(float), 10, 100, 0);
 
    TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
 
@@ -1838,8 +1849,8 @@ void test_VectorsAreEqual_DifferentElementSz(void)
 
 void test_VectorsAreEqual_DifferentLength(void)
 {
-   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 100, 0);
-   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec1 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
    int value = 42;
    VectorPush(vec1, &value);
@@ -1852,8 +1863,8 @@ void test_VectorsAreEqual_DifferentLength(void)
 
 void test_VectorsAreEqual_DifferentCapacity(void)
 {
-   struct Vector_S *vec1 = VectorInit(sizeof(int), 5, 100, 0);
-   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec1 = VectorInit(sizeof(int), 5, 100, 0);
+   struct Vector_S * vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
    TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
 
@@ -1863,8 +1874,8 @@ void test_VectorsAreEqual_DifferentCapacity(void)
 
 void test_VectorsAreEqual_DifferentMaxCapacity(void)
 {
-   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 50, 0);
-   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec1 = VectorInit(sizeof(int), 10, 50, 0);
+   struct Vector_S * vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
    TEST_ASSERT_FALSE(VectorsAreEqual(vec1, vec2));
 
@@ -1874,8 +1885,8 @@ void test_VectorsAreEqual_DifferentMaxCapacity(void)
 
 void test_VectorsAreEqual_DifferentElementValues(void)
 {
-   struct Vector_S *vec1 = VectorInit(sizeof(int), 10, 100, 0);
-   struct Vector_S *vec2 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec1 = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec2 = VectorInit(sizeof(int), 10, 100, 0);
 
    int value1 = 42, value2 = 84;
    VectorPush(vec1, &value1);
@@ -1891,13 +1902,13 @@ void test_VectorsAreEqual_DifferentElementValues(void)
 
 void test_VectorSplitAt_ValidIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
    }
 
-   struct Vector_S *split_vec = VectorSplitAt(vec, 2);
+   struct Vector_S * split_vec = VectorSplitAt(vec, 2);
    TEST_ASSERT_NOT_NULL(split_vec);
 
    // Verify original vector
@@ -1917,13 +1928,13 @@ void test_VectorSplitAt_ValidIdx(void)
 
 void test_VectorSplitAt_IdxZero(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
    }
 
-   struct Vector_S *split_vec = VectorSplitAt(vec, 0);
+   struct Vector_S * split_vec = VectorSplitAt(vec, 0);
    TEST_ASSERT_NULL(split_vec);
 
    // Verify original vector remains unchanged
@@ -1937,13 +1948,13 @@ void test_VectorSplitAt_IdxZero(void)
 
 void test_VectorSplitAt_IdxPastLen(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
    }
 
-   struct Vector_S *split_vec = VectorSplitAt(vec, 10);
+   struct Vector_S * split_vec = VectorSplitAt(vec, 10);
    TEST_ASSERT_NULL(split_vec);
 
    // Verify original vector remains unchanged
@@ -1957,9 +1968,9 @@ void test_VectorSplitAt_IdxPastLen(void)
 
 void test_VectorSplitAt_EmptyVector(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
 
-   struct Vector_S *split_vec = VectorSplitAt(vec, 0);
+   struct Vector_S * split_vec = VectorSplitAt(vec, 0);
    TEST_ASSERT_NULL(split_vec);
 
    // Verify original vector remains unchanged
@@ -1970,7 +1981,7 @@ void test_VectorSplitAt_EmptyVector(void)
 
 void test_VectorSplitAt_NullVector(void)
 {
-   struct Vector_S *split_vec = VectorSplitAt(NULL, 0);
+   struct Vector_S * split_vec = VectorSplitAt(NULL, 0);
    TEST_ASSERT_NULL(split_vec);
 }
 
@@ -1982,7 +1993,7 @@ void test_VectorSplitAt_ValidIdx_StructData(void)
       float y;
       float z;
    };
-   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
 
    struct MyData_S values[5] =
    {
@@ -1996,7 +2007,7 @@ void test_VectorSplitAt_ValidIdx_StructData(void)
       VectorPush(vec, &values[i]);
    }
 
-   struct Vector_S *split_vec = VectorSplitAt(vec, 2);
+   struct Vector_S * split_vec = VectorSplitAt(vec, 2);
    TEST_ASSERT_NOT_NULL(split_vec);
 
    // Verify original vector
@@ -2154,7 +2165,7 @@ void test_VectorSlice_FullVector(void)
 
 void test_VectorSlice_IdxEndAtLastElement(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -2184,7 +2195,7 @@ void test_VectorSlice_EmptyVector(void)
 
 void test_VectorSlice_NullVector(void)
 {
-   struct Vector_S *slice = VectorSlice(NULL, 0, 0);
+   struct Vector_S * slice = VectorSlice(NULL, 0, 0);
    TEST_ASSERT_NULL(slice);
 }
 
@@ -2210,7 +2221,7 @@ void test_VectorSlice_IdxEndCommonMistake(void)
       VectorPush(vec, &values[i]);
    }
 
-   struct Vector_S *slice = VectorSlice(vec, 1, VectorLength(vec));
+   struct Vector_S * slice = VectorSlice(vec, 1, VectorLength(vec));
    TEST_ASSERT_NULL(slice);
 
    VectorFree(vec);
@@ -2218,13 +2229,13 @@ void test_VectorSlice_IdxEndCommonMistake(void)
 
 void test_VectorSlice_IdxEndOutOfRange(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
    }
 
-   struct Vector_S *slice = VectorSlice(vec, 1, 5);
+   struct Vector_S * slice = VectorSlice(vec, 1, 5);
    TEST_ASSERT_NULL(slice);
 
    VectorFree(vec);
@@ -2440,7 +2451,7 @@ void test_VectorSubRange_PushElements_ValidStructs(void)
    struct MyData_S {
       float x, y, z;
    };
-   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 2, 10, 0);
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 2, 10, 0);
    struct MyData_S data[2] =
    {
       { .x = 1.0f, .y = 2.0f, .z = 3.0f},
@@ -2463,7 +2474,7 @@ void test_VectorSubRange_PushElements_ValidStructs(void)
 
 void test_VectorSubRange_PushElements_ExpandCapacity(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 10, 0);
    int data[] = {1, 2, 3, 4};
 
    TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
@@ -2478,7 +2489,7 @@ void test_VectorSubRange_PushElements_ExpandCapacity(void)
 
 void test_VectorSubRange_PushElements_ZeroLen(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 10, 0);
    int data[] = {1, 2, 3};
 
    TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 0));
@@ -2495,14 +2506,14 @@ void test_VectorSubRange_PushElements_NullVec(void)
 
 void test_VectorSubRange_PushElements_NullData(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 10, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 10, 0);
    TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, NULL, 3));
    VectorFree(vec);
 }
 
 void test_VectorSubRange_PushElements_ExceedsMaxCapacity(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 4, 0);
    int data[] = {1, 2, 3, 4, 5};
 
    TEST_ASSERT_FALSE(VectorSubRange_PushElements(vec, data, 5));
@@ -2513,7 +2524,7 @@ void test_VectorSubRange_PushElements_ExceedsMaxCapacity(void)
 
 void test_VectorSubRange_PushElements_ExactlyMaxCapacity(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 2, 4, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 2, 4, 0);
    int data[] = {1, 2, 3, 4};
 
    TEST_ASSERT_TRUE(VectorSubRange_PushElements(vec, data, 4));
@@ -2777,7 +2788,7 @@ void test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData(void)
 
 void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
 
    int * subrange = (int *)VectorSubRange_GetElementsFromIdx(vec, 0);
    TEST_ASSERT_NULL(subrange);
@@ -2787,13 +2798,13 @@ void test_VectorSubRange_GetElementsFromIdx_EmptyVec(void)
 
 void test_VectorSubRange_GetElementsFromIdx_InvalidIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
    }
 
-   int *subrange = (int *)VectorSubRange_GetElementsFromIdx(vec, 5);
+   int * subrange = (int *)VectorSubRange_GetElementsFromIdx(vec, 5);
    TEST_ASSERT_NULL(subrange);
 
    VectorFree(vec);
@@ -2801,7 +2812,7 @@ void test_VectorSubRange_GetElementsFromIdx_InvalidIdx(void)
 
 void test_VectorSubRange_GetElementsFromIdx_InvalidVec(void)
 {
-   int *subrange = (int *)VectorSubRange_GetElementsFromIdx(NULL, 0);
+   int * subrange = (int *)VectorSubRange_GetElementsFromIdx(NULL, 0);
    TEST_ASSERT_NULL(subrange);
 }
 
@@ -3455,7 +3466,7 @@ void test_VectorSubRange_RoundTrip_CpyElementsToSetElementsInRng(void)
 
 void test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_IntData(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3475,7 +3486,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_IntData(void)
 
 void test_VectorSubRange_SetElementsFromStartToIdx_DoesNotMutate(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3503,7 +3514,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_StructData(void)
       float y;
       float z;
    };
-   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
 
    struct MyData_S values[5] =
    {
@@ -3525,7 +3536,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_StructData(void)
    };
    TEST_ASSERT_TRUE(VectorSubRange_SetElementsFromStartToIdx(vec, 2, new_values));
 
-   struct MyData_S *element = (struct MyData_S *)VectorGetElementAt(vec, 0);
+   struct MyData_S * element = (struct MyData_S *)VectorGetElementAt(vec, 0);
    TEST_ASSERT_EQUAL_FLOAT(100.0f, element->x);
    TEST_ASSERT_EQUAL_FLOAT(200.0f, element->y);
    TEST_ASSERT_EQUAL_FLOAT(300.0f, element->z);
@@ -3545,7 +3556,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_StructData(void)
 
 void test_VectorSubRange_SetElementsFromStartToIdx_FullVector(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3563,7 +3574,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_FullVector(void)
 
 void test_VectorSubRange_SetElementsFromStartToIdx_FullVector_IncorrectEndIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3577,7 +3588,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_FullVector_IncorrectEndIdx(vo
 
 void test_VectorSubRange_SetElementsFromStartToIdx_EmptyVec(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
 
    int new_values[] = {100, 200, 300};
    TEST_ASSERT_FALSE(VectorSubRange_SetElementsFromStartToIdx(vec, 2, new_values));
@@ -3587,7 +3598,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_EmptyVec(void)
 
 void test_VectorSubRange_SetElementsFromStartToIdx_InvalidIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -3607,7 +3618,7 @@ void test_VectorSubRange_SetElementsFromStartToIdx_InvalidVec(void)
 
 void test_VectorSubRange_SetElementsFromStartToIdx_StartIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3653,7 +3664,7 @@ void test_VectorSubRange_RoundTrip_CpyElementsToSetElementsStartToIdx(void)
 
 void test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_IntData(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3673,7 +3684,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_IntData(void)
 
 void test_VectorSubRange_SetElementsFromIdxToEnd_DoesNotMutate(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3701,7 +3712,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_StructData(void)
       float y;
       float z;
    };
-   struct Vector_S *vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(struct MyData_S), 10, 100, 0);
 
    struct MyData_S values[5] =
    {
@@ -3723,7 +3734,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_StructData(void)
    };
    TEST_ASSERT_TRUE(VectorSubRange_SetElementsFromIdxToEnd(vec, 2, new_values));
 
-   struct MyData_S *element = (struct MyData_S *)VectorGetElementAt(vec, 2);
+   struct MyData_S * element = (struct MyData_S *)VectorGetElementAt(vec, 2);
    TEST_ASSERT_EQUAL_FLOAT(100.0f, element->x);
    TEST_ASSERT_EQUAL_FLOAT(200.0f, element->y);
    TEST_ASSERT_EQUAL_FLOAT(300.0f, element->z);
@@ -3743,7 +3754,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_StructData(void)
 
 void test_VectorSubRange_SetElementsFromIdxToEnd_FullVector(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3761,7 +3772,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_FullVector(void)
 
 void test_VectorSubRange_SetElementsFromIdxToEnd_EmptyVec(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
 
    int new_values[] = {100, 200, 300};
    TEST_ASSERT_FALSE(VectorSubRange_SetElementsFromIdxToEnd(vec, 0, new_values));
@@ -3771,7 +3782,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_EmptyVec(void)
 
 void test_VectorSubRange_SetElementsFromIdxToEnd_InvalidIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30};
    for (size_t i = 0; i < 3; i++) {
       VectorPush(vec, &values[i]);
@@ -3791,7 +3802,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_InvalidVec(void)
 
 void test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
@@ -3811,7 +3822,7 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx(void)
 
 void test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd(void)
 {
-   struct Vector_S *vec = VectorInit(sizeof(int), 10, 100, 0);
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
    int values[] = {10, 20, 30, 40, 50};
    for (size_t i = 0; i < 5; i++) {
       VectorPush(vec, &values[i]);
