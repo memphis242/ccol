@@ -848,10 +848,7 @@ bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
                                              size_t idx,
                                              void * buffer )
 {
-   if ( (NULL == self) || (NULL == buffer) )
-   {
-      return false;
-   }
+   if ( NULL == self )  return false;
    return VectorSubRange_CpyElementsInRange(self, idx, self->len - 1, buffer);
 }
 
@@ -896,11 +893,7 @@ bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
                                              size_t idx,
                                              const void * data )
 {
-   if ( (NULL == self) || (NULL == data) )
-   {
-      return false;
-   }
-
+   if ( NULL == self )  return false;
    return VectorSubRange_SetElementsInRange( self, idx, self->len - 1, data );
 }
 
@@ -948,6 +941,28 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
 
    return true;
 }
+
+/******************************************************************************/
+
+bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector_S * self,
+                                                  size_t idx,
+                                                  void * buf )
+{
+   return VectorSubRange_RemoveElementsInRange( self, 0, idx, buf );
+}
+
+/******************************************************************************/
+
+bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector_S * self,
+                                                size_t idx,
+                                                void * buf )
+{
+   if ( NULL == self )  return false;
+   return VectorSubRange_RemoveElementsInRange(self, idx, self->len-1, buf);
+}
+
+/******************************************************************************/
+/******************************************************************************/
 
 /* Private Function Implementations */
 

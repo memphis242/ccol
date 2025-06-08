@@ -570,13 +570,29 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
                                            size_t idx_end,
                                            void * buf );
 
+/**
+ * @brief Removes elements from the start of the vector up to the specified index (inclusive).
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx Index up to which elements will be removed (elements from 0 to idx).
+ * @param buf Optional buffer for storing removed elements (can be NULL if not needed).
+ * @return true if the operation was successful, false otherwise.
+ */
 bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector_S * self,
                                                   size_t idx,
-                                                  const void * data );
+                                                  void * buf );
 
+/**
+ * @brief Removes elements from the specified index to the end of the vector.
+ *
+ * @param self Pointer to the Vector_S structure.
+ * @param idx Index from which elements will be removed (elements from idx to the end).
+ * @param buf Optional buffer for storing removed elements (can be NULL if not needed).
+ * @return true if the operation was successful, false otherwise.
+ */
 bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector_S * self,
                                                 size_t idx,
-                                                const void * data );
+                                                void * buf );
 
 bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
                                           size_t idx_start,
