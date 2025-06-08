@@ -240,6 +240,18 @@ void test_VectorSubRange_SetElementsFromIdxToEnd_InvalidVec(void);
 void test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx(void);
 void test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd(void);
 
+void test_VectorSubRange_RemoveElementsInRng_Normal(void);
+void test_VectorSubRange_RemoveElementsInRng_NormalWithBuf(void);
+void test_VectorSubRange_RemoveElementsInRng_AllElements(void);
+void test_VectorSubRange_RemoveElementsInRng_EmptyVec(void);
+void test_VectorSubRange_RemoveElementsInRng_AtBeginning(void);
+void test_VectorSubRange_RemoveElementsInRng_AtEnd(void);
+void test_VectorSubRange_RemoveElementsInRng_EmptyVec(void);
+void test_VectorSubRange_RemoveElementsInRng_InvalidIndices(void);
+void test_VectorSubRange_RemoveElementsInRng_InvalidVec(void);
+void test_VectorSubRange_RoundTrip_InsertAndRemove(void);
+
+
 /* Meat of the Program */
 
 int main(void)
@@ -3819,4 +3831,152 @@ void test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd(void)
    TEST_ASSERT_EQUAL_INT(300, *(int *)VectorGetElementAt(vec, 4));
 
    VectorFree(vec);
+}
+
+/*************** Vector Subrange: Remove Elements in Range ********************/
+
+void test_VectorSubRange_RemoveElementsInRng_Normal(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50, 60};
+   VectorSubRange_PushElements(vec, values, 6);
+
+   TEST_ASSERT_TRUE(VectorSubRange_RemoveElementsInRange(vec, 2, 4, NULL));
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(vec, 1));
+   TEST_ASSERT_EQUAL_INT(60, *(int *)VectorGetElementAt(vec, 2));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_RemoveElementsInRng_NormalWithBuf(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50, 60};
+   VectorSubRange_PushElements(vec, values, 6);
+
+   int buf[3] = {0};
+   TEST_ASSERT_TRUE(VectorSubRange_RemoveElementsInRange(vec, 2, 4, buf));
+   TEST_ASSERT_EQUAL_INT(30, buf[0]);
+   TEST_ASSERT_EQUAL_INT(40, buf[1]);
+   TEST_ASSERT_EQUAL_INT(50, buf[2]);
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(vec, 1));
+   TEST_ASSERT_EQUAL_INT(60, *(int *)VectorGetElementAt(vec, 2));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_RemoveElementsInRng_AllElements(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30};
+   VectorSubRange_PushElements(vec, values, 3);
+
+   int buf[3] = {0};
+   // Remove all elements
+   TEST_ASSERT_TRUE(VectorSubRange_RemoveElementsInRange(vec, 0, 2, buf));
+   TEST_ASSERT_EQUAL_INT(10, buf[0]);
+   TEST_ASSERT_EQUAL_INT(20, buf[1]);
+   TEST_ASSERT_EQUAL_INT(30, buf[2]);
+   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+   TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_RemoveElementsInRng_EmptyVec(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+
+   // Try to remove from empty vector
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(vec, 0, 1, NULL));
+   TEST_ASSERT_TRUE(VectorIsEmpty(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_RemoveElementsInRng_AtBeginning(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   VectorSubRange_PushElements(vec, values, 5);
+
+   // Remove first two elements (indices 0, 1)
+   TEST_ASSERT_TRUE(VectorSubRange_RemoveElementsInRange(vec, 0, 1, NULL));
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(vec, 1));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGetElementAt(vec, 2));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_RemoveElementsInRng_AtEnd(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30, 40, 50};
+   VectorSubRange_PushElements(vec, values, 5);
+
+   // Remove last two elements (indices 3, 4)
+   TEST_ASSERT_TRUE(VectorSubRange_RemoveElementsInRange(vec, 3, 4, NULL));
+   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(vec, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(vec, 1));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(vec, 2));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_RemoveElementsInRng_InvalidIndices(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int values[] = {10, 20, 30};
+   VectorSubRange_PushElements(vec, values, 3);
+
+   // idx_start > idx_end
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(vec, 2, 1, NULL));
+   // idx_end >= len
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(vec, 1, 3, NULL));
+   // idx_start >= len
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(vec, 3, 3, NULL));
+   // Large indices
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(vec, (size_t)-1, 1, NULL));
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(vec, 1, (size_t)-1, NULL));
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(vec, (size_t)-1, (size_t)-1, NULL));
+
+   VectorFree(vec);
+}
+
+void test_VectorSubRange_RemoveElementsInRng_InvalidVec(void)
+{
+   TEST_ASSERT_FALSE(VectorSubRange_RemoveElementsInRange(NULL, 0, 1, NULL));
+}
+
+void test_VectorSubRange_RoundTrip_InsertAndRemove(void)
+{
+   struct Vector_S * vec = VectorInit(sizeof(int), 10, 100, 0);
+   int data[] = {1, 2, 3, 4, 5};
+   VectorSubRange_PushElements(vec, data, 5);
+   struct Vector_S * vec_dup = VectorDuplicate(vec);
+
+   // Insert some elements
+   int insert[] = {10, 11, 12};
+   VectorSubRange_InsertElementsAt(vec, 2, insert, 3);
+   TEST_ASSERT_FALSE( VectorsAreEqual(vec_dup, vec) );
+
+   // Now remove the inserted elements
+   int buf[3] = {0};
+   TEST_ASSERT_TRUE(VectorSubRange_RemoveElementsInRange(vec, 2, 4, buf));
+   TEST_ASSERT_EQUAL_INT(10, buf[0]);
+   TEST_ASSERT_EQUAL_INT(11, buf[1]);
+   TEST_ASSERT_EQUAL_INT(12, buf[2]);
+   // Vector should be back to original
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_TRUE( VectorsAreEqual(vec_dup, vec) );
+
+   VectorFree(vec);
+   VectorFree(vec_dup);
 }

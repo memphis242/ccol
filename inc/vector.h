@@ -562,11 +562,13 @@ bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
  * @param self Vector handle.
  * @param idx_start The starting index of the range (inclusive).
  * @param idx_end The ending index of the range (inclusive).
+ * @param buf Buffer to hold removed data (optional).
  * @return true if the elements were successfully removed, false otherwise.
  */
 bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
                                            size_t idx_start,
-                                           size_t idx_end );
+                                           size_t idx_end,
+                                           void * buf );
 
 bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector_S * self,
                                                   size_t idx,

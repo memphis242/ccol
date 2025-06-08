@@ -903,7 +903,8 @@ bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
 
 bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
                                            size_t idx_start,
-                                           size_t idx_end )
+                                           size_t idx_end,
+                                           void * buf )
 {
    if ( (NULL == self) || (self->len == 0) ||
         (idx_start > idx_end) ||
@@ -916,7 +917,10 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
    assert(self->arr != NULL);
    assert(self->element_size > 0);
 
-   // TODO: Shift data N spots left, overwriting old data.
+   if ( idx_start == idx_end )
+   {
+      return VectorRemoveElementAt(self, idx_start, buf);
+   }
 
    return true;
 }
