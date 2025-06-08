@@ -975,6 +975,8 @@ bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
       return false;
    }
 
+   memset( (void *)PTR_TO_IDX(self, idx_start), 0, self->element_size * (idx_end - idx_start + 1) );
+
    return true;
 }
 
