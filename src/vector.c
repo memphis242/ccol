@@ -964,6 +964,22 @@ bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector_S * self,
 /******************************************************************************/
 /******************************************************************************/
 
+bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
+                                          size_t idx_start,
+                                          size_t idx_end )
+{
+   if ( (NULL == self) || (NULL == self->arr) ||
+        (idx_start >= self->len) || (idx_end >= self->len) ||
+        (idx_start > idx_end) ) 
+   {
+      return false;
+   }
+
+   return true;
+}
+
+/******************************************************************************/
+
 /* Private Function Implementations */
 
 /**
