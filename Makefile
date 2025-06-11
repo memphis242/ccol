@@ -58,6 +58,7 @@ endif
 PATH_UNITY        = Unity/src/
 PATH_SRC          = src/
 PATH_INC          = inc/
+PATH_CFG          = cfg/
 PATH_TEST_FILES   = test/
 PATH_BUILD        = build/
 PATH_OBJECT_FILES = $(PATH_BUILD)objs/
@@ -84,13 +85,13 @@ DS ?= ALL
 
 ifeq ($(DS), ALL)
   SRC_FILES = $(wildcard $(PATH_SRC)*.c)
-  HDR_FILES = $(wildcard $(PATH_INC)*.h)
+  HDR_FILES = $(wildcard $(PATH_INC)*.h) $(wildcard $(PATH_CFG)$(DS)_cfg.h)
   SRC_TEST_FILES = $(wildcard $(PATH_TEST_FILES)*.c)
   LIB_FILE = $(PATH_BUILD)lib$(COLLECTION_LIB_NAME).$(STATIC_LIB_EXTENSION)
   DS_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
 else
   SRC_FILES = $(PATH_SRC)$(DS).c
-  HDR_FILES = $(PATH_INC)$(DS).h
+  HDR_FILES = $(PATH_INC)$(DS).h $(wildcard $(PATH_CFG)$(DS)_cfg.h)
   SRC_TEST_FILES = $(PATH_TEST_FILES)test_$(DS).c
   LIB_FILE = $(PATH_BUILD)lib$(DS).$(STATIC_LIB_EXTENSION)
   DS_OBJ_FILES = $(PATH_OBJECT_FILES)$(DS).o
@@ -155,7 +156,7 @@ COMPILER_OPTIMIZATION_LEVEL_DEBUG = -Og -g3
 COMPILER_OPTIMIZATION_LEVEL_SPEED = -O3 $(LIB_OPTIMIZATION_FLAGS)
 COMPILER_OPTIMIZATION_LEVEL_SPACE = -Os $(LIB_OPTIMIZATION_FLAGS)
 COMPILER_STANDARD = -std=c99
-INCLUDE_PATHS = -I. -I$(PATH_INC) -I$(PATH_UNITY)
+INCLUDE_PATHS = -I. -I$(PATH_INC) -I$(PATH_UNITY) -I$(PATH_CFG)
 COMMON_DEFINES =
 DIAGNOSTIC_FLAGS = -fdiagnostics-color
 COMPILER_STATIC_ANALYZER = -fanalyzer
@@ -264,7 +265,7 @@ unity_static_analysis: $(PATH_UNITY)unity.c $(COLORIZE_CPPCHECK_SCRIPT)
 ######################### Generic ##########################
 
 # Compile the collection source file into an object file
-$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h $(COLORIZE_CPPCHECK_SCRIPT)
+$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h $(PATH_CFG)%_cfg.h $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."

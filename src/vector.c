@@ -64,6 +64,9 @@ struct Vector_S
    size_t len;
    size_t capacity;
    size_t max_capacity;
+#ifdef VEC_USE_STATIC_MALLOC
+   void * (*vec_malloc)(size_t);
+#endif
 };
 
 /* Private Function Prototypes */

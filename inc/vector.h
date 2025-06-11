@@ -23,6 +23,9 @@ struct Vector_S;
 
 /* Public API */
 
+// Built-in internal static allocator
+void * vecmalloc_static(size_t num_of_bytes);
+
 /**
  * @brief Constructor for the vector object
  *
