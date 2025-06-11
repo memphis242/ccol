@@ -9,10 +9,12 @@
 .PHONY: test-vec test-all
 
 test-vec:
-	@$(MAKE) _test BUILD_TYPE=TEST DS=vector
+	@$(MAKE) _test BUILD_TYPE=TEST DS=vector > /dev/null
+	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
 
 test-all:
-	@$(MAKE) --always-make test-vec
+	@$(MAKE) --always-make test-vec > /dev/null
+	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
 
 release:
 	@$(MAKE) lib BUILD_TYPE=RELEASE DS=ALL
