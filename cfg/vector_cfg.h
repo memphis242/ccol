@@ -14,6 +14,13 @@
 
 /* Public Macro Definitions */
 
-// Custom malloc configuration macros
-#define VEC_USE_STATIC_MALLOC             100000
-#define VEC_MALLOC_STATIC_MAX_ARENA_SIZE  100000
+//! Uncomment to enable the ability to initialize a vector /w a custom allocator
+//#define VEC_USE_CUSTOM_ALLOC
+
+#ifndef VEC_USE_CUSTOM_ALLOC
+//! Uncomment to enable the built-in static arena for the built-in arena allocator
+//#define VEC_USE_BUILT_IN_STATIC_ALLOC
+
+//! Specify the static arena allocator's arena size in bytes
+#define VEC_BUILT_IN_STATIC_ALLOC_ARENA_SIZE  1000
+#endif

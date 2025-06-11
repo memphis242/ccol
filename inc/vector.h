@@ -11,8 +11,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "vector_cfg.h"
 // TODO: Exceptions
-// TODO: Support custom allocators passed in
 
 /* Public Macro Definitions */
 
@@ -22,9 +22,6 @@
 struct Vector_S;
 
 /* Public API */
-
-// Built-in internal static allocator
-void * vecmalloc_static(size_t num_of_bytes);
 
 /**
  * @brief Constructor for the vector object
@@ -40,6 +37,15 @@ void * vecmalloc_static(size_t num_of_bytes);
  * @param initial_len  Initial length of the vector that allows the user to get
  *                     some zero elements in to begin with. 0 if user will handle
  *                     manual push/insertion operations to initial fill the vec.
+ *
+ * If VEC_USE_CUSTOM_ALLOC is defined, then there are additional parameters:
+ * @param custom_malloc User-provided memory allocation function (required)
+ * @param custom_realloc User-provided memory reallocation function (required)
+ * @param custom_free User-provided memory free function (required)
+ * @param is_allocated User-provided function to determine if a memory address
+ *                     is within an allocated region of memory. This parameter
+ *                     is optional and a null pointer can be passed in without
+ *                     impacting behavior.
  * 
  * @todo Exceptions
  *
@@ -48,7 +54,14 @@ void * vecmalloc_static(size_t num_of_bytes);
 struct Vector_S * VectorInit( size_t element_size,
                               size_t initial_capacity,
                               size_t max_capacity,
-                              size_t initial_len );
+                              size_t initial_len
+#ifdef VEC_USE_CUSTOM_ALLOC
+                              , void * (*custom_malloc)(size_t),
+                              void * (*custom_relloc)(void *, size_t),
+                              void   (*custom_free)(void *),
+                              bool   (*is_allocated)(void *)
+#endif
+                            );
 
 /**
  * @brief Frees the memory allocated for the vector.

@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <limits.h>
+#include "vector_cfg.h"
 #include "vector.h"
 
 // TODO: Add support for custom alloactors.
@@ -64,12 +65,24 @@ struct Vector_S
    size_t len;
    size_t capacity;
    size_t max_capacity;
-#ifdef VEC_USE_STATIC_MALLOC
    void * (*vec_malloc)(size_t);
-#endif
+   void * (*vec_realloc)(void *, size_t);
+   void   (*vec_free)(void *);
+   bool   (*vec_isalloc)(void *);
 };
 
 /* Private Function Prototypes */
+
+#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
+// Built-in internal static allocator
+static uint8_t StaticArena[VEC_BUILT_IN_STATIC_ALLOC_ARENA_SIZE];
+
+static void * StaticArenaMalloc(size_t num_of_bytes);
+static void * StaticArenaRealloc(void * ptr, size_t num_of_bytes);
+static void * StaticArenaFree(void * ptr);
+static bool   StaticArenaIsAlloc(void * ptr);
+#endif
+
 static bool LocalVectorExpand( struct Vector_S * self );
 static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len );
 static void ShiftNOver( struct Vector_S * self, size_t idx,
@@ -81,25 +94,60 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
 struct Vector_S * VectorInit( size_t element_size,
                               size_t initial_capacity,
                               size_t max_capacity,
-                              size_t initial_len )
+                              size_t initial_len
+#ifdef VEC_USE_CUSTOM_ALLOC
+                              , void * (*custom_malloc)(size_t),
+                              void * (*custom_relloc)(void *, size_t),
+                              void   (*custom_free)(void *),
+                              bool   (*is_allocated)(void *)
+#endif
+                            )
 {
-   // Early return op
    // Invalid inputs
    if ( (element_size == 0) ||
         (initial_capacity > MAX_VECTOR_LENGTH) ||
         (max_capacity == 0) ||
         (initial_capacity > max_capacity) ||
-        (initial_len > initial_capacity) )
+        (initial_len > initial_capacity)
+#ifdef VEC_USE_CUSTOM_ALLOC
+        || (NULL == custom_malloc)
+        || (NULL == custom_realloc)
+        || (NULL == custom_free)
+#endif
+      )
    {
       // TODO: Vector constructor exception
       return NULL;
    }
 
+#if defined(VEC_USE_CUSTOM_ALLOC)
+   struct Vector_S * NewVec = (struct Vector_S *)custom_malloc( sizeof(struct Vector_S) );
+#elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
+   struct Vector_S * NewVec = (struct Vector_S *)StaticVectorMalloc( sizeof(struct Vector_S) );
+#else
    struct Vector_S * NewVec = (struct Vector_S *)malloc( sizeof(struct Vector_S) );
+#endif
    if ( NULL == NewVec )
    {
       return NULL;
    }
+
+#if defined(VEC_USE_CUSTOM_ALLOC)
+   NewVec->vec_malloc = custom_malloc;
+   NewVec->vec_realloc = custom_realloc;
+   NewVec->vec_free = custom_free;
+   NewVec->vec_isalloc = is_allocated;
+#elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
+   NewVec->vec_malloc = StaticArenaMalloc;
+   NewVec->vec_realloc = StaticArenaRealloc;
+   NewVec->vec_free = StaticArenaFree;
+   NewVec->vec_isalloc = StaticArenaFree;
+#else
+   NewVec->vec_malloc = malloc;
+   NewVec->vec_realloc = realloc;
+   NewVec->vec_free = free;
+   NewVec->vec_isalloc = NULL;
+#endif
 
    if ( 0 == initial_capacity )
    {
@@ -107,7 +155,7 @@ struct Vector_S * VectorInit( size_t element_size,
    }
    else
    {
-      NewVec->arr = malloc( element_size * initial_capacity );
+      NewVec->arr = NewVec->vec_malloc( element_size * initial_capacity );
    }
 
    // If malloc failed to allocate space for the array...
@@ -149,11 +197,11 @@ struct Vector_S * VectorInit( size_t element_size,
 /******************************************************************************/
 void VectorFree( struct Vector_S * self )
 {
-   if ( (self != NULL) && (self->arr != NULL) )
+   if ( (self != NULL) && (self->arr != NULL) && (self->vec_free != NULL) )
    {
-      free(self->arr);
+      self->vec_free(self->arr);
+      self->vec_free(self);
    }
-   free(self);
 }
 
 /******************************************************************************/
@@ -453,9 +501,10 @@ bool VectorHardReset( struct Vector_S * self )
 
    assert(self->arr != NULL);
    assert(self->element_size > 0);
+   assert(self->vec_free != NULL);
 
    memset( self->arr, 0, self->len * self->element_size );
-   free(self->arr);
+   self->vec_free(self->arr);
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
@@ -469,12 +518,13 @@ struct Vector_S * VectorDuplicate( const struct Vector_S * self )
         (0 == self->element_size) ||
         (self->len > self->capacity) ||
         (self->capacity > self->max_capacity) ||
-        ( (self->len > 0) && (NULL == self->arr) ) )
+        ( (self->len > 0) && (NULL == self->arr) ) ||
+        (NULL == self->vec_malloc) )
    {
       return NULL;
    }
 
-   struct Vector_S * Duplicate = (struct Vector_S *)malloc( sizeof(struct Vector_S) );
+   struct Vector_S * Duplicate = (struct Vector_S *)self->vec_malloc( sizeof(struct Vector_S) );
    if ( NULL == Duplicate )
    {
       // TODO: Throw exception that the vector handle failed to get duplicated.
@@ -486,7 +536,7 @@ struct Vector_S * VectorDuplicate( const struct Vector_S * self )
    Duplicate->arr = NULL;
    if ( Duplicate->len > 0 )
    {
-      Duplicate->arr = malloc( Duplicate->len * Duplicate->element_size );
+      Duplicate->arr = self->vec_malloc( Duplicate->len * Duplicate->element_size );
       if ( Duplicate->arr != NULL )
       {
          memcpy( Duplicate->arr,
@@ -1026,7 +1076,8 @@ static bool LocalVectorExpand( struct Vector_S * self )
    assert(self->element_size != 0);
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
-   assert(self->len <= self->max_capacity); 
+   assert(self->len <= self->max_capacity);
+   assert(self->vec_realloc != NULL);
 
    // If we're already at max capacity, can't expand further.
    if ( self->capacity == self->max_capacity )
@@ -1049,7 +1100,7 @@ static bool LocalVectorExpand( struct Vector_S * self )
       new_capacity = self->max_capacity;
    }
 
-   void * new_ptr = realloc( self->arr, (self->element_size * new_capacity) );
+   void * new_ptr = self->vec_realloc( self->arr, (self->element_size * new_capacity) );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1075,6 +1126,7 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity); 
+   assert(self->vec_realloc != NULL);
 
    // If there's no space in the vector, we can't expand
    if ( (self->capacity + add_len) > self->max_capacity )
@@ -1083,7 +1135,7 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
    }
 
    size_t new_capacity = self->capacity + add_len;
-   void * new_ptr = realloc( self->arr, (self->element_size * new_capacity) );
+   void * new_ptr = self->vec_realloc( self->arr, (self->element_size * new_capacity) );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1147,3 +1199,25 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
       }
    }
 }
+
+#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
+static void * StaticArenaMalloc(size_t num_of_bytes)
+{
+
+}
+
+static void * StaticArenaRealloc(void * ptr, size_t num_of_bytes)
+{
+
+}
+
+static void * StaticArenaFree(void * ptr)
+{
+
+}
+
+static bool   StaticArenaIsAlloc(void * ptr)
+{
+
+}
+#endif
