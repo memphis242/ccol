@@ -65,22 +65,24 @@ struct Vector_S
    size_t len;
    size_t capacity;
    size_t max_capacity;
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    void * (*vec_malloc)(size_t);
    void * (*vec_realloc)(void *, size_t);
    void   (*vec_free)(void *);
    bool   (*vec_isalloc)(void *);
+#endif
 };
 
 /* Private Function Prototypes */
 
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-// Built-in internal static allocator
-static uint8_t StaticArena[VEC_BUILT_IN_STATIC_ALLOC_ARENA_SIZE];
-
-static void * StaticArenaMalloc(size_t num_of_bytes);
-static void * StaticArenaRealloc(void * ptr, size_t num_of_bytes);
-static void * StaticArenaFree(void * ptr);
-static bool   StaticArenaIsAlloc(void * ptr);
+static struct Vector_S * StaticVectorArenaAlloc(void);
+static void * StaticArrayAlloc(size_t num_of_bytes);
+static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes);
+static void   StaticVectorArenaFree(struct Vector_S * ptr);
+static void   StaticArrayFree(void * ptr);
+static bool   StaticVectorIsAlloc(struct Vector_S * ptr);
+static bool   StaticArrayIsAlloc(void * ptr);
 #endif
 
 static bool LocalVectorExpand( struct Vector_S * self );
@@ -123,7 +125,7 @@ struct Vector_S * VectorInit( size_t element_size,
 #if defined(VEC_USE_CUSTOM_ALLOC)
    struct Vector_S * NewVec = (struct Vector_S *)custom_malloc( sizeof(struct Vector_S) );
 #elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
-   struct Vector_S * NewVec = (struct Vector_S *)StaticVectorMalloc( sizeof(struct Vector_S) );
+   struct Vector_S * NewVec = (struct Vector_S *)StaticVectorArenaAlloc( sizeof(struct Vector_S) );
 #else
    struct Vector_S * NewVec = (struct Vector_S *)malloc( sizeof(struct Vector_S) );
 #endif
@@ -137,12 +139,7 @@ struct Vector_S * VectorInit( size_t element_size,
    NewVec->vec_realloc = custom_realloc;
    NewVec->vec_free = custom_free;
    NewVec->vec_isalloc = is_allocated;
-#elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
-   NewVec->vec_malloc = StaticArenaMalloc;
-   NewVec->vec_realloc = StaticArenaRealloc;
-   NewVec->vec_free = StaticArenaFree;
-   NewVec->vec_isalloc = StaticArenaFree;
-#else
+#elif !defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
    NewVec->vec_malloc = malloc;
    NewVec->vec_realloc = realloc;
    NewVec->vec_free = free;
@@ -155,7 +152,11 @@ struct Vector_S * VectorInit( size_t element_size,
    }
    else
    {
+#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
+      NewVec->arr = StaticArrayAlloc( element_size * initial_capacity );
+#else
       NewVec->arr = NewVec->vec_malloc( element_size * initial_capacity );
+#endif
    }
 
    // If malloc failed to allocate space for the array...
@@ -518,13 +519,20 @@ struct Vector_S * VectorDuplicate( const struct Vector_S * self )
         (0 == self->element_size) ||
         (self->len > self->capacity) ||
         (self->capacity > self->max_capacity) ||
-        ( (self->len > 0) && (NULL == self->arr) ) ||
-        (NULL == self->vec_malloc) )
+        ( (self->len > 0) && (NULL == self->arr) )
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
+        || (NULL == self->vec_malloc)
+#endif
+      )
    {
       return NULL;
    }
 
+#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
+   struct Vector_S * Duplicate = StaticVectorArenaAlloc();
+#else
    struct Vector_S * Duplicate = (struct Vector_S *)self->vec_malloc( sizeof(struct Vector_S) );
+#endif
    if ( NULL == Duplicate )
    {
       // TODO: Throw exception that the vector handle failed to get duplicated.
@@ -536,7 +544,11 @@ struct Vector_S * VectorDuplicate( const struct Vector_S * self )
    Duplicate->arr = NULL;
    if ( Duplicate->len > 0 )
    {
+#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
+      Duplicate->arr = StaticArrayAlloc( Duplicate->len * Duplicate->element_size );
+#else
       Duplicate->arr = self->vec_malloc( Duplicate->len * Duplicate->element_size );
+#endif
       if ( Duplicate->arr != NULL )
       {
          memcpy( Duplicate->arr,
@@ -1201,23 +1213,118 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
 }
 
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-static void * StaticArenaMalloc(size_t num_of_bytes)
+
+struct VectorArenaItem_S
+{
+   struct Vector_S vec;
+   bool is_allocated;
+};
+
+static struct VectorArenaItem_S StaticVectorArena[VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE];
+static size_t StaticVectorArena_NextIdx = 0;
+
+static uint8_t StaticArrayArena[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
+
+/**
+ * @brief Allocates a new Vector_S structure from a static arena.
+ * @return Pointer to the newly allocated Vector_S structure, or NULL if allocation fails.
+ */
+static struct Vector_S * StaticVectorArenaAlloc(void)
+{
+   assert( StaticVectorArena_NextIdx < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE );
+#ifndef NDEBUG
+   // If next idx is allocated, by design, that must mean we are out of vectors.
+   if ( StaticVectorArena[StaticVectorArena_NextIdx].is_allocated == true )
+   {
+      for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
+      {
+         assert( StaticVectorArena[i].is_allocated == true );
+      }
+   }
+#endif
+
+   if ( StaticVectorArena[StaticVectorArena_NextIdx].is_allocated )
+   {
+      return NULL;
+   }
+
+   struct Vector_S * new_vec = &StaticVectorArena[StaticVectorArena_NextIdx].vec;
+   StaticVectorArena[StaticVectorArena_NextIdx].is_allocated = true;
+
+   // Find the next available spot
+   size_t j = StaticVectorArena_NextIdx;
+   for ( size_t i = 1; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++, j++ )
+   {
+      if ( j >= VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE ) j = 0; // Wrap-around
+
+      if ( !StaticVectorArena[j].is_allocated )
+      {
+         StaticVectorArena_NextIdx = j;
+         break;
+      }
+   }
+
+   return new_vec;
+}
+
+static void * StaticArrayAlloc(size_t num_of_bytes)
 {
 
 }
 
-static void * StaticArenaRealloc(void * ptr, size_t num_of_bytes)
+static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes)
 {
 
 }
 
-static void * StaticArenaFree(void * ptr)
+static void StaticVectorArenaFree(struct Vector_S * ptr)
+{
+   if ( NULL == ptr )
+   {
+      return;
+   }
+
+   // Find the vector address that matches this pointer
+   bool found = false;
+   for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
+   {
+      if ( ptr == &StaticVectorArena[i].vec )
+      {
+         if ( !StaticVectorArena[i].is_allocated )
+         {
+            // TODO: Raise exception for attempting to free an unallocated vec
+         }
+         StaticVectorArena[i].is_allocated = false;
+      }
+   }
+
+   if ( !found )
+   {
+      // TODO: Raise an exception for attempting to free a random address
+   }
+}
+
+static void StaticArrayFree(void * ptr)
 {
 
 }
 
-static bool   StaticArenaIsAlloc(void * ptr)
+static bool StaticVectorIsAlloc(struct Vector_S * ptr)
+{
+   for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
+   {
+      if ( ptr == &StaticVectorArena[i].vec )
+      {
+         return StaticVectorArena[i].is_allocated;
+      }
+   }
+
+   return false;
+}
+
+static bool StaticArrayIsAlloc(void * ptr)
 {
 
 }
+
 #endif
