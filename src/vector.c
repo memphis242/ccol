@@ -123,11 +123,11 @@ struct Vector_S * VectorInit( size_t element_size,
    }
 
 #if defined(VEC_USE_CUSTOM_ALLOC)
-   struct Vector_S * NewVec = (struct Vector_S *)custom_malloc( sizeof(struct Vector_S) );
+   struct Vector_S * NewVec = custom_malloc( sizeof(struct Vector_S) );
 #elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
-   struct Vector_S * NewVec = (struct Vector_S *)StaticVectorArenaAlloc( sizeof(struct Vector_S) );
+   struct Vector_S * NewVec = StaticVectorArenaAlloc( sizeof(struct Vector_S) );
 #else
-   struct Vector_S * NewVec = (struct Vector_S *)malloc( sizeof(struct Vector_S) );
+   struct Vector_S * NewVec = malloc( sizeof(struct Vector_S) );
 #endif
    if ( NULL == NewVec )
    {
@@ -531,7 +531,7 @@ struct Vector_S * VectorDuplicate( const struct Vector_S * self )
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
    struct Vector_S * Duplicate = StaticVectorArenaAlloc();
 #else
-   struct Vector_S * Duplicate = (struct Vector_S *)self->vec_malloc( sizeof(struct Vector_S) );
+   struct Vector_S * Duplicate = self->vec_malloc( sizeof(struct Vector_S) );
 #endif
    if ( NULL == Duplicate )
    {
