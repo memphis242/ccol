@@ -1214,6 +1214,7 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
 
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
 
+/* Vector Arena Material */
 struct VectorArenaItem_S
 {
    struct Vector_S vec;
@@ -1226,6 +1227,12 @@ struct VectorArena_S
 };
 static struct VectorArena_S VectorArena;
 
+/* Array Arena Material */
+struct ArrayArena_S
+{
+   uint8_t pool[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
+
+};
 static uint8_t StaticArrayArena[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
 
 /**
