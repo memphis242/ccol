@@ -1219,9 +1219,12 @@ struct VectorArenaItem_S
    struct Vector_S vec;
    bool is_allocated;
 };
-
-static struct VectorArenaItem_S StaticVectorArena[VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE];
-static size_t StaticVectorArena_NextIdx = 0;
+struct VectorArena_S
+{
+   struct VectorArenaItem_S pool[VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE];
+   size_t next_idx;
+};
+static struct VectorArena_S VectorArena;
 
 static uint8_t StaticArrayArena[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
 
@@ -1231,35 +1234,35 @@ static uint8_t StaticArrayArena[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
  */
 static struct Vector_S * StaticVectorArenaAlloc(void)
 {
-   assert( StaticVectorArena_NextIdx < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE );
+   assert( VectorArena.next_idx < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE );
 #ifndef NDEBUG
    // If next idx is allocated, by design, that must mean we are out of vectors.
-   if ( StaticVectorArena[StaticVectorArena_NextIdx].is_allocated == true )
+   if ( VectorArena.pool[VectorArena.next_idx].is_allocated == true )
    {
       for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
       {
-         assert( StaticVectorArena[i].is_allocated == true );
+         assert( VectorArena.pool[i].is_allocated == true );
       }
    }
 #endif
 
-   if ( StaticVectorArena[StaticVectorArena_NextIdx].is_allocated )
+   if ( VectorArena.pool[VectorArena.next_idx].is_allocated )
    {
       return NULL;
    }
 
-   struct Vector_S * new_vec = &StaticVectorArena[StaticVectorArena_NextIdx].vec;
-   StaticVectorArena[StaticVectorArena_NextIdx].is_allocated = true;
+   struct Vector_S * new_vec = &VectorArena.pool[VectorArena.next_idx].vec;
+   VectorArena.pool[VectorArena.next_idx].is_allocated = true;
 
    // Find the next available spot
-   size_t j = StaticVectorArena_NextIdx;
+   size_t j = VectorArena.next_idx;
    for ( size_t i = 1; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++, j++ )
    {
       if ( j >= VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE ) j = 0; // Wrap-around
 
-      if ( !StaticVectorArena[j].is_allocated )
+      if ( !VectorArena.pool[j].is_allocated )
       {
-         StaticVectorArena_NextIdx = j;
+         VectorArena.next_idx = j;
          break;
       }
    }
@@ -1288,13 +1291,13 @@ static void StaticVectorArenaFree(struct Vector_S * ptr)
    bool found = false;
    for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
    {
-      if ( ptr == &StaticVectorArena[i].vec )
+      if ( ptr == &VectorArena.pool[i].vec )
       {
-         if ( !StaticVectorArena[i].is_allocated )
+         if ( !VectorArena.pool[i].is_allocated )
          {
             // TODO: Raise exception for attempting to free an unallocated vec
          }
-         StaticVectorArena[i].is_allocated = false;
+         VectorArena.pool[i].is_allocated = false;
       }
    }
 
@@ -1313,9 +1316,9 @@ static bool StaticVectorIsAlloc(struct Vector_S * ptr)
 {
    for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
    {
-      if ( ptr == &StaticVectorArena[i].vec )
+      if ( ptr == &VectorArena.pool[i].vec )
       {
-         return StaticVectorArena[i].is_allocated;
+         return VectorArena.pool[i].is_allocated;
       }
    }
 
