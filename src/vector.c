@@ -99,7 +99,7 @@ struct Vector_S * VectorInit( size_t element_size,
                               size_t initial_len
 #ifdef VEC_USE_CUSTOM_ALLOC
                               , void * (*custom_malloc)(size_t),
-                              void * (*custom_relloc)(void *, size_t),
+                              void * (*custom_realloc)(void *, size_t),
                               void   (*custom_free)(void *),
                               bool   (*is_allocated)(void *)
 #endif
@@ -198,10 +198,18 @@ struct Vector_S * VectorInit( size_t element_size,
 /******************************************************************************/
 void VectorFree( struct Vector_S * self )
 {
-   if ( (self != NULL) && (self->arr != NULL) && (self->vec_free != NULL) )
+   if ( (self != NULL) && (self->arr != NULL)
    {
-      self->vec_free(self->arr);
-      self->vec_free(self);
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
+      if (self->vec_free != NULL) )
+      {
+         self->vec_free(self->arr);
+         self->vec_free(self);
+      }
+#else
+      StaticArrayFree(self->arr);
+      StaticVectorArenaFree(self);
+#endif
    }
 }
 
@@ -502,10 +510,16 @@ bool VectorHardReset( struct Vector_S * self )
 
    assert(self->arr != NULL);
    assert(self->element_size > 0);
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    assert(self->vec_free != NULL);
+#endif
 
    memset( self->arr, 0, self->len * self->element_size );
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    self->vec_free(self->arr);
+#else
+   StaticArrayFree(self->arr);
+#endif
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
@@ -1089,7 +1103,9 @@ static bool LocalVectorExpand( struct Vector_S * self )
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity);
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    assert(self->vec_realloc != NULL);
+#endif
 
    // If we're already at max capacity, can't expand further.
    if ( self->capacity == self->max_capacity )
@@ -1112,7 +1128,13 @@ static bool LocalVectorExpand( struct Vector_S * self )
       new_capacity = self->max_capacity;
    }
 
-   void * new_ptr = self->vec_realloc( self->arr, (self->element_size * new_capacity) );
+   void * new_ptr = 
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
+      self->vec_realloc(
+#else
+      StaticArrayRealloc(
+#endif
+         self->arr, (self->element_size * new_capacity) );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1138,7 +1160,9 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity); 
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    assert(self->vec_realloc != NULL);
+#endif
 
    // If there's no space in the vector, we can't expand
    if ( (self->capacity + add_len) > self->max_capacity )
@@ -1147,7 +1171,13 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
    }
 
    size_t new_capacity = self->capacity + add_len;
-   void * new_ptr = self->vec_realloc( self->arr, (self->element_size * new_capacity) );
+   void * new_ptr = 
+#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
+      self->vec_realloc(
+#else
+      StaticArrayRealloc(
+#endif
+         self->arr, (self->element_size * new_capacity) );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1231,7 +1261,14 @@ static struct VectorArena_S VectorArena;
 struct ArrayArena_S
 {
    uint8_t pool[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
-
+   // The block sizes here are sized for what I might expect to find in a
+   // memory-constrained embedded system.
+   // 1024  byte free list
+   // 512   byte free list
+   // 256   byte free list
+   // 128   byte free list
+   // 64    byte free list
+   // 32    byte free list
 };
 static uint8_t StaticArrayArena[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
 
@@ -1261,6 +1298,7 @@ static struct Vector_S * StaticVectorArenaAlloc(void)
    struct Vector_S * new_vec = &VectorArena.pool[VectorArena.next_idx].vec;
    VectorArena.pool[VectorArena.next_idx].is_allocated = true;
 
+   // 🗒️: Potential to place this in a separate asynchronous thread?
    // Find the next available spot
    size_t j = VectorArena.next_idx;
    for ( size_t i = 1; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++, j++ )
@@ -1279,6 +1317,8 @@ static struct Vector_S * StaticVectorArenaAlloc(void)
 
 static void * StaticArrayAlloc(size_t num_of_bytes)
 {
+   // Initial Draft of Allocator: Buddy System, as described in:
+   //    memorymanagement.org/mmref/alloc.html
 
 }
 
