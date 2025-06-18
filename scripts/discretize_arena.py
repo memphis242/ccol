@@ -9,6 +9,8 @@ def split_arena(arena_size):
         count, remaining = divmod(remaining, size)
         blocks[size] = count
 
+    assert sum(size * blocks[size] for size in block_sizes) + remaining == arena_size, \
+        "Block sum and gap do not match arena size"
     return blocks, remaining
 
 def print_split(arena_size):
