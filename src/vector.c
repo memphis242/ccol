@@ -39,9 +39,9 @@
    #define SYSTEM_LIMIT PTRDIFF_MAX
 #endif
 #if (SYSTEM_LIMIT < TENTATIVE_MAX_VEC_LEN)
-   #define MAX_VECTOR_LENGTH  SIZE_MAX
+   #define MAX_VECTOR_LIST_INITIAL_LEN  SIZE_MAX
 #else
-   #define MAX_VECTOR_LENGTH TENTATIVE_MAX_VEC_LEN
+   #define MAX_VECTOR_LIST_INITIAL_LEN TENTATIVE_MAX_VEC_LEN
 #endif
 
 // Function-like macros
@@ -76,7 +76,6 @@ struct Vector_S
 /* Private Function Prototypes */
 
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-static bool ArrayAllocInitialized = false;
 static void StaticArrayPoolInit(void);
 
 static struct Vector_S * StaticVectorArenaAlloc(void);
@@ -110,7 +109,7 @@ struct Vector_S * VectorInit( size_t element_size,
 {
    // Invalid inputs
    if ( (element_size == 0) ||
-        (initial_capacity > MAX_VECTOR_LENGTH) ||
+        (initial_capacity > MAX_VECTOR_LIST_INITIAL_LEN) ||
         (max_capacity == 0) ||
         (initial_capacity > max_capacity) ||
         (initial_len > initial_capacity)
@@ -128,7 +127,7 @@ struct Vector_S * VectorInit( size_t element_size,
 #if defined(VEC_USE_CUSTOM_ALLOC)
    struct Vector_S * NewVec = custom_malloc( sizeof(struct Vector_S) );
 #elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
-   if ( !ArrayAllocInitialized ) StaticArrayPoolInit();
+   if ( !ArrayArena.arena_initialized ) StaticArrayPoolInit();
    struct Vector_S * NewVec = StaticVectorArenaAlloc( sizeof(struct Vector_S) );
 #else
    struct Vector_S * NewVec = malloc( sizeof(struct Vector_S) );
@@ -186,10 +185,10 @@ struct Vector_S * VectorInit( size_t element_size,
 
    NewVec->element_size = element_size;
 
-   if ( max_capacity > MAX_VECTOR_LENGTH )
+   if ( max_capacity > MAX_VECTOR_LIST_INITIAL_LEN )
    {
       // TODO: Throw exception for max_capacity too large
-      NewVec->max_capacity = MAX_VECTOR_LENGTH;
+      NewVec->max_capacity = MAX_VECTOR_LIST_INITIAL_LEN;
    }
    else
    {
@@ -705,7 +704,7 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
 {
    if ( (NULL == v1) || (NULL == v2) ||
         (v1->element_size != v2->element_size) ||
-        (v2->len > (MAX_VECTOR_LENGTH - v1->len)) // Unsupported length
+        (v2->len > (MAX_VECTOR_LIST_INITIAL_LEN - v1->len)) // Unsupported length
       )
    {
       return NULL;
@@ -746,13 +745,13 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
    else  // Both must be non-empty
    {
       size_t new_vec_len = v1->len + v2->len;
-      size_t new_vec_cap = MAX_VECTOR_LENGTH;
-      if ( v2->capacity < (MAX_VECTOR_LENGTH - v1->capacity) )
+      size_t new_vec_cap = MAX_VECTOR_LIST_INITIAL_LEN;
+      if ( v2->capacity < (MAX_VECTOR_LIST_INITIAL_LEN - v1->capacity) )
       {
          new_vec_cap = v1->capacity + v2->capacity;
       }
-      size_t new_vec_max_cap = MAX_VECTOR_LENGTH;
-      if ( v2->max_capacity < (MAX_VECTOR_LENGTH - v1->max_capacity) )
+      size_t new_vec_max_cap = MAX_VECTOR_LIST_INITIAL_LEN;
+      if ( v2->max_capacity < (MAX_VECTOR_LIST_INITIAL_LEN - v1->max_capacity) )
       {
          new_vec_max_cap = v1->max_capacity + v2->max_capacity;
       }
@@ -1221,7 +1220,7 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
    assert(idx < self->len);
    assert( (move_right && ((n + self->len) <= self->capacity)) || (!move_right && (n <= self->len)) );
    // Extra checks to trap paradox states
-   assert(idx < MAX_VECTOR_LENGTH);
+   assert(idx < MAX_VECTOR_LIST_INITIAL_LEN);
    assert(self->element_size > 0);
 
    if ( move_right )
@@ -1267,56 +1266,112 @@ static struct VectorArena_S VectorArena;
 // Split the configured arena size into blocks of 1024, 512, 256, ..., 2.
 // Add 1 to ensure no arrays are 0-sized. This also helps ensure we fully cover
 // the configured arena size, with a little extra on top.
-#define BLOCKS_1024_LENGTH ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE)        / 1024) + 1)
-#define BLOCKS_512_LENGTH  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
-#define BLOCKS_256_LENGTH  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
-#define BLOCKS_128_LENGTH  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
-#define BLOCKS_64_LENGTH   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
-#define BLOCKS_32_LENGTH   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
-#define BLOCKS_16_LENGTH   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 32)   / 16)   + 1)
-#define BLOCKS_8_LENGTH    ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 16)   / 8)    + 1)
-#define BLOCKS_4_LENGTH    ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 8)    / 4)    + 1)
-#define BLOCKS_2_LENGTH    ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 4)    / 2)    + 1)
+#define BLOCKS_1024_LIST_INITIAL_LEN ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE)        / 1024) + 1)
+#define BLOCKS_512_LIST_INITIAL_LEN  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
+#define BLOCKS_256_LIST_INITIAL_LEN  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
+#define BLOCKS_128_LIST_INITIAL_LEN  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
+#define BLOCKS_64_LIST_INITIAL_LEN   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
+#define BLOCKS_32_LIST_INITIAL_LEN   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
 
 struct ArrayPoolBlock_S
 {
    uint8_t ptr;  // Pointer to block
    bool is_free; // Flag to clear when allocating this block
 };
+struct ArrayPoolBlockList_S
+{
+   struct ArrayPoolBlock_S * list;
+   size_t list_head; // When splitting or coalescence occurs, the top of the
+                     // list (treated as a stack) changes to keep track of
+                     // removed/added blocks.
+};
 struct ArrayArena_S
 {
-   // The block sizes here are sized for what I might expect to find in a
-   // memory-constrained embedded system.
-   struct ArrayPoolBlock_S blocks_1024[BLOCKS_1024_LENGTH];
-   struct ArrayPoolBlock_S blocks_512[BLOCKS_512_LENGTH];
-   struct ArrayPoolBlock_S blocks_256[BLOCKS_256_LENGTH];
-   struct ArrayPoolBlock_S blocks_128[BLOCKS_128_LENGTH];
-   struct ArrayPoolBlock_S blocks_64[BLOCKS_64_LENGTH];
-   struct ArrayPoolBlock_S blocks_32[BLOCKS_32_LENGTH];
-   struct ArrayPoolBlock_S blocks_16[BLOCKS_16_LENGTH];
-   struct ArrayPoolBlock_S blocks_8[BLOCKS_8_LENGTH];
-   struct ArrayPoolBlock_S blocks_4[BLOCKS_4_LENGTH];
-   struct ArrayPoolBlock_S blocks_2[BLOCKS_2_LENGTH];
+   struct ArrayPoolBlockList_S list_1024;
+   struct ArrayPoolBlockList_S list_512;
+   struct ArrayPoolBlockList_S list_256;
+   struct ArrayPoolBlockList_S list_128;
+   struct ArrayPoolBlockList_S list_64;
+   struct ArrayPoolBlockList_S list_32;
+   bool arena_initialized;
 };
 
+//! The arena of bytes from which we allocate from.
 static uint8_t ArrayArenaPool[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
-static struct ArrayArena_S ArrayArena;
+// These shall be the list of allocatable blocks (the "free lists").
+struct ArrayPoolBlock_S blocks_1024[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 1024];
+struct ArrayPoolBlock_S blocks_512 [VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 512];
+struct ArrayPoolBlock_S blocks_256 [VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 256];
+struct ArrayPoolBlock_S blocks_128 [VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 128];
+struct ArrayPoolBlock_S blocks_64  [VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 64];
+struct ArrayPoolBlock_S blocks_32  [VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 32];
 
+static struct ArrayArena_S ArrayArena =
+{
+   .list_1024 = { .list = blocks_1024, .list_head = (BLOCKS_1024_LIST_INITIAL_LEN - 1) },
+   .list_512  = { .list = blocks_512,  .list_head = (BLOCKS_512_LIST_INITIAL_LEN - 1)  },
+   .list_256  = { .list = blocks_256,  .list_head = (BLOCKS_256_LIST_INITIAL_LEN - 1)  },
+   .list_128  = { .list = blocks_128,  .list_head = (BLOCKS_128_LIST_INITIAL_LEN - 1)  },
+   .list_64   = { .list = blocks_64,   .list_head = (BLOCKS_64_LIST_INITIAL_LEN - 1)   },
+   .list_32   = { .list = blocks_32,   .list_head = (BLOCKS_32_LIST_INITIAL_LEN - 1)   },
+   .arena_initialized = false
+};
+
+/**
+ * @brief Initializes the static array pool arena structures.
+ */
 static void StaticArrayPoolInit(void)
 {
-   // Initialize the array arena's pointers
-   for ( size_t i = 0; i < BLOCKS_1024_LENGTH; i++ )
+   // Initialize the array arena's pointers, calculating an offset into the
+   // ArrayArenaPool for the block list pointers.
+   // TODO: This can be done at compile-time. If the macro magic isn't too crazy, let's try that.
+   for ( size_t i = 0; i < (BLOCKS_1024_LIST_INITIAL_LEN - 1); i++ )
    {
-      ArrayArena.blocks_1024[i].ptr = ArrayArenaPool[ i*1024 ];
-      ArrayArena.blocks_1024[i].is_free = true;
+      ArrayArena.list_1024.list[i].ptr = ArrayArenaPool[ i*1024 ];
+      ArrayArena.list_1024.list[i].is_free = true;
    }
+
    size_t gap = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE -
                 (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 1024);
-   for ( size_t i = 0; i < BLOCKS_512_LENGTH; i++ )
+   for ( size_t i = 0; i < (BLOCKS_512_LIST_INITIAL_LEN - 1); i++ )
    {
-      ArrayArena.blocks_512[i].ptr = ArrayArenaPool[ gap + 1 + i*512 ];
-      ArrayArena.blocks_512[i].is_free = true;
+      ArrayArena.list_512.list[i].ptr = ArrayArenaPool[ gap + i*512 ];
+      ArrayArena.list_512.list[i].is_free = true;
    }
+
+   gap = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE -
+         (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 512);
+   for ( size_t i = 0; i < (BLOCKS_256_LIST_INITIAL_LEN - 1); i++ )
+   {
+      ArrayArena.list_256.list[i].ptr = ArrayArenaPool[ gap + i*256 ];
+      ArrayArena.list_256.list[i].is_free = true;
+   }
+
+   gap = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE -
+         (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 256);
+   for ( size_t i = 0; i < (BLOCKS_128_LIST_INITIAL_LEN - 1); i++ )
+   {
+      ArrayArena.list_128.list[i].ptr = ArrayArenaPool[ gap + i*128 ];
+      ArrayArena.list_128.list[i].is_free = true;
+   }
+
+   gap = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE -
+         (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 128);
+   for ( size_t i = 0; i < (BLOCKS_64_LIST_INITIAL_LEN - 1); i++ )
+   {
+      ArrayArena.list_64.list[i].ptr = ArrayArenaPool[ gap + i*64 ];
+      ArrayArena.list_64.list[i].is_free = true;
+   }
+
+   gap = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE -
+         (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 64);
+   for ( size_t i = 0; i < (BLOCKS_32_LIST_INITIAL_LEN - 1); i++ )
+   {
+      ArrayArena.list_32.list[i].ptr = ArrayArenaPool[ gap + i*32 ];
+      ArrayArena.list_32.list[i].is_free = true;
+   }
+
+   ArrayArena.arena_initialized = true;
 }
 
 /**
