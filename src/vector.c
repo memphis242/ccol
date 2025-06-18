@@ -1294,6 +1294,7 @@ struct ArrayArena_S
    struct ArrayPoolBlockList_S list_64;
    struct ArrayPoolBlockList_S list_32;
    bool arena_initialized;
+   size_t space_available;
 };
 
 //! The arena of bytes from which we allocate from.
@@ -1323,7 +1324,7 @@ static struct ArrayArena_S ArrayArena =
 static void StaticArrayPoolInit(void)
 {
    // Initialize the array arena's pointers, calculating an offset into the
-   // ArrayArenaPool for the block list pointers.
+   // ArrayArenaPool for each of the block list pointers.
    // TODO: This can be done at compile-time. If the macro magic isn't too crazy, let's try that.
    for ( size_t i = 0; i < (BLOCKS_1024_LIST_INITIAL_LEN - 1); i++ )
    {
@@ -1372,6 +1373,8 @@ static void StaticArrayPoolInit(void)
    }
 
    ArrayArena.arena_initialized = true;
+   ArrayArena.space_available = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE -
+                                (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 32);
 }
 
 /**
@@ -1417,11 +1420,19 @@ static struct Vector_S * StaticVectorArenaAlloc(void)
    return new_vec;
 }
 
+// Initial Draft of Allocator: Buddy System, as described in:
+//    memorymanagement.org/mmref/alloc.html
 static void * StaticArrayAlloc(size_t num_of_bytes)
 {
-   // Initial Draft of Allocator: Buddy System, as described in:
-   //    memorymanagement.org/mmref/alloc.html
+   if ( num_of_bytes > VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE )
+   {
+      return NULL;
+   }
 
+   if ( num_of_bytes > 1024 )
+   {
+
+   }
 }
 
 static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes)
