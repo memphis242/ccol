@@ -76,6 +76,9 @@ struct Vector_S
 /* Private Function Prototypes */
 
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
+static bool ArrayAllocInitialized = false;
+static void StaticArrayPoolInit(void);
+
 static struct Vector_S * StaticVectorArenaAlloc(void);
 static void * StaticArrayAlloc(size_t num_of_bytes);
 static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes);
@@ -125,6 +128,7 @@ struct Vector_S * VectorInit( size_t element_size,
 #if defined(VEC_USE_CUSTOM_ALLOC)
    struct Vector_S * NewVec = custom_malloc( sizeof(struct Vector_S) );
 #elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
+   if ( !ArrayAllocInitialized ) StaticArrayPoolInit();
    struct Vector_S * NewVec = StaticVectorArenaAlloc( sizeof(struct Vector_S) );
 #else
    struct Vector_S * NewVec = malloc( sizeof(struct Vector_S) );
@@ -1250,27 +1254,70 @@ struct VectorArenaItem_S
    struct Vector_S vec;
    bool is_allocated;
 };
+
 struct VectorArena_S
 {
    struct VectorArenaItem_S pool[VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE];
    size_t next_idx;
 };
+
 static struct VectorArena_S VectorArena;
 
 /* Array Arena Material */
+// Split the configured arena size into blocks of 1024, 512, 256, ..., 2.
+// Add 1 to ensure no arrays are 0-sized. This also helps ensure we fully cover
+// the configured arena size, with a little extra on top.
+#define BLOCKS_1024_LENGTH ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE)        / 1024) + 1)
+#define BLOCKS_512_LENGTH  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
+#define BLOCKS_256_LENGTH  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
+#define BLOCKS_128_LENGTH  ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
+#define BLOCKS_64_LENGTH   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
+#define BLOCKS_32_LENGTH   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
+#define BLOCKS_16_LENGTH   ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 32)   / 16)   + 1)
+#define BLOCKS_8_LENGTH    ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 16)   / 8)    + 1)
+#define BLOCKS_4_LENGTH    ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 8)    / 4)    + 1)
+#define BLOCKS_2_LENGTH    ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 4)    / 2)    + 1)
+
+struct ArrayPoolBlock_S
+{
+   uint8_t ptr;  // Pointer to block
+   bool is_free; // Flag to clear when allocating this block
+};
 struct ArrayArena_S
 {
-   uint8_t pool[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
    // The block sizes here are sized for what I might expect to find in a
    // memory-constrained embedded system.
-   // 1024  byte free list
-   // 512   byte free list
-   // 256   byte free list
-   // 128   byte free list
-   // 64    byte free list
-   // 32    byte free list
+   struct ArrayPoolBlock_S blocks_1024[BLOCKS_1024_LENGTH];
+   struct ArrayPoolBlock_S blocks_512[BLOCKS_512_LENGTH];
+   struct ArrayPoolBlock_S blocks_256[BLOCKS_256_LENGTH];
+   struct ArrayPoolBlock_S blocks_128[BLOCKS_128_LENGTH];
+   struct ArrayPoolBlock_S blocks_64[BLOCKS_64_LENGTH];
+   struct ArrayPoolBlock_S blocks_32[BLOCKS_32_LENGTH];
+   struct ArrayPoolBlock_S blocks_16[BLOCKS_16_LENGTH];
+   struct ArrayPoolBlock_S blocks_8[BLOCKS_8_LENGTH];
+   struct ArrayPoolBlock_S blocks_4[BLOCKS_4_LENGTH];
+   struct ArrayPoolBlock_S blocks_2[BLOCKS_2_LENGTH];
 };
-static uint8_t StaticArrayArena[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
+
+static uint8_t ArrayArenaPool[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
+static struct ArrayArena_S ArrayArena;
+
+static void StaticArrayPoolInit(void)
+{
+   // Initialize the array arena's pointers
+   for ( size_t i = 0; i < BLOCKS_1024_LENGTH; i++ )
+   {
+      ArrayArena.blocks_1024[i].ptr = ArrayArenaPool[ i*1024 ];
+      ArrayArena.blocks_1024[i].is_free = true;
+   }
+   size_t gap = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE -
+                (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 1024);
+   for ( size_t i = 0; i < BLOCKS_512_LENGTH; i++ )
+   {
+      ArrayArena.blocks_512[i].ptr = ArrayArenaPool[ gap + 1 + i*512 ];
+      ArrayArena.blocks_512[i].is_free = true;
+   }
+}
 
 /**
  * @brief Allocates a new Vector_S structure from a static arena.
