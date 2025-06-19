@@ -22,9 +22,14 @@
 #include "vector_cfg.h"
 #include "vector.h"
 
-// TODO: Add support for custom alloactors.
-
 /* Local Macro Definitions */
+
+#ifdef UNIT_TEST
+#define STATIC
+#else
+#define STATIC static
+#endif
+
 // Macro constants
 #define EXPANSION_FACTOR                    (2)   //TODO: Make the expansion factor user-configurable
 #define DEFAULT_INITIAL_CAPACITY            (10)  //! Not 1 because there would likely be a resize shortly after
@@ -76,16 +81,17 @@ struct Vector_S
 /* Private Function Prototypes */
 
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-static void StaticArrayPoolInit(void);
-static bool StaticArrayPoolIsInitialized(void);
+STATIC void StaticArrayPoolInit(void);
+STATIC bool StaticArrayPoolIsInitialized(void);
 
-static struct Vector_S * StaticVectorArenaAlloc(void);
-static void * StaticArrayAlloc(size_t num_of_bytes);
-static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes);
-static void   StaticVectorArenaFree(struct Vector_S * ptr);
-static void   StaticArrayFree(void * ptr);
-static bool   StaticVectorIsAlloc(struct Vector_S * ptr);
-static bool   StaticArrayIsAlloc(void * ptr);
+STATIC struct Vector_S * StaticVectorArenaAlloc(void);
+STATIC void   StaticVectorArenaFree(const struct Vector_S * ptr);
+STATIC bool   StaticVectorIsAlloc(const struct Vector_S * ptr);
+
+STATIC void * StaticArrayAlloc(size_t num_of_bytes);
+STATIC void * StaticArrayRealloc(const void * ptr, size_t num_of_bytes);
+STATIC void   StaticArrayFree(const void * ptr);
+STATIC bool   StaticArrayIsAlloc(const void * ptr);
 #endif
 
 static bool LocalVectorExpand( struct Vector_S * self );
@@ -1266,13 +1272,13 @@ struct VectorArena_S
    size_t next_idx;
 };
 
-static struct VectorArena_S VectorArena;
+STATIC struct VectorArena_S VectorArena;
 
 /**
  * @brief Allocates a new Vector_S structure from a static arena.
  * @return Pointer to the allocated Vector_S struct if successful, NULL otherwise.
  */
-static struct Vector_S * StaticVectorArenaAlloc(void)
+STATIC struct Vector_S * StaticVectorArenaAlloc(void)
 {
    assert( VectorArena.next_idx < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE );
    assert( VectorArena.pool != NULL );
@@ -1312,7 +1318,7 @@ static struct Vector_S * StaticVectorArenaAlloc(void)
    return new_vec;
 }
 
-static void StaticVectorArenaFree(struct Vector_S * ptr)
+STATIC void StaticVectorArenaFree(const struct Vector_S * ptr)
 {
    if ( NULL == ptr )
    {
@@ -1339,7 +1345,7 @@ static void StaticVectorArenaFree(struct Vector_S * ptr)
    }
 }
 
-static bool StaticVectorIsAlloc(struct Vector_S * ptr)
+STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 {
    for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
    {
@@ -1396,7 +1402,7 @@ struct ArrayArena_S
 };
 
 //! The arena of contiguous bytes from which we allocate from.
-static uint8_t ArrayArenaPool[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
+STATIC uint8_t ArrayArenaPool[VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE];
 // These shall be the list of allocatable blocks (the "free lists").
 struct ArrayPoolBlock_S blocks_1024 [ VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 1024 ];
 struct ArrayPoolBlock_S blocks_512  [ VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 512  ];
@@ -1405,7 +1411,7 @@ struct ArrayPoolBlock_S blocks_128  [ VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 128
 struct ArrayPoolBlock_S blocks_64   [ VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 64   ];
 struct ArrayPoolBlock_S blocks_32   [ VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE / 32   ];
 
-static struct ArrayArena_S ArrayArena =
+STATIC struct ArrayArena_S ArrayArena =
 {
    .lists =
    {
@@ -1421,7 +1427,8 @@ static struct ArrayArena_S ArrayArena =
 };
 
 /**
- * @brief Helper function to find the block that corresponds to the pointer passed in.
+ * @brief Local helper function to find the block that corresponds to the pointer passed in.
+ * 
  * @note The enum BlockSize_E * and size_t * parameters are optional and may be
  *       set to NULL if all the user cares about is if there exists a block that
  *       lives at the address passed in.
@@ -1436,7 +1443,7 @@ static bool Helper_FindBlock( const void *,
 /**
  * @brief Initializes the static array pool arena structures.
  */
-static void StaticArrayPoolInit(void)
+STATIC void StaticArrayPoolInit(void)
 {
    // Initialize the array arena's pointers, calculating an offset into the
    // ArrayArenaPool for each of the block list pointers.
@@ -1462,7 +1469,10 @@ static void StaticArrayPoolInit(void)
    ArrayArena.arena_initialized = true;
 }
 
-static bool StaticArrayPoolIsInitialized(void)
+/**
+ * Check that the static array pool is initialized.
+ */
+STATIC bool StaticArrayPoolIsInitialized(void)
 {
    return ArrayArena.arena_initialized;
 }
@@ -1474,7 +1484,7 @@ static bool StaticArrayPoolIsInitialized(void)
  *          memorymanagement.org/mmref/alloc.html
  * @return Pointer to the allocated block if successful, NULL otherwise.
  */
-static void * StaticArrayAlloc(size_t num_of_bytes)
+STATIC void * StaticArrayAlloc(size_t num_of_bytes)
 {
    assert( ArrayArena.arena_initialized );
 
@@ -1549,12 +1559,17 @@ static void * StaticArrayAlloc(size_t num_of_bytes)
    return block_ptr;
 }
 
-static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes)
+STATIC void * StaticArrayRealloc(const void * ptr, size_t num_of_bytes)
 {
    return NULL;
 }
 
-static void StaticArrayFree(void * ptr)
+/**
+ * @brief Free the block at the address passed in, if applicable.
+ * @note If the address passed in is not one that a block lives at, the fcn simply returns.
+ * @param[in] Address of block to free
+ */
+STATIC void StaticArrayFree(const void * ptr)
 {
    enum BlockSize_E blk_sz;
    size_t blk_idx;
@@ -1565,10 +1580,21 @@ static void StaticArrayFree(void * ptr)
    ArrayArena.lists[blk_sz].blocks[blk_idx].is_free = true;
 }
 
-static bool StaticArrayIsAlloc(void * ptr)
+/**
+ * @brief Determine whether an address is associated with a block that is allocated.
+ */
+STATIC bool StaticArrayIsAlloc(const void * ptr)
 {
-   return Helper_FindBlock( ptr, NULL, NULL );
+   enum BlockSize_E blk_sz;
+   size_t blk_idx;
+   bool blk_found = Helper_FindBlock( ptr, &blk_sz, &blk_idx );
+
+   if ( !blk_found ) return false;
+
+   return !ArrayArena.lists[blk_sz].blocks[blk_idx].is_free;
 }
+
+/* Static Array Allocator Helper Implementations */
 
 static bool Helper_FindBlock( const void * ptr,
                               enum BlockSize_E * blk_sz, size_t * blk_idx )
