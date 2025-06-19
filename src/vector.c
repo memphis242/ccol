@@ -486,7 +486,7 @@ bool VectorClearElementAt( struct Vector_S * self, size_t idx )
    assert(self->element_size > 0);
    assert(self->arr != NULL);
 
-   memset( (void *)PTR_TO_IDX(self, idx), 0, self->element_size );
+   memset( PTR_TO_IDX(self, idx), 0, self->element_size );
 
    return true;
 }
@@ -1058,7 +1058,10 @@ bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
       return false;
    }
 
-   memset( (void *)PTR_TO_IDX(self, idx_start), 0, self->element_size * (idx_end - idx_start + 1) );
+   memset(
+      PTR_TO_IDX(self, idx_start),
+      0,
+      self->element_size * (idx_end - idx_start + 1) );
 
    return true;
 }
