@@ -2,10 +2,8 @@
 
 ################################# The Prelude ##################################
 
-.PHONY: release
-.PHONY: release-vec
-.PHONY: debug
-.PHONY: debug-vec
+.PHONY: release release-vec libvector
+.PHONY: debug debug-vec
 .PHONY: test-vec test-all
 
 test-vec:
@@ -19,6 +17,7 @@ test-all:
 release:
 	@$(MAKE) lib BUILD_TYPE=RELEASE DS=ALL
 
+libvector: release-vec
 release-vec:
 	@$(MAKE) lib BUILD_TYPE=RELEASE DS=vector
 
