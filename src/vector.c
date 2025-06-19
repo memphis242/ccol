@@ -1366,12 +1366,13 @@ static bool StaticVectorIsAlloc(struct Vector_S * ptr)
 
 enum BlockSize_E
 {
-   B1024,
-   B512,
-   B256,
-   B128,
-   B64,
-   B32,
+   BLKS_LARGEST_SIZE,
+   BLKS_1024 = BLKS_LARGEST_SIZE,
+   BLKS_512,
+   BLKS_256,
+   BLKS_128,
+   BLKS_64,
+   BLKS_32,
    NUM_OF_BLOCK_SIZES
 };
 
@@ -1407,12 +1408,12 @@ static struct ArrayArena_S ArrayArena =
 {
    .lists =
    {
-      [ B1024 ] = { .blocks = blocks_1024, .len = (BLOCKS_1024_LIST_INITIAL_LEN - 1), .block_size = 1024 },
-      [ B512 ]  = { .blocks = blocks_512,  .len = (BLOCKS_512_LIST_INITIAL_LEN - 1),  .block_size = 512  },
-      [ B256 ]  = { .blocks = blocks_256,  .len = (BLOCKS_256_LIST_INITIAL_LEN - 1),  .block_size = 256  },
-      [ B128 ]  = { .blocks = blocks_128,  .len = (BLOCKS_128_LIST_INITIAL_LEN - 1),  .block_size = 128  },
-      [ B64 ]   = { .blocks = blocks_64,   .len = (BLOCKS_64_LIST_INITIAL_LEN - 1),   .block_size = 64   },
-      [ B32 ]   = { .blocks = blocks_32,   .len = (BLOCKS_32_LIST_INITIAL_LEN - 1),   .block_size = 32   }
+      [ BLKS_1024 ] = { .blocks = blocks_1024, .len = (BLOCKS_1024_LIST_INITIAL_LEN - 1), .block_size = 1024 },
+      [ BLKS_512 ]  = { .blocks = blocks_512,  .len = (BLOCKS_512_LIST_INITIAL_LEN - 1),  .block_size = 512  },
+      [ BLKS_256 ]  = { .blocks = blocks_256,  .len = (BLOCKS_256_LIST_INITIAL_LEN - 1),  .block_size = 256  },
+      [ BLKS_128 ]  = { .blocks = blocks_128,  .len = (BLOCKS_128_LIST_INITIAL_LEN - 1),  .block_size = 128  },
+      [ BLKS_64 ]   = { .blocks = blocks_64,   .len = (BLOCKS_64_LIST_INITIAL_LEN - 1),   .block_size = 64   },
+      [ BLKS_32 ]   = { .blocks = blocks_32,   .len = (BLOCKS_32_LIST_INITIAL_LEN - 1),   .block_size = 32   }
    },
    .arena_initialized = false,
    .space_available = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE - (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 32)
@@ -1461,29 +1462,65 @@ static void * StaticArrayAlloc(size_t num_of_bytes)
       return NULL;
    }
 
+   #ifndef NDEBUG
+   // Confirm assumption that the lists are sorted in order of descending block size
+   uint16_t prev_sz = ArrayArena.lists[0].block_size;
+   for ( uint8_t sz = 1; sz < (uint8_t)NUM_OF_BLOCK_SIZES; sz++ )
+   {
+      assert( ArrayArena.lists[sz].block_size > prev_sz );
+      prev_sz = ArrayArena.lists[sz].block_size;
+   }
+   #endif
+
    void * block_ptr = NULL;
    size_t space_allocated = 0;
-   if ( (num_of_bytes <= 1024) && (num_of_bytes > (1024 - 32)) )
+
+   // TODO: Accomodate block requests larger than 1024
+   // TODO: Reduce internal fragmentation /w block requests that are in between powers of 2
+   // Start checking from the largest block sizes down
+   assert( num_of_bytes <= 1024 );  // Not yet accomodating block requests larger than 1024
+   for ( uint8_t sz = BLKS_LARGEST_SIZE; sz < (uint8_t)NUM_OF_BLOCK_SIZES; sz++ )
    {
+      struct ArrayPoolBlockList_S * list = &ArrayArena.lists[sz];
+      if ( num_of_bytes < (list->block_size / 2) ) continue;
+
       bool found_block = false;
-      struct ArrayPoolBlockList_S * list = &ArrayArena.list_1024;
-      for ( size_t i = (list->len - 1); i >= 0; i-- )
+      // Allocated from the beginning of the block list...
+      for ( size_t i = 0; i < list->len; i++ )
       {
          if ( list->blocks[i].is_free )
          {
             found_block = true;
-            space_allocated = 1024;
+            space_allocated = list->block_size;
             block_ptr = list->blocks[i].ptr;
          }
       }
 
-      if ( (!found_block) && (num_of_bytes != 1024) )
+      if ( (!found_block) && (sz != BLKS_LARGEST_SIZE) )
       {
-         // TODO: Going to need to use multiple smaller blocks.
-         //       Keep in mind that you're going to need to know how to free
-         //       these "merged" blocks!
+         // TODO: Try to split larger blocks
+         struct ArrayPoolBlockList_S * larger_size_list = &ArrayArena.lists[sz + 1];
+         // Start from the end of the block list. Helps reduce the odds of
+         // interweaving blocks of different sizes.
+         for ( size_t i = (larger_size_list->len - 1); i >= 0; i-- )
+         {
+            if ( !larger_size_list->blocks[i].is_free )  continue;
 
+            // Split the block
+            larger_size_list->len--;
+            list->blocks[list->len].ptr = larger_size_list->blocks[i].ptr;
+            block_ptr = list->blocks[list->len].ptr;
+            list->blocks[list->len].is_free = false;
+            list->blocks[list->len + 1].ptr = larger_size_list->blocks[i].ptr;
+            list->blocks[list->len + 1].is_free = true;
+            list->len += 2;
+            // Assign 
+            found_block = true;
+            space_allocated = list->block_size;
+         }
       }
+
+      break;
    }
 
 
@@ -1498,7 +1535,7 @@ static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes)
 
 static void StaticArrayFree(void * ptr)
 {
-
+   // Find which block this belongs to
 }
 
 static bool StaticArrayIsAlloc(void * ptr)
