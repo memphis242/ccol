@@ -77,6 +77,7 @@ struct Vector_S
 
 #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
 static void StaticArrayPoolInit(void);
+static bool StaticArrayPoolIsInitialized(void);
 
 static struct Vector_S * StaticVectorArenaAlloc(void);
 static void * StaticArrayAlloc(size_t num_of_bytes);
@@ -127,8 +128,8 @@ struct Vector_S * VectorInit( size_t element_size,
 #if defined(VEC_USE_CUSTOM_ALLOC)
    struct Vector_S * NewVec = custom_malloc( sizeof(struct Vector_S) );
 #elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
-   if ( !ArrayArena.arena_initialized ) StaticArrayPoolInit();
-   struct Vector_S * NewVec = StaticVectorArenaAlloc( sizeof(struct Vector_S) );
+   if ( !StaticArrayPoolIsInitialized() ) StaticArrayPoolInit();
+   struct Vector_S * NewVec = StaticVectorArenaAlloc();
 #else
    struct Vector_S * NewVec = malloc( sizeof(struct Vector_S) );
 #endif
@@ -201,10 +202,10 @@ struct Vector_S * VectorInit( size_t element_size,
 /******************************************************************************/
 void VectorFree( struct Vector_S * self )
 {
-   if ( (self != NULL) && (self->arr != NULL)
+   if ( (self != NULL) && (self->arr != NULL) )
    {
 #ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
-      if (self->vec_free != NULL) )
+      if (self->vec_free != NULL)
       {
          self->vec_free(self->arr);
          self->vec_free(self);
@@ -1502,7 +1503,7 @@ static void * StaticArrayAlloc(size_t num_of_bytes)
          struct ArrayPoolBlockList_S * larger_size_list = &ArrayArena.lists[sz + 1];
          // Start from the end of the block list. Helps reduce the odds of
          // interweaving blocks of different sizes.
-         for ( size_t i = (larger_size_list->len - 1); i >= 0; i-- )
+         for ( int i = (int)(larger_size_list->len - 1); i >= 0; i-- )
          {
             if ( !larger_size_list->blocks[i].is_free )  continue;
 
