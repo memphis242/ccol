@@ -1421,6 +1421,19 @@ static struct ArrayArena_S ArrayArena =
 };
 
 /**
+ * @brief Helper function to find the block that corresponds to the pointer passed in.
+ * @note The enum BlockSize_E * and size_t * parameters are optional and may be
+ *       set to NULL if all the user cares about is if there exists a block that
+ *       lives at the address passed in.
+ * @param[in]  ptr     Address to look for among the allocatable blocks
+ * @param[out] blk_sz  (Ptr) Enum for which block list the ptr belongs to (optional)
+ * @param[out] blk_idx (Ptr) Idx within the block list that the ptr belongs to (optional)
+ * @return true if successful in finding a block; false otherwise
+ */
+static bool Helper_FindBlock( const void *,
+     /* Return Parameters */  enum BlockSize_E *, size_t * );
+
+/**
  * @brief Initializes the static array pool arena structures.
  */
 static void StaticArrayPoolInit(void)
@@ -1456,13 +1469,15 @@ static bool StaticArrayPoolIsInitialized(void)
 
 /**
  * @brief Allocates a contiguous block that can accomodate num_of_bytes from
- *        a static arena.
+ *        a static arena. Block size guaranteed to be ≥num_of_bytes.
  * @note Presently uses the "Buddy System" as described in:
  *          memorymanagement.org/mmref/alloc.html
  * @return Pointer to the allocated block if successful, NULL otherwise.
  */
 static void * StaticArrayAlloc(size_t num_of_bytes)
 {
+   assert( ArrayArena.arena_initialized );
+
    if ( num_of_bytes > ArrayArena.space_available )
    {
       return NULL;
@@ -1536,17 +1551,65 @@ static void * StaticArrayAlloc(size_t num_of_bytes)
 
 static void * StaticArrayRealloc(void * ptr, size_t num_of_bytes)
 {
-
+   return NULL;
 }
 
 static void StaticArrayFree(void * ptr)
 {
-   // Find which block this belongs to
+   enum BlockSize_E blk_sz;
+   size_t blk_idx;
+   bool blk_found = Helper_FindBlock( ptr, &blk_sz, &blk_idx );
+
+   if ( !blk_found ) return;  // TODO: Raise exception that user tried to free an unallocated block?
+
+   ArrayArena.lists[blk_sz].blocks[blk_idx].is_free = true;
 }
 
 static bool StaticArrayIsAlloc(void * ptr)
 {
+   return Helper_FindBlock( ptr, NULL, NULL );
+}
 
+static bool Helper_FindBlock( const void * ptr,
+                              enum BlockSize_E * blk_sz, size_t * blk_idx )
+{
+   assert( ArrayArena.arena_initialized );
+
+   // No point in checking a NULL ptr, but also don't assert because that's
+   // not part of the contract of this fcn. This fcn may be used on a ptr that
+   // the user directly passes in.
+   if ( NULL == ptr )   return false;
+
+#ifndef NDEBUG
+   bool blk_found = false;
+#endif
+   for ( uint8_t sz = BLKS_LARGEST_SIZE; sz < (uint8_t)NUM_OF_BLOCK_SIZES; sz++ )
+   {
+      const struct ArrayPoolBlockList_S * list = &ArrayArena.lists[sz];
+      for ( size_t i = 0; i < list->len; i++ )
+      {
+         // 🗒: Should I allow for an address _inside_ a block?
+         if ( list->blocks[i].ptr == ptr )
+         {
+            if ( blk_sz != NULL ) *blk_sz = (enum BlockSize_E)sz;
+            if ( blk_idx != NULL ) *blk_idx = i;
+
+#ifndef NDEBUG
+            // Assert that this is the only block that has this address. For
+            // the debug build, keep searching to make sure this assertion holds.
+            // We should only enter this if statement once, so blk_found should
+            // still be false.
+            assert(!blk_found);
+            blk_found = true;
+#else
+            return true;
+#endif
+
+         }
+      }
+   }
+
+   return false;
 }
 
 #endif
