@@ -1449,6 +1449,11 @@ static void StaticArrayPoolInit(void)
    ArrayArena.arena_initialized = true;
 }
 
+static bool StaticArrayPoolIsInitialized(void)
+{
+   return ArrayArena.arena_initialized;
+}
+
 /**
  * @brief Allocates a contiguous block that can accomodate num_of_bytes from
  *        a static arena.
