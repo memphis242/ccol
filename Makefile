@@ -146,7 +146,10 @@ COMPILER_WARNINGS_TEST_BUILD = \
     -Wno-maybe-uninitialized
 
 # Consider -Wmismatched-dealloc
-COMPILER_SANITIZERS = -fsanitize=bool -fsanitize=undefined -fsanitize-trap
+COMPILER_SANITIZERS = \
+    -fsanitize=undefined -fsanitize-trap \
+    -fsanitize=enum  -fsanitize=bool -fsanitize=bounds
+
 LIB_OPTIMIZATION_FLAGS ?=
 ifdef LTO
 LIB_OPTIMIZATION_FLAGS = -ffunction-sections -fdata-sections # Facilitates link-time optimization (LDO)
