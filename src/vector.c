@@ -1565,6 +1565,30 @@ STATIC void * StaticArrayAlloc(size_t num_of_bytes)
 
 STATIC void * StaticArrayRealloc(const void * ptr, size_t num_of_bytes)
 {
+   enum BlockSize blk_sz;
+   size_t blk_idx;
+   bool blk_found = Helper_FindBlock( ptr, &blk_sz, &blk_idx );
+
+   if ( !blk_found )
+   {
+      // TODO: Raise exception that user tried to realloc an unallocated block?
+      return NULL;
+   }
+   else if ( ArrayArena.lists[blk_sz].blocks[blk_idx].is_free )
+   {
+      // TODO: Raise exception that user tried to realloc a block that was free
+      return NULL;
+   }
+   else if ( num_of_bytes >  (ArrayArena.lists[blk_sz].block_size / 2) &&
+             num_of_bytes <= ArrayArena.lists[blk_sz].block_size )
+   {
+      // Not much point in reallocating if the size is the best fit.
+      // TODO: Accomodate realloc size requests in between powers of 2 using combo of block sizes
+      return ptr;
+   }
+
+   //ArrayArena.lists[blk_sz].blocks[blk_idx].is_free = true;
+   //ArrayArena.space_available += BlockSize_E_to_Int[blk_sz];
    return NULL;
 }
 
