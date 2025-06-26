@@ -1509,14 +1509,15 @@ STATIC void * StaticArrayAlloc(size_t num_of_bytes)
    size_t space_allocated = 0;
 
    // TODO: Accomodate block requests larger than 1024
+   assert( num_of_bytes <= 1024 );  // Not yet accomodating block requests larger than 1024
    // TODO: Reduce internal fragmentation /w block requests that are in between powers of 2
    // Start checking from the largest block sizes down
-   assert( num_of_bytes <= 1024 );  // Not yet accomodating block requests larger than 1024
    for ( uint8_t sz = BLKS_LARGEST_SIZE; sz < (uint8_t)NUM_OF_BLOCK_SIZES; sz++ )
    {
-      struct ArrayPoolBlockList_S * list = &ArrayArena.lists[sz];
-      if ( num_of_bytes < (list->block_size / 2) ) continue;
+      // Skip until we find the nearest block size that accomodates the request
+      if ( num_of_bytes < (ArrayArena.lists[sz].block_size / 2) ) continue;
 
+      struct ArrayPoolBlockList_S * list = &ArrayArena.lists[sz];
       bool found_block = false;
       // Allocated from the beginning of the block list...
       for ( size_t i = 0; i < list->len; i++ )
@@ -1531,7 +1532,8 @@ STATIC void * StaticArrayAlloc(size_t num_of_bytes)
 
       if ( (!found_block) && (sz != BLKS_LARGEST_SIZE) )
       {
-         // TODO: Try to split larger blocks
+         // Look in the free lists of the larger block sizes
+         // TODO: Loop through the block sizes up to the largest block size, not just the next size up.
          struct ArrayPoolBlockList_S * larger_size_list = &ArrayArena.lists[sz + 1];
          // Start from the end of the block list. Helps reduce the odds of
          // interweaving blocks of different sizes.
@@ -1539,12 +1541,12 @@ STATIC void * StaticArrayAlloc(size_t num_of_bytes)
          {
             if ( !larger_size_list->blocks[i].is_free )  continue;
 
-            // Split the block
+            // Split the larger block and assign its info to the smaller size free list
             larger_size_list->len--;
             list->blocks[list->len].ptr = larger_size_list->blocks[i].ptr;
             block_ptr = list->blocks[list->len].ptr;
             list->blocks[list->len].is_free = false;
-            list->blocks[list->len + 1].ptr = larger_size_list->blocks[i].ptr;
+            list->blocks[list->len + 1].ptr = (uint8_t *)larger_size_list->blocks[i].ptr + larger_size_list->block_size;
             list->blocks[list->len + 1].is_free = true;
             list->len += 2;
             // Assign 
