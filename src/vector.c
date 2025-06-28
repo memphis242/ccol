@@ -85,19 +85,18 @@ STATIC void StaticArrayPoolInit(void);
 STATIC bool StaticArrayPoolIsInitialized(void);
 
 STATIC struct Vector_S * StaticVectorArenaAlloc(void);
-STATIC void   StaticVectorArenaFree(const struct Vector_S * ptr);
-STATIC bool   StaticVectorIsAlloc(const struct Vector_S * ptr);
+STATIC void   StaticVectorArenaFree(const struct Vector_S *);
+STATIC bool   StaticVectorIsAlloc(const struct Vector_S *);
 
-STATIC void * StaticArrayAlloc(size_t num_of_bytes);
-STATIC void * StaticArrayRealloc(const void * ptr, size_t num_of_bytes);
-STATIC void   StaticArrayFree(const void * ptr);
-STATIC bool   StaticArrayIsAlloc(const void * ptr);
+STATIC void * StaticArrayAlloc(size_t);
+STATIC void * StaticArrayRealloc(void *, size_t);
+STATIC void   StaticArrayFree(const void *);
+STATIC bool   StaticArrayIsAlloc(const void *);
 #endif
 
-static bool LocalVectorExpand( struct Vector_S * self );
-static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len );
-static void ShiftNOver( struct Vector_S * self, size_t idx,
-                        bool move_right, size_t n );
+static bool LocalVectorExpand(struct Vector_S *);
+static bool LocalVectorExpandBy(struct Vector_S *, size_t);
+static void ShiftNOver( struct Vector_S *, size_t, bool, size_t);
 
 /* Public API Implementations */
 
@@ -1480,17 +1479,17 @@ STATIC bool StaticArrayPoolIsInitialized(void)
 }
 
 /**
- * @brief Allocates a contiguous block that can accomodate num_of_bytes from
- *        a static arena. Block size guaranteed to be ≥num_of_bytes.
+ * @brief Allocates a contiguous block that can accomodate req_bytes from
+ *        a static arena. Block size guaranteed to be ≥req_bytes.
  * @note Presently uses the "Buddy System" as described in:
  *          memorymanagement.org/mmref/alloc.html
  * @return Pointer to the allocated block if successful, NULL otherwise.
  */
-STATIC void * StaticArrayAlloc(size_t num_of_bytes)
+STATIC void * StaticArrayAlloc(size_t req_bytes)
 {
    assert( ArrayArena.arena_initialized );
 
-   if ( num_of_bytes > ArrayArena.space_available )
+   if ( req_bytes > ArrayArena.space_available )
    {
       return NULL;
    }
@@ -1509,13 +1508,13 @@ STATIC void * StaticArrayAlloc(size_t num_of_bytes)
    size_t space_allocated = 0;
 
    // TODO: Accomodate block requests larger than 1024
-   assert( num_of_bytes <= 1024 );  // Not yet accomodating block requests larger than 1024
+   assert( req_bytes <= 1024 );
    // TODO: Reduce internal fragmentation /w block requests that are in between powers of 2
    // Start checking from the largest block sizes down
    for ( uint8_t sz = BLKS_LARGEST_SIZE; sz < (uint8_t)NUM_OF_BLOCK_SIZES; sz++ )
    {
       // Skip until we find the nearest block size that accomodates the request
-      if ( num_of_bytes < (ArrayArena.lists[sz].block_size / 2) ) continue;
+      if ( req_bytes < (ArrayArena.lists[sz].block_size / 2) ) continue;
 
       struct ArrayPoolBlockList_S * list = &ArrayArena.lists[sz];
       bool found_block = false;
@@ -1563,33 +1562,48 @@ STATIC void * StaticArrayAlloc(size_t num_of_bytes)
    return block_ptr;
 }
 
-STATIC void * StaticArrayRealloc(const void * ptr, size_t num_of_bytes)
+STATIC void * StaticArrayRealloc(void * ptr, size_t req_bytes)
 {
-   enum BlockSize blk_sz;
-   size_t blk_idx;
-   bool blk_found = Helper_FindBlock( ptr, &blk_sz, &blk_idx );
+   enum BlockSize old_blk_sz;
+   size_t old_blk_idx;
+   bool old_blk_found = Helper_FindBlock( ptr, &old_blk_sz, &old_blk_idx );
 
-   if ( !blk_found )
+   if ( !old_blk_found )
    {
-      // TODO: Raise exception that user tried to realloc an unallocated block?
+      // TODO: Raise exception that user tried to realloc an unallocated block
       return NULL;
    }
-   else if ( ArrayArena.lists[blk_sz].blocks[blk_idx].is_free )
+   else if ( ArrayArena.lists[old_blk_sz].blocks[old_blk_idx].is_free )
    {
       // TODO: Raise exception that user tried to realloc a block that was free
       return NULL;
    }
-   else if ( num_of_bytes >  (ArrayArena.lists[blk_sz].block_size / 2) &&
-             num_of_bytes <= ArrayArena.lists[blk_sz].block_size )
+   else if ( req_bytes >  (ArrayArena.lists[old_blk_sz].block_size / 2) &&
+             req_bytes <= ArrayArena.lists[old_blk_sz].block_size )
    {
       // Not much point in reallocating if the size is the best fit.
       // TODO: Accomodate realloc size requests in between powers of 2 using combo of block sizes
       return ptr;
    }
+   else if ( 0 == req_bytes )
+   {
+      StaticArrayFree( ptr );
+      return NULL;
+   }
 
-   //ArrayArena.lists[blk_sz].blocks[blk_idx].is_free = true;
-   //ArrayArena.space_available += BlockSize_E_to_Int[blk_sz];
-   return NULL;
+   void * tmp = StaticArrayAlloc( req_bytes );
+   if ( tmp != NULL )
+   {
+      size_t old_blk_size = BlockSize_E_to_Int[old_blk_sz];
+      size_t num_of_bytes = (req_bytes > old_blk_size) ? old_blk_size : req_bytes;
+      memcpy( tmp, ptr, num_of_bytes );
+      StaticArrayFree( ptr );
+      return tmp;
+   }
+
+   // Must not have been able to allocate new block...
+   // TODO: Need a better way to express that we failed to realloc. Probably add void ** new_ptr param and return bool/exception/result type.
+   return ptr;
 }
 
 /**
