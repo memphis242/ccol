@@ -16,3 +16,6 @@ leetcode.c
 
 # Unit Test
 *.txt
+
+# Vim
+*.swp
