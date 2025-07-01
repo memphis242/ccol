@@ -15,17 +15,23 @@
 /* Public Macro Definitions */
 
 //! Uncomment to set a maximum vector length for any vector
-#define MAX_VEC_LEN 100000
+#define MAX_VEC_LEN 1000
 
 //! Uncomment to enable the ability to initialize a vector /w a custom allocator
 //#define VEC_USE_CUSTOM_ALLOC
 
 #ifndef VEC_USE_CUSTOM_ALLOC
+
 //! Uncomment to enable the built-in static arena for the built-in arena allocator
 #define VEC_USE_BUILT_IN_STATIC_ALLOC
 
-//! Specify the static arena allocator's vector arena size in number of vectors
-#define VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE  25
-//! Specify the static arena allocator's array arena size in number of bytes
-#define VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE  10000
-#endif
+   #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
+
+   //! Specify the static arena allocator's vector arena size in number of vectors
+   #define VEC_VECTOR_ARENA_SIZE  25
+   //! Specify the static arena allocator's array arena size in number of bytes
+   #define VEC_ARRAY_ARENA_SIZE  10000
+
+   #endif // VEC_USE_BUILT_IN_STATIC_ALLOW
+
+#endif // VEC_USE_CUSTOM_ALLOC
