@@ -37,17 +37,19 @@
 #define DEFAULT_LEN_TO_CAPACITY_FACTOR      (2)   //! How many multiples of length should capacity be set to by default
 
 // Enforce a maximum length to help prevent extreme memory requests
+#ifndef MAX_VEC_LEN
 #define TENTATIVE_MAX_VEC_LEN UINT32_MAX
 #if ( SIZE_MAX < PTRDIFF_MAX )
    #define SYSTEM_LIMIT SIZE_MAX
 #else
    #define SYSTEM_LIMIT PTRDIFF_MAX
-#endif
+#endif // SIZE_MAX < PTRDIFF_MAX
 #if (SYSTEM_LIMIT < TENTATIVE_MAX_VEC_LEN)
-   #define MAX_VECTOR_LIST_INITIAL_LEN  SIZE_MAX
+   #define MAX_VEC_LEN  SIZE_MAX
 #else
-   #define MAX_VECTOR_LIST_INITIAL_LEN TENTATIVE_MAX_VEC_LEN
-#endif
+   #define MAX_VEC_LEN TENTATIVE_MAX_VEC_LEN
+#endif // (SYSTEM_LIMIT < TENTATIVE_MAX_VEC_LEN)
+#endif // MAX_VEC_LEN
 
 // Function-like macros
 
@@ -115,7 +117,7 @@ struct Vector_S * VectorInit( size_t element_size,
 {
    // Invalid inputs
    if ( (element_size == 0) ||
-        (initial_capacity > MAX_VECTOR_LIST_INITIAL_LEN) ||
+        (initial_capacity > MAX_VEC_LEN) ||
         (max_capacity == 0) ||
         (initial_capacity > max_capacity) ||
         (initial_len > initial_capacity)
@@ -191,10 +193,10 @@ struct Vector_S * VectorInit( size_t element_size,
 
    NewVec->element_size = element_size;
 
-   if ( max_capacity > MAX_VECTOR_LIST_INITIAL_LEN )
+   if ( max_capacity > MAX_VEC_LEN )
    {
       // TODO: Throw exception for max_capacity too large
-      NewVec->max_capacity = MAX_VECTOR_LIST_INITIAL_LEN;
+      NewVec->max_capacity = MAX_VEC_LEN;
    }
    else
    {
@@ -710,7 +712,7 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
 {
    if ( (NULL == v1) || (NULL == v2) ||
         (v1->element_size != v2->element_size) ||
-        (v2->len > (MAX_VECTOR_LIST_INITIAL_LEN - v1->len)) // Unsupported length
+        (v2->len > (MAX_VEC_LEN - v1->len)) // Unsupported length
       )
    {
       return NULL;
@@ -751,13 +753,13 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
    else  // Both must be non-empty
    {
       size_t new_vec_len = v1->len + v2->len;
-      size_t new_vec_cap = MAX_VECTOR_LIST_INITIAL_LEN;
-      if ( v2->capacity < (MAX_VECTOR_LIST_INITIAL_LEN - v1->capacity) )
+      size_t new_vec_cap = MAX_VEC_LEN;
+      if ( v2->capacity < (MAX_VEC_LEN - v1->capacity) )
       {
          new_vec_cap = v1->capacity + v2->capacity;
       }
-      size_t new_vec_max_cap = MAX_VECTOR_LIST_INITIAL_LEN;
-      if ( v2->max_capacity < (MAX_VECTOR_LIST_INITIAL_LEN - v1->max_capacity) )
+      size_t new_vec_max_cap = MAX_VEC_LEN;
+      if ( v2->max_capacity < (MAX_VEC_LEN - v1->max_capacity) )
       {
          new_vec_max_cap = v1->max_capacity + v2->max_capacity;
       }
@@ -1229,7 +1231,7 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
    assert(idx < self->len);
    assert( (move_right && ((n + self->len) <= self->capacity)) || (!move_right && (n <= self->len)) );
    // Extra checks to trap paradox states
-   assert(idx < MAX_VECTOR_LIST_INITIAL_LEN);
+   assert(idx < MAX_VEC_LEN);
    assert(self->element_size > 0);
 
    if ( move_right )

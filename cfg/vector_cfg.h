@@ -14,6 +14,9 @@
 
 /* Public Macro Definitions */
 
+//! Uncomment to set a maximum vector length for any vector
+#define MAX_VEC_LEN 100000
+
 //! Uncomment to enable the ability to initialize a vector /w a custom allocator
 //#define VEC_USE_CUSTOM_ALLOC
 
