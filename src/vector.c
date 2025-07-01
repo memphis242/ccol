@@ -31,7 +31,7 @@
 #endif
 
 // Macro constants
-#define EXPANSION_FACTOR                    (2)   //TODO: Make the expansion factor user-configurable
+#define EXPANSION_FACTOR                    (2)   // TODO: Make the expansion factor user-configurable
 #define DEFAULT_INITIAL_CAPACITY            (10)  //! Not 1 because there would likely be a resize shortly after
 #define DEFAULT_MAX_CAPACITY_FACTOR         (10)  //! How many multiples of initial capacity do we set max capacity by default
 #define DEFAULT_LEN_TO_CAPACITY_FACTOR      (2)   //! How many multiples of length should capacity be set to by default
@@ -1362,7 +1362,7 @@ STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 
 /********** Array Arena Material **********/
 
-// Split the configured arena size into blocks of 1024, 512, 256, ..., 2.
+// Split the configured arena size into blocks of 1024, 512, 256, ..., and so on.
 // Add 1 to ensure no arrays are 0-sized. This also helps ensure we fully cover
 // the configured arena size, with a little extra on top.
 #define BLOCKS_1024_LIST_INITIAL_LEN ( ((VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE)        / 1024) + 1)
@@ -1419,11 +1419,11 @@ STATIC struct ArrayArena_S ArrayArena =
    .lists =
    {
       [ BLKS_1024 ] = { .blocks = blocks_1024, .len = (BLOCKS_1024_LIST_INITIAL_LEN - 1), .block_size = 1024 },
-      [ BLKS_512 ]  = { .blocks = blocks_512,  .len = (BLOCKS_512_LIST_INITIAL_LEN - 1),  .block_size = 512  },
-      [ BLKS_256 ]  = { .blocks = blocks_256,  .len = (BLOCKS_256_LIST_INITIAL_LEN - 1),  .block_size = 256  },
-      [ BLKS_128 ]  = { .blocks = blocks_128,  .len = (BLOCKS_128_LIST_INITIAL_LEN - 1),  .block_size = 128  },
-      [ BLKS_64 ]   = { .blocks = blocks_64,   .len = (BLOCKS_64_LIST_INITIAL_LEN - 1),   .block_size = 64   },
-      [ BLKS_32 ]   = { .blocks = blocks_32,   .len = (BLOCKS_32_LIST_INITIAL_LEN - 1),   .block_size = 32   }
+      [ BLKS_512  ] = { .blocks = blocks_512,  .len = (BLOCKS_512_LIST_INITIAL_LEN  - 1), .block_size = 512  },
+      [ BLKS_256  ] = { .blocks = blocks_256,  .len = (BLOCKS_256_LIST_INITIAL_LEN  - 1), .block_size = 256  },
+      [ BLKS_128  ] = { .blocks = blocks_128,  .len = (BLOCKS_128_LIST_INITIAL_LEN  - 1), .block_size = 128  },
+      [ BLKS_64   ] = { .blocks = blocks_64,   .len = (BLOCKS_64_LIST_INITIAL_LEN   - 1), .block_size = 64   },
+      [ BLKS_32   ] = { .blocks = blocks_32,   .len = (BLOCKS_32_LIST_INITIAL_LEN   - 1), .block_size = 32   }
    },
    .arena_initialized = false,
    .space_available = VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE - (VEC_BUILT_IN_STATIC_ARRAY_ARENA_SIZE % 32)
@@ -1651,7 +1651,7 @@ static bool Helper_FindBlock( const void * ptr,
 #ifndef NDEBUG
    bool blk_found = false;
 #endif
-   for ( uint8_t sz = BLKS_LARGEST_SIZE; sz < (uint8_t)NUM_OF_BLOCK_SIZES; sz++ )
+   for ( uint8_t sz = 0; sz < (uint8_t)NUM_OF_BLOCK_SIZES; sz++ )
    {
       const struct ArrayPoolBlockList_S * list = &ArrayArena.lists[sz];
       for ( size_t i = 0; i < list->len; i++ )
