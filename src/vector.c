@@ -1528,6 +1528,7 @@ STATIC void * StaticArrayAlloc(size_t req_bytes)
             found_block = true;
             space_allocated = list->block_size;
             block_ptr = list->blocks[i].ptr;
+            list->blocks[i].is_free = false;
          }
       }
 
