@@ -1676,7 +1676,11 @@ static bool Helper_FindBlock( const void * ptr,
       }
    }
 
+#ifndef NDEBUG
+   return blk_found;
+#else
    return false;
+#endif
 }
 
 #endif
