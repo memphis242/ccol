@@ -1362,26 +1362,32 @@ STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 
 /********** Array Arena Material **********/
 
-// We will have free lists of blocks that are sized in powers of 2. The lists are
-// statically sized so that theoretically, the full static array arena can be
-// owned by any single list. This is done because we have to account for the
-// dynamics of these lists shifting ownership of the arena in all sorts of strange
-// and mysterious ways in practice. We may start off with the 1024 list owning
-// the majority of the arena, and over time, each 1024 block may be split off,
-// theoretically until all the blocks are 32-byte sized ¯\_(ツ)_/¯. Also, of
-// course, we cannot dynamically size the memory used by these lists because,
-// these lists are the handlers of dynamic memory!
-
-// Macro constants for the capacity of each list.
+// Macro constants for the iniital length of each free list.
 // Split the configured arena into blocks of 1024, 512, 256, ..., and so on.
-// Add 1 to ensure no arrays are 0-sized. This also helps ensure we fully cover
-// the configured arena size, with a little extra on top.
-#define BLOCKS_1024_LIST_CAPACITY ( ((VEC_ARRAY_ARENA_SIZE)        / 1024) + 1)
-#define BLOCKS_512_LIST_CAPACITY  ( ((VEC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
-#define BLOCKS_256_LIST_CAPACITY  ( ((VEC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
-#define BLOCKS_128_LIST_CAPACITY  ( ((VEC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
-#define BLOCKS_64_LIST_CAPACITY   ( ((VEC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
-#define BLOCKS_32_LIST_CAPACITY   ( ((VEC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
+// Add 1 to ensure no arrays are 0-sized.
+#define BLOCKS_1024_LIST_INIT_LEN ( ((VEC_ARRAY_ARENA_SIZE)        / 1024) + 1)
+#define BLOCKS_512_LIST_INIT_LEN  ( ((VEC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
+#define BLOCKS_256_LIST_INIT_LEN  ( ((VEC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
+#define BLOCKS_128_LIST_INIT_LEN  ( ((VEC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
+#define BLOCKS_64_LIST_INIT_LEN   ( ((VEC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
+#define BLOCKS_32_LIST_INIT_LEN   ( ((VEC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
+
+// Macro constants for the capacity of each free list.
+// The lists are statically sized so that theoretically, the full static array
+// arena can be owned by any single list. This is done because we have to account
+// for the run-time dynamics of these lists shifting ownership of the arena in
+// all sorts of strange and mysterious ways in practice. We may start off with
+// the 1024 list owning the majority of the arena, and over time, each 1024
+// blocks may be split off, theoretically until all the blocks are 32-byte sized.
+// Of course, we cannot dynamically size the memory used by these lists because,
+// these lists are the handlers of dynamic memory, so their overhead must be set
+// up front!
+#define BLOCKS_1024_LIST_CAPACITY ( VEC_ARRAY_ARENA_SIZE / 1024 )
+#define BLOCKS_512_LIST_CAPACITY  ( VEC_ARRAY_ARENA_SIZE / 512  )
+#define BLOCKS_256_LIST_CAPACITY  ( VEC_ARRAY_ARENA_SIZE / 256  )
+#define BLOCKS_128_LIST_CAPACITY  ( VEC_ARRAY_ARENA_SIZE / 128  )
+#define BLOCKS_64_LIST_CAPACITY   ( VEC_ARRAY_ARENA_SIZE / 64   )
+#define BLOCKS_32_LIST_CAPACITY   ( VEC_ARRAY_ARENA_SIZE / 32   )
 
 enum BlockSize
 {
@@ -1417,24 +1423,25 @@ struct ArrayArena_S
 
 //! The arena of contiguous bytes from which we allocate from.
 STATIC uint8_t ArrayArenaPool[VEC_ARRAY_ARENA_SIZE];
+
 // These shall be the list of allocatable blocks (the "free lists").
-struct ArrayPoolBlock_S blocks_1024 [ VEC_ARRAY_ARENA_SIZE / 1024 ];
-struct ArrayPoolBlock_S blocks_512  [ VEC_ARRAY_ARENA_SIZE / 512  ];
-struct ArrayPoolBlock_S blocks_256  [ VEC_ARRAY_ARENA_SIZE / 256  ];
-struct ArrayPoolBlock_S blocks_128  [ VEC_ARRAY_ARENA_SIZE / 128  ];
-struct ArrayPoolBlock_S blocks_64   [ VEC_ARRAY_ARENA_SIZE / 64   ];
-struct ArrayPoolBlock_S blocks_32   [ VEC_ARRAY_ARENA_SIZE / 32   ];
+struct ArrayPoolBlock_S blocks_1024[BLOCKS_1024_LIST_CAPACITY];
+struct ArrayPoolBlock_S blocks_512[BLOCKS_512_LIST_CAPACITY];
+struct ArrayPoolBlock_S blocks_256[BLOCKS_256_LIST_CAPACITY];
+struct ArrayPoolBlock_S blocks_128[BLOCKS_128_LIST_CAPACITY];
+struct ArrayPoolBlock_S blocks_64[BLOCKS_64_LIST_CAPACITY];
+struct ArrayPoolBlock_S blocks_32[BLOCKS_32_LIST_CAPACITY];
 
 STATIC struct ArrayArena_S ArrayArena =
 {
    .lists =
    {
-      [ BLKS_1024 ] = { .blocks = blocks_1024, .len = (BLOCKS_1024_LIST_CAPACITY - 1), .block_size = 1024 },
-      [ BLKS_512  ] = { .blocks = blocks_512,  .len = (BLOCKS_512_LIST_CAPACITY  - 1), .block_size = 512  },
-      [ BLKS_256  ] = { .blocks = blocks_256,  .len = (BLOCKS_256_LIST_CAPACITY  - 1), .block_size = 256  },
-      [ BLKS_128  ] = { .blocks = blocks_128,  .len = (BLOCKS_128_LIST_CAPACITY  - 1), .block_size = 128  },
-      [ BLKS_64   ] = { .blocks = blocks_64,   .len = (BLOCKS_64_LIST_CAPACITY   - 1), .block_size = 64   },
-      [ BLKS_32   ] = { .blocks = blocks_32,   .len = (BLOCKS_32_LIST_CAPACITY   - 1), .block_size = 32   }
+      [ BLKS_1024 ] = { .blocks = blocks_1024, .len = (BLOCKS_1024_LIST_INIT_LEN - 1), .block_size = 1024 },
+      [ BLKS_512  ] = { .blocks = blocks_512,  .len = (BLOCKS_512_LIST_INIT_LEN  - 1), .block_size = 512  },
+      [ BLKS_256  ] = { .blocks = blocks_256,  .len = (BLOCKS_256_LIST_INIT_LEN  - 1), .block_size = 256  },
+      [ BLKS_128  ] = { .blocks = blocks_128,  .len = (BLOCKS_128_LIST_INIT_LEN  - 1), .block_size = 128  },
+      [ BLKS_64   ] = { .blocks = blocks_64,   .len = (BLOCKS_64_LIST_INIT_LEN   - 1), .block_size = 64   },
+      [ BLKS_32   ] = { .blocks = blocks_32,   .len = (BLOCKS_32_LIST_INIT_LEN   - 1), .block_size = 32   }
    },
    .arena_initialized = false,
    .space_available = VEC_ARRAY_ARENA_SIZE - (VEC_ARRAY_ARENA_SIZE % 32)
@@ -1484,7 +1491,7 @@ STATIC void StaticArrayPoolInit(void)
 
    // TODO: Assert that the sum of the available blocks is less than the array arena size!
 #ifndef NDEBUG
-   
+
 #endif
 }
 
