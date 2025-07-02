@@ -23,7 +23,7 @@ def print_split(arena_size):
     blocks, gap = split_arena(arena_size)
     print(f"Arena size: {GREEN}{arena_size}{RESET} bytes")
     for size in sorted(blocks, reverse=True):
-        print(f"{MAGENTA}{size:4}{RESET} byte blocks: {CYAN}{blocks[size]}{RESET}")
+        print(f"{MAGENTA}{size:4}{RESET} byte blocks: {CYAN}{blocks[size]} ({blocks[size] * size} bytes){RESET}")
     print(f"Remaining gap: {RED}{gap} bytes{RESET}")
 
     # Visual representation
