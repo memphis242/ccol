@@ -1,15 +1,39 @@
 import sys
+import math
 
 def split_arena(arena_size):
-    block_sizes = [1024, 512, 256, 128, 64, 32]
+    assert (arena_size > 0), "Arena size needs to be positive"
+
+    BLOCK_SIZES = [1024, 512, 256, 128, 64, 32]
     blocks = {}
     remaining = arena_size
 
-    for size in block_sizes:
+    if arena_size < min(BLOCK_SIZES):
+        return blocks, remaining
+
+    # Based on the arena size, some block sizes are just not possible. Ruling
+    # those out, I will try to distribute the arena across the middle of the
+    # remaining list outward in both directions.
+    # I will select an appropriate "pivot" size that represents the middle of
+    # the distribution. From there, I will distribute in an alternating fashion
+    # between the left of the pivot and the right.
+    # To facilitate that, I'd like an iterator that knows to alternate indices
+    # in this manner. Best way I can figure right now is to just create the list
+    # of indices in the sequence I want.
+    workable_blk_szs = [sz for sz in BLOCK_SIZES if sz <= (arena_size // 2)]
+    split_sz = arena_size / len(workable_blk_szs)
+    pivot_idx, pivot_sz = min( enumerate(BLOCK_SIZES),
+                               key=lambda x : abs(x[1] - split_sz) )
+    mid = len(BLOCK_SIZES) // 2
+    indices = [mid]
+    for dist in range(1, mid+1):
+        if (mid - dist) 
+
+    for size in BLOCK_SIZES:
         count, remaining = divmod(remaining, size)
         blocks[size] = count
 
-    assert sum(size * blocks[size] for size in block_sizes) + remaining == arena_size, \
+    assert sum(size * blocks[size] for size in BLOCK_SIZES) + remaining == arena_size, \
         "Block sum and gap do not match arena size"
     return blocks, remaining
 

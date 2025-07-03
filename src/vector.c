@@ -1362,16 +1362,6 @@ STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 
 /********** Array Arena Material **********/
 
-// Macro constants for the iniital length of each free list.
-// Split the configured arena into blocks of 1024, 512, 256, ..., and so on.
-// Add 1 to ensure no arrays are 0-sized.
-#define BLOCKS_1024_LIST_INIT_LEN ( ((VEC_ARRAY_ARENA_SIZE)        / 1024) + 1)
-#define BLOCKS_512_LIST_INIT_LEN  ( ((VEC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
-#define BLOCKS_256_LIST_INIT_LEN  ( ((VEC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
-#define BLOCKS_128_LIST_INIT_LEN  ( ((VEC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
-#define BLOCKS_64_LIST_INIT_LEN   ( ((VEC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
-#define BLOCKS_32_LIST_INIT_LEN   ( ((VEC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
-
 // Macro constants for the capacity of each free list.
 // The lists are statically sized so that theoretically, the full static array
 // arena can be owned by any single list. This is done because we have to account
@@ -1382,12 +1372,26 @@ STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 // Of course, we cannot dynamically size the memory used by these lists because,
 // these lists are the handlers of dynamic memory, so their overhead must be set
 // up front!
-#define BLOCKS_1024_LIST_CAPACITY ( VEC_ARRAY_ARENA_SIZE / 1024 )
-#define BLOCKS_512_LIST_CAPACITY  ( VEC_ARRAY_ARENA_SIZE / 512  )
-#define BLOCKS_256_LIST_CAPACITY  ( VEC_ARRAY_ARENA_SIZE / 256  )
-#define BLOCKS_128_LIST_CAPACITY  ( VEC_ARRAY_ARENA_SIZE / 128  )
-#define BLOCKS_64_LIST_CAPACITY   ( VEC_ARRAY_ARENA_SIZE / 64   )
-#define BLOCKS_32_LIST_CAPACITY   ( VEC_ARRAY_ARENA_SIZE / 32   )
+#define BLOCKS_1024_LIST_CAPACITY (( VEC_ARRAY_ARENA_SIZE / 1024 ) + 1)
+#define BLOCKS_512_LIST_CAPACITY  (( VEC_ARRAY_ARENA_SIZE / 512  ) + 1)
+#define BLOCKS_256_LIST_CAPACITY  (( VEC_ARRAY_ARENA_SIZE / 256  ) + 1)
+#define BLOCKS_128_LIST_CAPACITY  (( VEC_ARRAY_ARENA_SIZE / 128  ) + 1)
+#define BLOCKS_64_LIST_CAPACITY   (( VEC_ARRAY_ARENA_SIZE / 64   ) + 1)
+#define BLOCKS_32_LIST_CAPACITY   (( VEC_ARRAY_ARENA_SIZE / 32   ) + 1)
+
+// Macro constants for the iniital length of each free list.
+// Ideally, the distribution of the initial lengths will match the distribution
+// of requests during runtime. This minimizes the amount of times splitting and
+// coalescing has to happen.
+// As an initial guess, I'll attempt to evenly distribute the arena size among
+// all the free lists, favoring the middle of the size list when a perfectly
+// even distribution isn't possible.
+#define BLOCKS_1024_LIST_INIT_LEN (((VEC_ARRAY_ARENA_SIZE)        / 1024) + 1)
+#define BLOCKS_512_LIST_INIT_LEN  (((VEC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
+#define BLOCKS_256_LIST_INIT_LEN  (((VEC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
+#define BLOCKS_128_LIST_INIT_LEN  (((VEC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
+#define BLOCKS_64_LIST_INIT_LEN   (((VEC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
+#define BLOCKS_32_LIST_INIT_LEN   (((VEC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
 
 enum BlockSize
 {
