@@ -11,24 +11,45 @@ def split_arena(arena_size):
     if arena_size < min(BLOCK_SIZES):
         return blocks, remaining
 
-    # Based on the arena size, some block sizes are just not possible. Ruling
-    # those out, I will try to distribute the arena across the middle of the
-    # remaining list outward in both directions.
-    # I will select an appropriate "pivot" size that represents the middle of
-    # the distribution. From there, I will distribute in an alternating fashion
-    # between the left of the pivot and the right.
-    # To facilitate that, I'd like an iterator that knows to alternate indices
-    # in this manner. Best way I can figure right now is to just create the list
-    # of indices in the sequence I want.
+    # TODO: Alternate solution: This can be made into an optimization problem.
+    #       - Constraint is that the sum of the allocations to the block sizes
+    #         must be ≤ arena_size.
+    #       - Minimize the mean and standard deviation byte distribution /w
+    #         respect to a desired distribution (e.g, uniform, normal, etc.).
+
+    # Solution 2: The Alternative Walk Solution
+    # Based on the arena size, some block sizes are just not possible or would
+    # take up too much of the arena. For example, I would rather split an arena
+    # size of 512 bytes among the 128, 256, and 64 sizes, rather than entirely
+    # into 512.
+    # Then, I will try to distribute the arena from the middle of the remaining
+    # list outward in both directions, doing a sort of alternating walk. I will
+    # select an appropriate "pivot" size that represents the middle of the
+    # distribution.
     workable_blk_szs = [sz for sz in BLOCK_SIZES if sz <= (arena_size // 2)]
     split_sz = arena_size / len(workable_blk_szs)
-    pivot_idx, pivot_sz = min( enumerate(BLOCK_SIZES),
-                               key=lambda x : abs(x[1] - split_sz) )
-    mid = len(BLOCK_SIZES) // 2
-    indices = [mid]
-    for dist in range(1, mid+1):
-        if (mid - dist) 
+    pivot_sz = min( workable_blk_szs, key=lambda x : abs(x - split_sz) )
+    # Now, the alternative walk
+    mid = (len(workable_blk_szs) // 2) - 1 # take one off for 0-based indexing
+    # Create a list of indices that represent the sequence of indices to visit
+    # for the walk. Treat this list like a tree where each index in the list
+    # represents the pair of indices that live at level i of the tree.
+    indices = [ (mid,None) ]
+    for dist in range(1, math.ceil(len(workable_blk_szs)/2)):
+        # Start on the left of mid, then the right
+        this_level = []
+        if (mid - dist) >= 0:
+            this_level.append(mid - dist)
+        else:
+            this_level.append(None)
+        if (mid + dist) < len(workable_blk_szs):
+            this_level.append(mid + dist)
+        else:
+            this_level.append(None)
+        indices.append(tuple(this_level))
+        
 
+    # Solution 3: Give to the Big Boys First
     for size in BLOCK_SIZES:
         count, remaining = divmod(remaining, size)
         blocks[size] = count
