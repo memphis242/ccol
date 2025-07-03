@@ -11,45 +11,75 @@ def split_arena(arena_size):
     if arena_size < min(BLOCK_SIZES):
         return blocks, remaining
 
-    # TODO: Alternate solution: This can be made into an optimization problem.
+    #############################################
+    # TODO: Solution 1: The Optimization Solution
+    #############################################
     #       - Constraint is that the sum of the allocations to the block sizes
     #         must be ≤ arena_size.
     #       - Minimize the mean and standard deviation byte distribution /w
     #         respect to a desired distribution (e.g, uniform, normal, etc.).
 
-    # Solution 2: The Alternative Walk Solution
+    ############################################
+    # Solution 2: The Alternating Walk Solution
+    ############################################
     # Based on the arena size, some block sizes are just not possible or would
     # take up too much of the arena. For example, I would rather split an arena
     # size of 512 bytes among the 128, 256, and 64 sizes, rather than entirely
-    # into 512.
-    # Then, I will try to distribute the arena from the middle of the remaining
-    # list outward in both directions, doing a sort of alternating walk. I will
-    # select an appropriate "pivot" size that represents the middle of the
-    # distribution.
-    workable_blk_szs = [sz for sz in BLOCK_SIZES if sz <= (arena_size // 2)]
-    split_sz = arena_size / len(workable_blk_szs)
-    pivot_sz = min( workable_blk_szs, key=lambda x : abs(x - split_sz) )
-    # Now, the alternative walk
-    mid = (len(workable_blk_szs) // 2) - 1 # take one off for 0-based indexing
+    # into 512. For a given arena size, I will select a paritioning that best
+    # evenly distributes the arena out, favoring the low-to-mid sizes.
+    # There are many ways to parition the arena among the available sizes. Let's
+    # find which way gives us the widest dsitribution.
+    workables = []
+    for partition in range(len(BLOCK_SIZES), 0, -1):
+        dist_sz = max(
+            [sz for sz in BLOCK_SIZES if sz <= (arena_size // partition)],
+            default=0 )
+        if dist_sz == 0:
+            break
+        tmp = [sz for sz in BLOCK_SIZES if sz <= dist_sz ]
+        cumulation = 0
+        lst = []
+        for sz in tmp:
+            cumulation += dist_sz
+            if cumulation <= arena_size:
+                lst.append(sz)
+            else:
+                break
+        workables.append( (lst, dist_sz) )
+    # Get the longest list - this represents the "widest" distribution
+    workable, distribution_sz = max( workables, key=lambda x: len(x[0]) )
+
+    # Now that a partionining and distribution size has been decided on, I will
+    # begin distributing from the mid of the list outwards, going one to the
+    # left of the mid, then one to the right, then two the left, and so on,
+    # until the arena is exhausted and a gap less than the smallest size
+    # remains. I am calling this "walk" through the sizes the "alternating walk".
+    mid = (len(workable) // 2) - 1 # take one off to favor lower sizes first
     # Create a list of indices that represent the sequence of indices to visit
     # for the walk. Treat this list like a tree where each index in the list
     # represents the pair of indices that live at level i of the tree.
-    indices = [ (mid,None) ]
-    for dist in range(1, math.ceil(len(workable_blk_szs)/2)):
+    idx_tree = [ (mid,None) ]
+    for dist in range(1, math.ceil(len(workable)/2)):
         # Start on the left of mid, then the right
-        this_level = []
+        this_lvl = []
         if (mid - dist) >= 0:
-            this_level.append(mid - dist)
+            this_lvl.append(mid - dist)
         else:
-            this_level.append(None)
-        if (mid + dist) < len(workable_blk_szs):
-            this_level.append(mid + dist)
+            this_lvl.append(None)
+        if (mid + dist) < len(workable):
+            this_lvl.append(mid + dist)
         else:
-            this_level.append(None)
-        indices.append(tuple(this_level))
-        
+            this_lvl.append(None)
+        idx_tree.append(tuple(this_lvl))
 
-    # Solution 3: Give to the Big Boys First
+    # Now, we breadth-first walk!
+    while remaining >= min(workable):
+        for lvl in idx_tree:
+            blocks[ workable[lvl[0]] ] += 1
+
+    #################################################
+    # Solution 3: Give to the Big Boys First Solution
+    #################################################
     for size in BLOCK_SIZES:
         count, remaining = divmod(remaining, size)
         blocks[size] = count
