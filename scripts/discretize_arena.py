@@ -1,11 +1,14 @@
 import sys
 import math
+from itertools import chain
 
 def split_arena(arena_size):
     assert (arena_size > 0), "Arena size needs to be positive"
 
-    BLOCK_SIZES = [1024, 512, 256, 128, 64, 32]
+    BLOCK_SIZES = sorted([1024, 512, 256, 128, 64, 32], reverse=True)
     blocks = {}
+    for sz in BLOCK_SIZES:
+        blocks[sz] = 0
     remaining = arena_size
 
     if arena_size < min(BLOCK_SIZES):
@@ -55,9 +58,6 @@ def split_arena(arena_size):
     # until the arena is exhausted and a gap less than the smallest size
     # remains. I am calling this "walk" through the sizes the "alternating walk".
     mid = (len(workable) // 2) - 1 # take one off to favor lower sizes first
-    # Create a list of indices that represent the sequence of indices to visit
-    # for the walk. Treat this list like a tree where each index in the list
-    # represents the pair of indices that live at level i of the tree.
     idx_tree = [ (mid,None) ]
     for dist in range(1, math.ceil(len(workable)/2)):
         # Start on the left of mid, then the right
@@ -70,22 +70,53 @@ def split_arena(arena_size):
             this_lvl.append(mid + dist)
         else:
             this_lvl.append(None)
+        if (this_lvl[0] == None) and (this_lvl[1] == None):
+            break
         idx_tree.append(tuple(this_lvl))
-
+    
     # Now, we breadth-first walk!
-    while remaining >= min(workable):
-        for lvl in idx_tree:
-            blocks[ workable[lvl[0]] ] += 1
+    # I will flatten the tree using chain.from_iterable, and arguably, I could
+    # kept the tree flat to begin with instead of using tuples, but I want to
+    # keep the path open for alternative traversals later on, and the tree
+    # structure should be maintained for that possibility (e.g., revisiting
+    # an earlier level after distributing to one level).
+    idx_tree_flattened = [idx for idx in chain.from_iterable(idx_tree) if idx is not None]
+    while remaining >= distribution_sz:
+        for idx in idx_tree_flattened:
+            if remaining < distribution_sz:
+                break
+            sz = workable[idx]
+            blocks[sz] += distribution_sz // sz
+            remaining -= distribution_sz
+    
+    # Give the remaining gap to the smaller sizes, if applicable
+    distribution_sz = min(workable)
+    remaining_workable = [sz for sz in workable if sz <= remaining]
+    sz_visits = {}
+    for sz in remaining_workable:
+        sz_visits[sz] = 0
+    while remaining >= distribution_sz:
+        for sz in sorted(remaining_workable):
+            if remaining < distribution_sz:
+                break
+            if sz > (distribution_sz * (sz_visits[sz] + 1)):
+                sz_visits[sz] += 1
+                continue
+            blocks[sz] += 1
+            remaining -= distribution_sz * (sz_visits[sz] + 1)
+            sz_visits[sz] = 0
 
-    #################################################
-    # Solution 3: Give to the Big Boys First Solution
-    #################################################
-    for size in BLOCK_SIZES:
-        count, remaining = divmod(remaining, size)
-        blocks[size] = count
+#    #################################################
+#    # Solution 3: Give to the Big Boys First Solution
+#    #################################################
+#    for size in BLOCK_SIZES:
+#        count, remaining = divmod(remaining, size)
+#        blocks[size] = count
 
     assert sum(size * blocks[size] for size in BLOCK_SIZES) + remaining == arena_size, \
         "Block sum and gap do not match arena size"
+    assert remaining >= 0, \
+        "Remaining gap is negative"
     return blocks, remaining
 
 def print_split(arena_size):
