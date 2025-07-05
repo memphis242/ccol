@@ -1383,15 +1383,19 @@ STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 // Ideally, the distribution of the initial lengths will match the distribution
 // of requests during runtime. This minimizes the amount of times splitting and
 // coalescing has to happen.
-// As an initial guess, I'll attempt to evenly distribute the arena size among
-// all the free lists, favoring the middle of the size list when a perfectly
-// even distribution isn't possible.
+// Since that's not really going to be possible up front, one can either go
+// through the discretize_arena.py Python script, write their own initial lens,
+// or use the default below which starts at the largest size and goes down.
+#ifdef USE_EXTERNAL_INIT_LENS
+#include "array_arena_cfg.h"
+#else
 #define BLOCKS_1024_LIST_INIT_LEN (((VEC_ARRAY_ARENA_SIZE)        / 1024) + 1)
 #define BLOCKS_512_LIST_INIT_LEN  (((VEC_ARRAY_ARENA_SIZE % 1024) / 512)  + 1)
 #define BLOCKS_256_LIST_INIT_LEN  (((VEC_ARRAY_ARENA_SIZE % 512)  / 256)  + 1)
 #define BLOCKS_128_LIST_INIT_LEN  (((VEC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
 #define BLOCKS_64_LIST_INIT_LEN   (((VEC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
 #define BLOCKS_32_LIST_INIT_LEN   (((VEC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
+#endif
 
 enum BlockSize
 {

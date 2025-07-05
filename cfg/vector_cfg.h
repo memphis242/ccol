@@ -32,6 +32,9 @@
    //! Specify the static arena allocator's array arena size in number of bytes
    #define VEC_ARRAY_ARENA_SIZE  10000
 
-   #endif // VEC_USE_BUILT_IN_STATIC_ALLOW
+   //! Uncomment to use the initial free list allocation from array_arena_cfg.h (generated from discretize_arena.py or your own manual specification)
+   #define USE_EXTERNAL_INIT_LENS
+
+   #endif // VEC_USE_BUILT_IN_STATIC_ALLOC
 
 #endif // VEC_USE_CUSTOM_ALLOC
