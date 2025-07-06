@@ -1,4 +1,4 @@
-# Generic C Collections (ccol) Library in C
+# `ccol`: Generic Collections Library in C
 TODO
 
 ## Benchmarks
