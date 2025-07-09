@@ -1395,7 +1395,7 @@ STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 #define BLOCKS_128_LIST_INIT_LEN  (((VEC_ARRAY_ARENA_SIZE % 256)  / 128)  + 1)
 #define BLOCKS_64_LIST_INIT_LEN   (((VEC_ARRAY_ARENA_SIZE % 128)  / 64)   + 1)
 #define BLOCKS_32_LIST_INIT_LEN   (((VEC_ARRAY_ARENA_SIZE % 64)   / 32)   + 1)
-#endif
+#endif // USE_EXTERNAL_INIT_LENS
 
 enum BlockSize
 {
@@ -1724,4 +1724,17 @@ static bool Helper_FindBlock( const void * ptr,
 #endif
 }
 
-#endif
+#ifdef ARRAY_ARENA_VIZ
+
+// I will host a socket server here that will provide information on the state
+// of the static array arena that a client program can use to, say, produce
+// a visual of the memory. Plan at the moment will be to write a Python client
+// script to do such a visualization.
+// TODO: Array Arena Viz
+
+#include <pthread.h>
+// TODO: Figure out how to include sockets stuff..
+
+#endif // ARRAY_ARENA_VIZ
+
+#endif // VEC_USE_BUILT_IN_STATIC_ALLOC
