@@ -1733,6 +1733,13 @@ static bool Helper_FindBlock( const void * ptr,
 // TODO: Array Arena Viz
 
 #include <pthread.h>
+
+#ifdef WIN32
+
+#include <winsock2.h> // Main socket API (socket, bind, connect, etc.)
+#include <ws2tcpip.h> // For IPv6 support, inet_pton(), getaddrinfo()
+
+#endif // WIN32
 // TODO: Figure out how to include sockets stuff..
 
 #endif // ARRAY_ARENA_VIZ
