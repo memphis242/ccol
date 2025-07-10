@@ -1732,15 +1732,40 @@ static bool Helper_FindBlock( const void * ptr,
 // script to do such a visualization.
 // TODO: Array Arena Viz
 
-#include <pthread.h>
+#include <pthread.h> // Use separate thread to handle server socketing
 
-#ifdef WIN32
-
-#include <winsock2.h> // Main socket API (socket, bind, connect, etc.)
-#include <ws2tcpip.h> // For IPv6 support, inet_pton(), getaddrinfo()
-
-#endif // WIN32
 // TODO: Figure out how to include sockets stuff..
+// NOTE: Below is the suggestion by GPT 4.1 regarding cross-platform socketing.
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "Ws2_32.lib")
+    #define CLOSESOCKET(s) closesocket(s)
+    typedef SOCKET socket_t;
+#else
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <unistd.h>
+    #define CLOSESOCKET(s) close(s)
+    typedef int socket_t;
+#endif
+
+#ifdef _WIN32
+    // NOTE: Before using the socket API in Win32, do the following:
+    // WSADATA wsa;
+    // WSAStartup(MAKEWORD(2,2), &wsa);
+#endif
+
+// Use socket(), connect(), send(), recv()...
+
+CLOSESOCKET(sock);
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
+
 
 #endif // ARRAY_ARENA_VIZ
 
