@@ -31,7 +31,7 @@
 #endif
 
 // Macro constants
-#define EXPANSION_FACTOR                    (2)   // TODO: Make the expansion factor user-configurable - note that a floating-point number causes a warning: -Wconversion
+#define EXPANSION_FACTOR                    (2)   // TODO: Make the expansion factor user-configurable - note that a floating-point number causes a warning: conversion from 'size_t' {aka 'long long unsigned int'} to 'double' may change value [-Wconversion]
 #define DEFAULT_INITIAL_CAPACITY            (10)  //! Not 1 because there would likely be a resize shortly after
 #define DEFAULT_MAX_CAPACITY_FACTOR         (10)  //! How many multiples of initial capacity do we set max capacity by default
 #define DEFAULT_LEN_TO_CAPACITY_FACTOR      (2)   //! How many multiples of length should capacity be set to by default
