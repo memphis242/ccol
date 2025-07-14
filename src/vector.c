@@ -31,7 +31,7 @@
 #endif
 
 // Macro constants
-#define EXPANSION_FACTOR                    (2)   // TODO: Make the expansion factor user-configurable
+#define EXPANSION_FACTOR                    (2)   // TODO: Make the expansion factor user-configurable - note that a floating-point number causes a warning: -Wconversion
 #define DEFAULT_INITIAL_CAPACITY            (10)  //! Not 1 because there would likely be a resize shortly after
 #define DEFAULT_MAX_CAPACITY_FACTOR         (10)  //! How many multiples of initial capacity do we set max capacity by default
 #define DEFAULT_LEN_TO_CAPACITY_FACTOR      (2)   //! How many multiples of length should capacity be set to by default
@@ -1269,7 +1269,7 @@ struct VectorArenaItem_S
 
 struct VectorArena_S
 {
-   struct VectorArenaItem_S pool[VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE];
+   struct VectorArenaItem_S pool[VEC_ARRAY_ARENA_SIZE];
    size_t next_idx;
 };
 
@@ -1281,13 +1281,13 @@ STATIC struct VectorArena_S VectorArena;
  */
 STATIC struct Vector_S * StaticVectorArenaAlloc(void)
 {
-   assert( VectorArena.next_idx < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE );
+   assert( VectorArena.next_idx < VEC_ARRAY_ARENA_SIZE );
    assert( VectorArena.pool != NULL );
 #ifndef NDEBUG
    // If next idx is allocated, by design, that must mean we are out of vectors.
    if ( VectorArena.pool[VectorArena.next_idx].is_allocated == true )
    {
-      for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
+      for ( size_t i = 0; i < VEC_ARRAY_ARENA_SIZE; i++ )
       {
          assert( VectorArena.pool[i].is_allocated == true );
       }
@@ -1305,9 +1305,9 @@ STATIC struct Vector_S * StaticVectorArenaAlloc(void)
    // 🗒️: Potential to place this in a separate asynchronous thread?
    // Find the next available spot
    size_t j = VectorArena.next_idx;
-   for ( size_t i = 1; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++, j++ )
+   for ( size_t i = 1; i < VEC_ARRAY_ARENA_SIZE; i++, j++ )
    {
-      if ( j >= VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE ) j = 0; // Wrap-around
+      if ( j >= VEC_ARRAY_ARENA_SIZE ) j = 0; // Wrap-around
 
       if ( !VectorArena.pool[j].is_allocated )
       {
@@ -1328,7 +1328,7 @@ STATIC void StaticVectorArenaFree(const struct Vector_S * ptr)
 
    // Find the vector address that matches this pointer
    bool found = false;
-   for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
+   for ( size_t i = 0; i < VEC_ARRAY_ARENA_SIZE; i++ )
    {
       if ( ptr == &VectorArena.pool[i].vec )
       {
@@ -1348,7 +1348,7 @@ STATIC void StaticVectorArenaFree(const struct Vector_S * ptr)
 
 STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 {
-   for ( size_t i = 0; i < VEC_BUILT_IN_STATIC_VECTOR_ARENA_SIZE; i++ )
+   for ( size_t i = 0; i < VEC_ARRAY_ARENA_SIZE; i++ )
    {
       if ( ptr == &VectorArena.pool[i].vec )
       {
@@ -1496,11 +1496,6 @@ STATIC void StaticArrayPoolInit(void)
    }
 
    ArrayArena.arena_initialized = true;
-
-   // TODO: Assert that the sum of the available blocks is less than the array arena size!
-#ifndef NDEBUG
-
-#endif
 }
 
 /**
@@ -1726,8 +1721,9 @@ static bool Helper_FindBlock( const void * ptr,
 
 #ifdef ARRAY_ARENA_VIZ
 
-#include "vector_arena_viz.h"
+// TODO: Implement arena viz API
 
 #endif // ARRAY_ARENA_VIZ
 
 #endif // VEC_USE_BUILT_IN_STATIC_ALLOC
+

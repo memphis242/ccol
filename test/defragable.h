@@ -7,7 +7,7 @@ struct Defragable
 {
    bool (*IsFragmented)(void);
    bool (*Defragment)(void);
-}
+};
 
 #endif // DEFRAGABLE_TRAIT_H
 
