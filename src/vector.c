@@ -38,6 +38,7 @@
 #define DEFAULT_MAX_CAPACITY_FACTOR         (10)  //! How many multiples of initial capacity do we set max capacity by default
 #define DEFAULT_LEN_TO_CAPACITY_FACTOR      (2)   //! How many multiples of length should capacity be set to by default
 
+// If user did not define a maximum vector length, go off of system limits.
 #ifndef MAX_VEC_LEN
 #define TENTATIVE_MAX_VEC_LEN UINT32_MAX
 #if ( SIZE_MAX < PTRDIFF_MAX )
@@ -78,12 +79,9 @@ enum ShiftDir
 
 /* Private Function Prototypes */
 
-static void StaticArrayPoolInit(void);
-static bool StaticArrayPoolIsInitialized(void);
-
-static struct Vector * StaticVectorArenaAlloc(void);
-static void   StaticVectorArenaFree(const struct Vector *);
-static bool   StaticVectorIsAlloc(const struct Vector *);
+static struct Vector * vec_pool_dispatch(void);
+static void            vec_pool_reclaim(const struct Vector *);
+static bool            vec_isalloc(const struct Vector *);
 
 static bool vec_expand(struct Vector *);
 static bool vec_expandby(struct Vector *, size_t);
@@ -93,38 +91,39 @@ static void shiftn( struct Vector *, size_t, enum ShiftDir, size_t);
 /* Public API Implementations */
 
 /******************************************************************************/
-struct Vector * VectorInit( size_t element_size,
-                              size_t initial_capacity,
-                              size_t max_capacity,
-                              size_t initial_len,
-                              struct Allocator mem_mgr
-                            )
+struct Vector * VectorNew( size_t element_size,
+                           size_t initial_capacity,
+                           size_t max_capacity,
+                           size_t initial_len,
+                           struct Allocator mem_mgr )
 {
    // Invalid inputs
-   if ( (element_size == 0) ||
+   if ( (0 == element_size) ||
         (initial_capacity > MAX_VEC_LEN) ||
-        (max_capacity == 0) ||
+        (0 == max_capacity) ||
         (initial_capacity > max_capacity) ||
-        (initial_len > initial_capacity)
-        || (NULL == custom_malloc)
-        || (NULL == custom_realloc)
-        || (NULL == custom_free)
-      )
+        (initial_len > initial_capacity) )
    {
       // TODO: Vector constructor exception
       return NULL;
    }
 
-   struct Vector * NewVec = custom_malloc( sizeof(struct Vector) );
+   if ( (NULL == mem_mgr.alloc) || (NULL == mem_mgr.realloc) || (NULL == mem_mgr.reclaim) )
+   {
+      // TODO: Throw exception if user passed in a partially complete memory manager
+      // Default to stdlib memory allocation functions
+      mem_mgr.alloc = malloc;
+      mem_mgr.realloc = realloc;
+      mem_mgr.reclaim = free;
+   }
+
+   struct Vector * NewVec = vec_pool_dispatch();
    if ( NULL == NewVec )
    {
       return NULL;
    }
 
-   NewVec->vec_malloc = custom_malloc;
-   NewVec->vec_realloc = custom_realloc;
-   NewVec->vec_free = custom_free;
-   NewVec->vec_isalloc = is_allocated;
+   NewVec->mem_mgr = mem_mgr;
 
    if ( 0 == initial_capacity )
    {
@@ -132,10 +131,10 @@ struct Vector * VectorInit( size_t element_size,
    }
    else
    {
-      NewVec->arr = NewVec->vec_malloc( element_size * initial_capacity );
+      NewVec->arr = NewVec->mem_mgr.alloc( element_size * initial_capacity );
    }
 
-   // If malloc failed to allocate space for the array...
+   // If we failed to allocate space for the array...
    if ( (initial_capacity > 0) && (NULL == NewVec->arr) )
    {
       // TODO: Throw exception to inform user...
@@ -174,12 +173,12 @@ struct Vector * VectorInit( size_t element_size,
 /******************************************************************************/
 void VectorFree( struct Vector * self )
 {
-   if ( (self != NULL) && (self->arr != NULL) )
+   if ( (self != NULL) && (self->arr != NULL) && (!vec_isalloc(self)) )
    {
-      if (self->vec_free != NULL)
+      if (self->mem_mgr.reclaim != NULL)
       {
-         self->vec_free(self->arr);
-         self->vec_free(self);
+         self->mem_mgr.reclaim(self->arr);
+         vec_pool_reclaim(self);
       }
    }
 }
@@ -481,10 +480,10 @@ bool VectorHardReset( struct Vector * self )
 
    assert(self->arr != NULL);
    assert(self->element_size > 0);
-   assert(self->vec_free != NULL);
+   assert(self->mem_mgr.reclaim != NULL);
 
    memset( self->arr, 0, self->len * self->element_size );
-   self->vec_free(self->arr);
+   self->mem_mgr.reclaim(self->arr);
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
@@ -499,13 +498,13 @@ struct Vector * VectorDuplicate( const struct Vector * self )
         (self->len > self->capacity) ||
         (self->capacity > self->max_capacity) ||
         ( (self->len > 0) && (NULL == self->arr) )
-        || (NULL == self->vec_malloc)
+        || (NULL == self->mem_mgr.alloc)
       )
    {
       return NULL;
    }
 
-   struct Vector * Duplicate = self->vec_malloc( sizeof(struct Vector) );
+   struct Vector * Duplicate = self->mem_mgr.alloc( sizeof(struct Vector) );
    if ( NULL == Duplicate )
    {
       // TODO: Throw exception that the vector handle failed to get duplicated.
@@ -517,7 +516,7 @@ struct Vector * VectorDuplicate( const struct Vector * self )
    Duplicate->arr = NULL;
    if ( Duplicate->len > 0 )
    {
-      Duplicate->arr = self->vec_malloc( Duplicate->len * Duplicate->element_size );
+      Duplicate->arr = self->mem_mgr.alloc( Duplicate->len * Duplicate->element_size );
       if ( Duplicate->arr != NULL )
       {
          memcpy( Duplicate->arr,
@@ -585,10 +584,11 @@ struct Vector * VectorSplitAt( struct Vector * self, size_t idx )
    assert(self->element_size > 0);
 
    size_t new_vec_len = self->len - idx;
-   struct Vector * new_vec = VectorInit( self->element_size,
+   struct Vector * new_vec = VectorNew( self->element_size,
                                            new_vec_len * 2,
                                            new_vec_len * 4,
-                                           new_vec_len );
+                                           new_vec_len,
+                                           self->mem_mgr );
    if ( (NULL == new_vec) || (NULL == new_vec->arr) )
    {
       return NULL;
@@ -633,10 +633,11 @@ struct Vector * VectorSlice( const struct Vector * self,
    assert(self->element_size > 0);
 
    size_t new_vec_len = idx_end - idx_start + 1;   // inclusive of both indices
-   struct Vector * new_vec = VectorInit( self->element_size,
+   struct Vector * new_vec = VectorNew( self->element_size,
                                            new_vec_len * 2,
                                            new_vec_len * 4,
-                                           new_vec_len );
+                                           new_vec_len,
+                                           self->mem_mgr );
    if ( (NULL == new_vec) || (NULL == new_vec->arr) )
    {
       return NULL;
@@ -679,10 +680,11 @@ struct Vector * VectorConcatenate( const struct Vector * v1,
    // vector. If both vectors are empty, create an empty vector.
    if ( (0 == v1->len) && (0 == v2->len) )
    {
-      NewVec = VectorInit( v1->element_size,
+      NewVec = VectorNew( v1->element_size,
                            DEFAULT_INITIAL_CAPACITY,
                            DEFAULT_INITIAL_CAPACITY * DEFAULT_MAX_CAPACITY_FACTOR,
-                           0 );
+                           0,
+                           v1->mem_mgr );
    }
 
    else if ( (v1->len > 0)  && (v2->len == 0) )
@@ -708,10 +710,11 @@ struct Vector * VectorConcatenate( const struct Vector * v1,
          new_vec_max_cap = v1->max_capacity + v2->max_capacity;
       }
 
-      NewVec = VectorInit( v1->element_size,
+      NewVec = VectorNew( v1->element_size,
                            new_vec_cap,
                            new_vec_max_cap,
-                           new_vec_len );
+                           new_vec_len,
+                           v1->mem_mgr );
       if ( (NewVec != NULL) && (NewVec->arr != NULL) )
       {
          memcpy( NewVec->arr,                 v1->arr, (v1->len * v1->element_size) );
@@ -1061,7 +1064,7 @@ static bool vec_expand( struct Vector * self )
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity);
-   assert(self->vec_realloc != NULL);
+   assert(self->mem_mgr.realloc != NULL);
 
    // If we're already at max capacity, can't expand further.
    if ( self->capacity == self->max_capacity )
@@ -1084,9 +1087,8 @@ static bool vec_expand( struct Vector * self )
       new_capacity = self->max_capacity;
    }
 
-   void * new_ptr = 
-      self->vec_realloc(
-         self->arr, (self->element_size * new_capacity) );
+   void * new_ptr = self->mem_mgr.realloc( self->arr,
+                                           self->element_size * new_capacity );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1112,7 +1114,7 @@ static bool vec_expandby( struct Vector * self, size_t add_len )
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity); 
-   assert(self->vec_realloc != NULL);
+   assert(self->mem_mgr.realloc != NULL);
 
    // If there's no space in the vector, we can't expand
    if ( (self->capacity + add_len) > self->max_capacity )
@@ -1121,9 +1123,8 @@ static bool vec_expandby( struct Vector * self, size_t add_len )
    }
 
    size_t new_capacity = self->capacity + add_len;
-   void * new_ptr = 
-      self->vec_realloc(
-         self->arr, (self->element_size * new_capacity) );
+   void * new_ptr = self->mem_mgr.realloc( self->arr,
+                                           self->element_size * new_capacity );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1152,7 +1153,7 @@ static bool vec_expandby( struct Vector * self, size_t add_len )
  * @param n : Number of indices to shift by
  */
 static void shiftn( struct Vector * self, size_t start_idx,
-                    enum ShiftDir direction, size_t n );
+                    enum ShiftDir direction, size_t n )
 {
    assert(self != NULL);
    assert(self->arr != NULL);
@@ -1190,57 +1191,57 @@ static void shiftn( struct Vector * self, size_t start_idx,
 /******************************************************************************/
 
 /********** Vector Arena Material **********/
-struct VectorArenaItem_S
+struct VectorPoolItem
 {
    struct Vector vec;
    bool is_allocated;
 };
 
-struct VectorArena_S
+struct VectorPool
 {
-   struct VectorArenaItem_S pool[VEC_STRUCT_POOL_SIZE];
+   struct VectorPoolItem pool[VEC_STRUCT_POOL_SIZE];
    size_t next_idx;
 };
 
-STATIC struct VectorArena_S VectorArena;
+STATIC struct VectorPool VecPool;
 
 /**
  * @brief Allocates a new Vector structure from a static arena.
  * @return Pointer to the allocated Vector struct if successful, NULL otherwise.
  */
-STATIC struct Vector * StaticVectorArenaAlloc(void)
+STATIC struct Vector * vec_pool_dispatch(void)
 {
-   assert( VectorArena.next_idx < VEC_STRUCT_POOL_SIZE );
-   assert( VectorArena.pool != NULL );
+   assert( VecPool.next_idx < VEC_STRUCT_POOL_SIZE );
+   assert( VecPool.pool != NULL );
 #ifndef NDEBUG
    // If next idx is allocated, by design, that must mean we are out of vectors.
-   if ( VectorArena.pool[VectorArena.next_idx].is_allocated == true )
+   if ( VecPool.pool[VecPool.next_idx].is_allocated == true )
    {
       for ( size_t i = 0; i < VEC_STRUCT_POOL_SIZE; i++ )
       {
-         assert( VectorArena.pool[i].is_allocated == true );
+         assert( VecPool.pool[i].is_allocated == true );
       }
    }
 #endif
 
-   if ( VectorArena.pool[VectorArena.next_idx].is_allocated )
+   if ( VecPool.pool[VecPool.next_idx].is_allocated )
    {
       return NULL;
    }
 
-   struct Vector * new_vec = &VectorArena.pool[VectorArena.next_idx].vec;
-   VectorArena.pool[VectorArena.next_idx].is_allocated = true;
+   struct Vector * new_vec = &VecPool.pool[VecPool.next_idx].vec;
+   VecPool.pool[VecPool.next_idx].is_allocated = true;
 
    // 🗒️: Potential to place this in a separate asynchronous thread?
    // Find the next available spot
-   size_t j = VectorArena.next_idx;
+   size_t j = VecPool.next_idx;
    for ( size_t i = 1; i < VEC_STRUCT_POOL_SIZE; i++, j++ )
    {
       if ( j >= VEC_STRUCT_POOL_SIZE ) j = 0; // Wrap-around
 
-      if ( !VectorArena.pool[j].is_allocated )
+      if ( !VecPool.pool[j].is_allocated )
       {
-         VectorArena.next_idx = j;
+         VecPool.next_idx = j;
          break;
       }
    }
@@ -1248,7 +1249,7 @@ STATIC struct Vector * StaticVectorArenaAlloc(void)
    return new_vec;
 }
 
-STATIC void StaticVectorArenaFree(const struct Vector * ptr)
+STATIC void vec_pool_reclaim(const struct Vector * ptr)
 {
    if ( NULL == ptr )
    {
@@ -1259,13 +1260,13 @@ STATIC void StaticVectorArenaFree(const struct Vector * ptr)
    bool found = false;
    for ( size_t i = 0; i < VEC_STRUCT_POOL_SIZE; i++ )
    {
-      if ( ptr == &VectorArena.pool[i].vec )
+      if ( ptr == &VecPool.pool[i].vec )
       {
-         if ( !VectorArena.pool[i].is_allocated )
+         if ( !VecPool.pool[i].is_allocated )
          {
             // TODO: Raise exception for attempting to free an unallocated vec
          }
-         VectorArena.pool[i].is_allocated = false;
+         VecPool.pool[i].is_allocated = false;
       }
    }
 
@@ -1275,13 +1276,13 @@ STATIC void StaticVectorArenaFree(const struct Vector * ptr)
    }
 }
 
-STATIC bool StaticVectorIsAlloc(const struct Vector * ptr)
+STATIC bool vec_isalloc(const struct Vector * ptr)
 {
    for ( size_t i = 0; i < VEC_STRUCT_POOL_SIZE; i++ )
    {
-      if ( ptr == &VectorArena.pool[i].vec )
+      if ( ptr == &VecPool.pool[i].vec )
       {
-         return VectorArena.pool[i].is_allocated;
+         return VecPool.pool[i].is_allocated;
       }
    }
 

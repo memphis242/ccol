@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "ccol_shared.h"
 #include "vector_cfg.h"
 // TODO: Exceptions
 
@@ -19,7 +20,7 @@
 
 /* Public Datatypes */
 
-// Opaque type to act as a handle for the user to pass into the API
+// Opaque type declaration to act as a handle for the user to pass into the API
 struct Vector;
 
 /* Public API */
@@ -37,32 +38,19 @@ struct Vector;
  *                     used instead.
  * @param initial_len  Initial length of the vector that allows the user to get
  *                     some zero elements in to begin with. 0 if user will handle
- *                     manual push/insertion operations to initial fill the vec.
- *
- * If VEC_USE_CUSTOM_ALLOC is defined, then there are additional parameters:
- * @param custom_malloc User-provided memory allocation function (required)
- * @param custom_realloc User-provided memory reallocation function (required)
- * @param custom_free User-provided memory free function (required)
- * @param is_allocated User-provided function to determine if a memory address
- *                     is within an allocated region of memory. This parameter
- *                     is optional and a null pointer can be passed in without
- *                     impacting behavior.
+ *                     manual push/insertion operations to initially fill the vec.
+ * @param mem_mgr      Allocator that the user provides. If NULL, defaults to
+ *                     stdlib malloc, free, and realloc.
  * 
  * @todo Exceptions
  *
  * @return A pointer to the initialized vector, or NULL if allocation fails.
  */
-struct Vector * VectorInit( size_t element_size,
-                              size_t initial_capacity,
-                              size_t max_capacity,
-                              size_t initial_len
-#ifdef VEC_USE_CUSTOM_ALLOC
-                              , void * (*custom_malloc)(size_t),
-                              void * (*custom_relloc)(void *, size_t),
-                              void   (*custom_free)(void *),
-                              bool   (*is_allocated)(void *)
-#endif
-                            );
+struct Vector * VectorNew( size_t element_size,
+                           size_t initial_capacity,
+                           size_t max_capacity,
+                           size_t initial_len,
+                           struct Allocator mem_mgr );
 
 /**
  * @brief Frees the memory allocated for the vector.
