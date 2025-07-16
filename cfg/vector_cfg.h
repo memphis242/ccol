@@ -17,24 +17,6 @@
 //! Uncomment to set a maximum vector length for any vector
 #define MAX_VEC_LEN 1000
 
-//! Uncomment to enable the ability to initialize a vector /w a custom allocator
-//#define VEC_USE_CUSTOM_ALLOC
+//! Specify the size of the `struct Vector` pool which is internally used to deploy vector objects
+#define VEC_STRUCT_POOL_SIZE  25
 
-#ifndef VEC_USE_CUSTOM_ALLOC
-
-//! Uncomment to enable the built-in static arena for the built-in arena allocator
-#define VEC_USE_BUILT_IN_STATIC_ALLOC
-
-   #ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-
-   //! Specify the static arena allocator's vector arena size in number of vectors
-   #define VEC_VECTOR_ARENA_SIZE  25
-   //! Specify the static arena allocator's array arena size in number of bytes
-   #define VEC_ARRAY_ARENA_SIZE  10000
-
-   //! Uncomment to use the initial free list allocation from array_arena_cfg.h (generated from discretize_arena.py or your own manual specification)
-   #define USE_EXTERNAL_INIT_LENS
-
-   #endif // VEC_USE_BUILT_IN_STATIC_ALLOC
-
-#endif // VEC_USE_CUSTOM_ALLOC
