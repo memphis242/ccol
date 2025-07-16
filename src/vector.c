@@ -69,6 +69,13 @@ struct Vector
    struct Allocator mem_mgr;
 };
 
+enum ShiftDir
+{
+   ShiftDir_Left,
+   ShiftDir_Right,
+   ShiftDir_InvalidDir
+};
+
 /* Private Function Prototypes */
 
 static void StaticArrayPoolInit(void);
@@ -78,9 +85,10 @@ static struct Vector * StaticVectorArenaAlloc(void);
 static void   StaticVectorArenaFree(const struct Vector *);
 static bool   StaticVectorIsAlloc(const struct Vector *);
 
-static bool LocalVectorExpand(struct Vector *);
-static bool LocalVectorExpandBy(struct Vector *, size_t);
-static void ShiftNOver( struct Vector *, size_t, bool, size_t);
+static bool vec_expand(struct Vector *);
+static bool vec_expandby(struct Vector *, size_t);
+// TODO: Use an enum instead of a boolean to indicate direction of shift.
+static void shiftn( struct Vector *, size_t, enum ShiftDir, size_t);
 
 /* Public API Implementations */
 
@@ -257,7 +265,7 @@ bool VectorPush( struct Vector * self, const void * element )
    bool successfully_expanded = true;
    if ( self->len == self->capacity )
    {
-      successfully_expanded = LocalVectorExpand(self);
+      successfully_expanded = vec_expand(self);
    }
 
    if ( successfully_expanded )
@@ -297,14 +305,14 @@ bool VectorInsertAt( struct Vector * self,
    bool successfully_expanded = true;
    if ( self->len == self->capacity )
    {
-      successfully_expanded = LocalVectorExpand(self);
+      successfully_expanded = vec_expand(self);
    }
 
    if ( successfully_expanded )
    {
       if ( idx < self->len )
       {
-         ShiftNOver(self, idx, true, 1);
+         shiftn(self, idx, ShiftDir_Right, 1);
       }
       void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, element, self->element_size );
@@ -421,7 +429,7 @@ bool VectorRemoveElementAt( struct Vector * self, size_t idx, void * data )
    }
    if ( idx < (self->len - 1) )
    {
-      ShiftNOver(self, idx + 1, false, 1);
+      shiftn(self, idx + 1, ShiftDir_Left, 1);
    }
    self->len--;
 
@@ -742,7 +750,7 @@ bool VectorSubRange_PushElements( struct Vector * self,
    bool successfully_expanded = true;
    if ( (self->len + dlen) > self->capacity )
    {
-      successfully_expanded = LocalVectorExpandBy(
+      successfully_expanded = vec_expandby(
                                        self,
                                        /* Expand relative to capacity, not len*/
                                        dlen - (self->capacity - self->len) );
@@ -790,7 +798,7 @@ bool VectorSubRange_InsertElementsAt( struct Vector * self,
    bool successfully_expanded = true;
    if ( (self->len + dlen) > self->capacity )
    {
-      successfully_expanded = LocalVectorExpandBy(
+      successfully_expanded = vec_expandby(
                                        self,
                                        /* Expand relative to capacity, not len*/
                                        dlen - (self->capacity - self->len) );
@@ -800,7 +808,7 @@ bool VectorSubRange_InsertElementsAt( struct Vector * self,
    {
       if ( idx < self->len )
       {
-         ShiftNOver(self, idx, true, dlen);
+         shiftn(self, idx, ShiftDir_Right, dlen);
       }
       void * insertion_spot = (void *)PTR_TO_IDX(self, idx);
       memcpy( insertion_spot, data, (self->element_size * dlen) );
@@ -955,7 +963,7 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector * self,
    // Only need to shift over if the removal does not include the end
    if ( idx_end < (self->len - 1) )
    {
-      ShiftNOver(self, idx_end + 1, false, num_of_removed);
+      shiftn(self, idx_end + 1, ShiftDir_Left, num_of_removed);
    }
 #ifdef SECURE_REMOVAL
    else
@@ -1045,7 +1053,7 @@ bool VectorClearAll( struct Vector * self )
  * @param self Vector handle.
  * @return true if the expansion was successful, false otherwise.
  */
-static bool LocalVectorExpand( struct Vector * self )
+static bool vec_expand( struct Vector * self )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert(self != NULL);
@@ -1096,7 +1104,7 @@ static bool LocalVectorExpand( struct Vector * self )
  * @param add_len The number of additional elements to expand the capacity by.
  * @return true if the expansion was successful; false otherwise.
  */
-static bool LocalVectorExpandBy( struct Vector * self, size_t add_len )
+static bool vec_expandby( struct Vector * self, size_t add_len )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert(self != NULL);
@@ -1138,30 +1146,29 @@ static bool LocalVectorExpandBy( struct Vector * self, size_t add_len )
  * @note This function will also fail if you try to shift left by more than the
  *       length of the vector.
  *
- * @param self Pointer to the Vector structure.
- * @param idx The index at which the shift operation begins.
- * @param n Number of indices to shift by.
- * @param move_right A boolean flag indicating the direction of the shift.
- *        - If true, elements are shifted to the right.
- *        - If false, elements are shifted to the left.
+ * @param struct Vector * : Pointer to the Vector structure
+ * @param size_t : The index at which the shift operation begins
+ * @param enum ShiftDir : Direction of shift
+ * @param n : Number of indices to shift by
  */
-static void ShiftNOver( struct Vector * self, size_t idx,
-                        bool move_right, size_t n )
+static void shiftn( struct Vector * self, size_t start_idx,
+                    enum ShiftDir direction, size_t n );
 {
    assert(self != NULL);
    assert(self->arr != NULL);
    assert(self->len < self->capacity);
-   // Don't try to shift data past the data range of the array
-   assert(idx < self->len);
-   assert( (move_right && ((n + self->len) <= self->capacity)) || (!move_right && (n <= self->len)) );
    // Extra checks to trap paradox states
-   assert(idx < MAX_VEC_LEN);
    assert(self->element_size > 0);
+   // Don't try to shift data past the data range of the array
+   assert(start_idx < self->len);
+   assert(start_idx < MAX_VEC_LEN);
+   assert(direction < ShiftDir_InvalidDir);
+   assert( (direction && ((n + self->len) <= self->capacity)) || (!direction && (n <= self->len)) );
 
-   if ( move_right )
+   if ( direction == ShiftDir_Right )
    {
-      // Start at the end and shift over to the right until we hit idx
-      for ( size_t i = self->len; i > idx; i-- )
+      // Start at the end and shift over to the right until we hit start_idx
+      for ( size_t i = self->len; i > start_idx; i-- )
       {
          uint8_t * old_spot = PTR_TO_IDX(self, i - 1);
          uint8_t * new_spot = PTR_TO_IDX(self, (i + n) - 1);
@@ -1170,8 +1177,8 @@ static void ShiftNOver( struct Vector * self, size_t idx,
    }
    else // shift left
    {
-      // Start at the one to the right of the idx and shift over to left by n
-      for ( size_t i = idx; i < self->len; i++ )
+      // Start at the one to the right of the start_idx and shift over to left by n
+      for ( size_t i = start_idx; i < self->len; i++ )
       {
          uint8_t * old_spot = PTR_TO_IDX(self, i);
          uint8_t * new_spot = PTR_TO_IDX(self, i - (n - 1) - 1);
