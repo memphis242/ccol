@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <assert.h>
 #include <limits.h>
+
+#include "ccol_shared.h"
 #include "vector_cfg.h"
 #include "vector.h"
 
@@ -36,7 +38,6 @@
 #define DEFAULT_MAX_CAPACITY_FACTOR         (10)  //! How many multiples of initial capacity do we set max capacity by default
 #define DEFAULT_LEN_TO_CAPACITY_FACTOR      (2)   //! How many multiples of length should capacity be set to by default
 
-// Enforce a maximum length to help prevent extreme memory requests
 #ifndef MAX_VEC_LEN
 #define TENTATIVE_MAX_VEC_LEN UINT32_MAX
 #if ( SIZE_MAX < PTRDIFF_MAX )
@@ -45,7 +46,7 @@
    #define SYSTEM_LIMIT PTRDIFF_MAX
 #endif // SIZE_MAX < PTRDIFF_MAX
 #if (SYSTEM_LIMIT < TENTATIVE_MAX_VEC_LEN)
-   #define MAX_VEC_LEN  SIZE_MAX
+   #define MAX_VEC_LEN  SYSTEM_LIMIT
 #else
    #define MAX_VEC_LEN TENTATIVE_MAX_VEC_LEN
 #endif // (SYSTEM_LIMIT < TENTATIVE_MAX_VEC_LEN)
@@ -54,65 +55,41 @@
 // Function-like macros
 
 #define IS_EMPTY(self)     ( 0 == (self)->len )
-
-/**
- * PTR_TO_IDX - Calculates the pointer to the element at a given index in a vector.
- * @vec: Pointer to the vector structure containing the array and element size.
- * @idx: Index of the element to access.
- */
 #define PTR_TO_IDX(vec, idx) \
       ( (uint8_t *)((vec)->arr) + ((vec)->element_size * (idx)) )
 
-
 /* Local Datatypes */
-struct Vector_S
+struct Vector
 {
    void * arr;
    size_t element_size;
    size_t len;
    size_t capacity;
    size_t max_capacity;
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
-   void * (*vec_malloc)(size_t);
-   void * (*vec_realloc)(void *, size_t);
-   void   (*vec_free)(void *);
-   bool   (*vec_isalloc)(void *);
-#endif
+   struct Allocator mem_mgr;
 };
 
 /* Private Function Prototypes */
 
-#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-STATIC void StaticArrayPoolInit(void);
-STATIC bool StaticArrayPoolIsInitialized(void);
+static void StaticArrayPoolInit(void);
+static bool StaticArrayPoolIsInitialized(void);
 
-STATIC struct Vector_S * StaticVectorArenaAlloc(void);
-STATIC void   StaticVectorArenaFree(const struct Vector_S *);
-STATIC bool   StaticVectorIsAlloc(const struct Vector_S *);
+static struct Vector * StaticVectorArenaAlloc(void);
+static void   StaticVectorArenaFree(const struct Vector *);
+static bool   StaticVectorIsAlloc(const struct Vector *);
 
-STATIC void * StaticArrayAlloc(size_t);
-STATIC void * StaticArrayRealloc(void *, size_t);
-STATIC void   StaticArrayFree(const void *);
-STATIC bool   StaticArrayIsAlloc(const void *);
-#endif
-
-static bool LocalVectorExpand(struct Vector_S *);
-static bool LocalVectorExpandBy(struct Vector_S *, size_t);
-static void ShiftNOver( struct Vector_S *, size_t, bool, size_t);
+static bool LocalVectorExpand(struct Vector *);
+static bool LocalVectorExpandBy(struct Vector *, size_t);
+static void ShiftNOver( struct Vector *, size_t, bool, size_t);
 
 /* Public API Implementations */
 
 /******************************************************************************/
-struct Vector_S * VectorInit( size_t element_size,
+struct Vector * VectorInit( size_t element_size,
                               size_t initial_capacity,
                               size_t max_capacity,
-                              size_t initial_len
-#ifdef VEC_USE_CUSTOM_ALLOC
-                              , void * (*custom_malloc)(size_t),
-                              void * (*custom_realloc)(void *, size_t),
-                              void   (*custom_free)(void *),
-                              bool   (*is_allocated)(void *)
-#endif
+                              size_t initial_len,
+                              struct Allocator mem_mgr
                             )
 {
    // Invalid inputs
@@ -121,41 +98,25 @@ struct Vector_S * VectorInit( size_t element_size,
         (max_capacity == 0) ||
         (initial_capacity > max_capacity) ||
         (initial_len > initial_capacity)
-#ifdef VEC_USE_CUSTOM_ALLOC
         || (NULL == custom_malloc)
         || (NULL == custom_realloc)
         || (NULL == custom_free)
-#endif
       )
    {
       // TODO: Vector constructor exception
       return NULL;
    }
 
-#if defined(VEC_USE_CUSTOM_ALLOC)
-   struct Vector_S * NewVec = custom_malloc( sizeof(struct Vector_S) );
-#elif defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
-   if ( !StaticArrayPoolIsInitialized() ) StaticArrayPoolInit();
-   struct Vector_S * NewVec = StaticVectorArenaAlloc();
-#else
-   struct Vector_S * NewVec = malloc( sizeof(struct Vector_S) );
-#endif
+   struct Vector * NewVec = custom_malloc( sizeof(struct Vector) );
    if ( NULL == NewVec )
    {
       return NULL;
    }
 
-#if defined(VEC_USE_CUSTOM_ALLOC)
    NewVec->vec_malloc = custom_malloc;
    NewVec->vec_realloc = custom_realloc;
    NewVec->vec_free = custom_free;
    NewVec->vec_isalloc = is_allocated;
-#elif !defined(VEC_USE_BUILT_IN_STATIC_ALLOC)
-   NewVec->vec_malloc = malloc;
-   NewVec->vec_realloc = realloc;
-   NewVec->vec_free = free;
-   NewVec->vec_isalloc = NULL;
-#endif
 
    if ( 0 == initial_capacity )
    {
@@ -163,11 +124,7 @@ struct Vector_S * VectorInit( size_t element_size,
    }
    else
    {
-#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-      NewVec->arr = StaticArrayAlloc( element_size * initial_capacity );
-#else
       NewVec->arr = NewVec->vec_malloc( element_size * initial_capacity );
-#endif
    }
 
    // If malloc failed to allocate space for the array...
@@ -207,25 +164,20 @@ struct Vector_S * VectorInit( size_t element_size,
 }
 
 /******************************************************************************/
-void VectorFree( struct Vector_S * self )
+void VectorFree( struct Vector * self )
 {
    if ( (self != NULL) && (self->arr != NULL) )
    {
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
       if (self->vec_free != NULL)
       {
          self->vec_free(self->arr);
          self->vec_free(self);
       }
-#else
-      StaticArrayFree(self->arr);
-      StaticVectorArenaFree(self);
-#endif
    }
 }
 
 /******************************************************************************/
-size_t VectorLength( const struct Vector_S * self )
+size_t VectorLength( const struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -235,7 +187,7 @@ size_t VectorLength( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-size_t VectorCapacity( const struct Vector_S * self )
+size_t VectorCapacity( const struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -245,7 +197,7 @@ size_t VectorCapacity( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-size_t VectorMaxCapacity( const struct Vector_S * self )
+size_t VectorMaxCapacity( const struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -255,7 +207,7 @@ size_t VectorMaxCapacity( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-size_t VectorElementSize( const struct Vector_S * self )
+size_t VectorElementSize( const struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -265,7 +217,7 @@ size_t VectorElementSize( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorIsEmpty( const struct Vector_S * self )
+bool VectorIsEmpty( const struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -275,7 +227,7 @@ bool VectorIsEmpty( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorIsFull( const struct Vector_S * self )
+bool VectorIsFull( const struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -285,7 +237,7 @@ bool VectorIsFull( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorPush( struct Vector_S * self, const void * element )
+bool VectorPush( struct Vector * self, const void * element )
 {
    // Early return op
    // Invalid inputs
@@ -323,7 +275,7 @@ bool VectorPush( struct Vector_S * self, const void * element )
 }
 
 /******************************************************************************/
-bool VectorInsertAt( struct Vector_S * self,
+bool VectorInsertAt( struct Vector * self,
                      size_t idx,
                      const void * element )
 {
@@ -367,7 +319,7 @@ bool VectorInsertAt( struct Vector_S * self,
 }
 
 /******************************************************************************/
-void * VectorGetElementAt( const struct Vector_S * self, size_t idx )
+void * VectorGetElementAt( const struct Vector * self, size_t idx )
 {
    if ( (NULL == self) || (idx >= self->len) )
    {
@@ -380,7 +332,7 @@ void * VectorGetElementAt( const struct Vector_S * self, size_t idx )
 }
 
 /******************************************************************************/
-void * VectorLastElement( const struct Vector_S * self )
+void * VectorLastElement( const struct Vector * self )
 {
    if ( (NULL == self) || (0 == self->len) )
    {
@@ -396,7 +348,7 @@ void * VectorLastElement( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorCpyElementAt( const struct Vector_S * self, size_t idx, void * data )
+bool VectorCpyElementAt( const struct Vector * self, size_t idx, void * data )
 {
    if ( (NULL == self) || (idx >= self->len) || (NULL == data))
    {
@@ -412,7 +364,7 @@ bool VectorCpyElementAt( const struct Vector_S * self, size_t idx, void * data )
 }
 
 /******************************************************************************/
-bool VectorCpyLastElement( const struct Vector_S * self, void * data )
+bool VectorCpyLastElement( const struct Vector * self, void * data )
 {
    if ( (NULL == self) || (0 == self->len) || (NULL == data) )
    {
@@ -433,7 +385,7 @@ bool VectorCpyLastElement( const struct Vector_S * self, void * data )
 }
 
 /******************************************************************************/
-bool VectorSetElementAt( struct Vector_S * self,
+bool VectorSetElementAt( struct Vector * self,
                            size_t idx,
                            const void * element )
 {
@@ -451,7 +403,7 @@ bool VectorSetElementAt( struct Vector_S * self,
 }
 
 /******************************************************************************/
-bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data )
+bool VectorRemoveElementAt( struct Vector * self, size_t idx, void * data )
 {
    if ( (NULL == self) || (idx >= self->len) || (self->len == 0) )
    {
@@ -477,13 +429,13 @@ bool VectorRemoveElementAt( struct Vector_S * self, size_t idx, void * data )
 }
 
 /******************************************************************************/
-bool VectorRemoveLastElement( struct Vector_S * self, void * data )
+bool VectorRemoveLastElement( struct Vector * self, void * data )
 {
    return VectorRemoveElementAt( self, VectorLength(self) - 1, data );
 }
 
 /******************************************************************************/
-bool VectorClearElementAt( struct Vector_S * self, size_t idx )
+bool VectorClearElementAt( struct Vector * self, size_t idx )
 {
    if ( (NULL == self) || (NULL == self->arr) ||
         (0 == self->len) || (idx >= self->len) )
@@ -500,7 +452,7 @@ bool VectorClearElementAt( struct Vector_S * self, size_t idx )
 }
 
 /******************************************************************************/
-bool VectorReset( struct Vector_S * self )
+bool VectorReset( struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -512,7 +464,7 @@ bool VectorReset( struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorHardReset( struct Vector_S * self )
+bool VectorHardReset( struct Vector * self )
 {
    if ( NULL == self )
    {
@@ -521,23 +473,17 @@ bool VectorHardReset( struct Vector_S * self )
 
    assert(self->arr != NULL);
    assert(self->element_size > 0);
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    assert(self->vec_free != NULL);
-#endif
 
    memset( self->arr, 0, self->len * self->element_size );
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    self->vec_free(self->arr);
-#else
-   StaticArrayFree(self->arr);
-#endif
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
 }
 
 /******************************************************************************/
-struct Vector_S * VectorDuplicate( const struct Vector_S * self )
+struct Vector * VectorDuplicate( const struct Vector * self )
 {
    if ( (NULL == self) ||
         // Check for internal paradoxes within passed in vector...
@@ -545,35 +491,25 @@ struct Vector_S * VectorDuplicate( const struct Vector_S * self )
         (self->len > self->capacity) ||
         (self->capacity > self->max_capacity) ||
         ( (self->len > 0) && (NULL == self->arr) )
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
         || (NULL == self->vec_malloc)
-#endif
       )
    {
       return NULL;
    }
 
-#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-   struct Vector_S * Duplicate = StaticVectorArenaAlloc();
-#else
-   struct Vector_S * Duplicate = self->vec_malloc( sizeof(struct Vector_S) );
-#endif
+   struct Vector * Duplicate = self->vec_malloc( sizeof(struct Vector) );
    if ( NULL == Duplicate )
    {
       // TODO: Throw exception that the vector handle failed to get duplicated.
       return NULL;
    }
 
-   memcpy( Duplicate, self, sizeof(struct Vector_S) );
+   memcpy( Duplicate, self, sizeof(struct Vector) );
    
    Duplicate->arr = NULL;
    if ( Duplicate->len > 0 )
    {
-#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-      Duplicate->arr = StaticArrayAlloc( Duplicate->len * Duplicate->element_size );
-#else
       Duplicate->arr = self->vec_malloc( Duplicate->len * Duplicate->element_size );
-#endif
       if ( Duplicate->arr != NULL )
       {
          memcpy( Duplicate->arr,
@@ -593,7 +529,7 @@ struct Vector_S * VectorDuplicate( const struct Vector_S * self )
 }
 
 /******************************************************************************/
-bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b )
+bool VectorsAreEqual( const struct Vector * a, const struct Vector * b )
 {
    // Check for NULL pointers
    if ( (NULL == a) || (NULL == b) )   return false;
@@ -627,7 +563,7 @@ bool VectorsAreEqual( const struct Vector_S * a, const struct Vector_S * b )
 /******************************************************************************/
 /******************************************************************************/
 
-struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx )
+struct Vector * VectorSplitAt( struct Vector * self, size_t idx )
 {
    if ( (NULL == self) || (self->len == 0) || (self->capacity == 0) ||
         (idx >= self->len) || (idx == 0) )
@@ -641,7 +577,7 @@ struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx )
    assert(self->element_size > 0);
 
    size_t new_vec_len = self->len - idx;
-   struct Vector_S * new_vec = VectorInit( self->element_size,
+   struct Vector * new_vec = VectorInit( self->element_size,
                                            new_vec_len * 2,
                                            new_vec_len * 4,
                                            new_vec_len );
@@ -666,7 +602,7 @@ struct Vector_S * VectorSplitAt( struct Vector_S * self, size_t idx )
 
 /******************************************************************************/
 
-struct Vector_S * VectorSlice( const struct Vector_S * self,
+struct Vector * VectorSlice( const struct Vector * self,
                                size_t idx_start,
                                size_t idx_end )
 {
@@ -689,7 +625,7 @@ struct Vector_S * VectorSlice( const struct Vector_S * self,
    assert(self->element_size > 0);
 
    size_t new_vec_len = idx_end - idx_start + 1;   // inclusive of both indices
-   struct Vector_S * new_vec = VectorInit( self->element_size,
+   struct Vector * new_vec = VectorInit( self->element_size,
                                            new_vec_len * 2,
                                            new_vec_len * 4,
                                            new_vec_len );
@@ -707,8 +643,8 @@ struct Vector_S * VectorSlice( const struct Vector_S * self,
 
 /******************************************************************************/
 
-struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
-                                     const struct Vector_S * v2 )
+struct Vector * VectorConcatenate( const struct Vector * v1,
+                                     const struct Vector * v2 )
 {
    if ( (NULL == v1) || (NULL == v2) ||
         (v1->element_size != v2->element_size) ||
@@ -730,7 +666,7 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
    assert(v2->element_size > 0);
    assert(v1->element_size == v2->element_size);
 
-   struct Vector_S * NewVec = NULL;
+   struct Vector * NewVec = NULL;
    // If one of the vectors is empty, simply create a duplicate of the non-empty
    // vector. If both vectors are empty, create an empty vector.
    if ( (0 == v1->len) && (0 == v2->len) )
@@ -787,7 +723,7 @@ struct Vector_S * VectorConcatenate( const struct Vector_S * v1,
 /******************************************************************************/
 /******************************************************************************/
 
-bool VectorSubRange_PushElements( struct Vector_S * self,
+bool VectorSubRange_PushElements( struct Vector * self,
                                   const void * data,
                                   size_t dlen )
 {
@@ -828,7 +764,7 @@ bool VectorSubRange_PushElements( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
+bool VectorSubRange_InsertElementsAt( struct Vector * self,
                                       size_t idx, 
                                       const void * data,
                                       size_t dlen )
@@ -880,7 +816,7 @@ bool VectorSubRange_InsertElementsAt( struct Vector_S * self,
 
 /******************************************************************************/
 
-void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
+void * VectorSubRange_GetElementsFromIdx( const struct Vector * self,
                                           size_t idx )
 {
    if ( (NULL == self) ||
@@ -900,7 +836,7 @@ void * VectorSubRange_GetElementsFromIdx( const struct Vector_S * self,
 /******************************************************************************/
 /******************************************************************************/
 
-bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
+bool VectorSubRange_CpyElementsInRange( const struct Vector * self,
                                         size_t idx_start,
                                         size_t idx_end,
                                         void * buffer )
@@ -926,7 +862,7 @@ bool VectorSubRange_CpyElementsInRange( const struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector_S * self,
+bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector * self,
                                                size_t idx,
                                                void * buffer )
 {
@@ -935,7 +871,7 @@ bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
+bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector * self,
                                              size_t idx,
                                              void * buffer )
 {
@@ -946,7 +882,7 @@ bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector_S * self,
 /******************************************************************************/
 /******************************************************************************/
 
-bool VectorSubRange_SetElementsInRange( struct Vector_S * self,
+bool VectorSubRange_SetElementsInRange( struct Vector * self,
                                         size_t idx_start,
                                         size_t idx_end,
                                         const void * data )
@@ -971,7 +907,7 @@ bool VectorSubRange_SetElementsInRange( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_SetElementsFromStartToIdx( struct Vector_S * self,
+bool VectorSubRange_SetElementsFromStartToIdx( struct Vector * self,
                                                size_t idx,
                                                const void * data )
 {
@@ -980,7 +916,7 @@ bool VectorSubRange_SetElementsFromStartToIdx( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
+bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector * self,
                                              size_t idx,
                                              const void * data )
 {
@@ -990,7 +926,7 @@ bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
+bool VectorSubRange_RemoveElementsInRange( struct Vector * self,
                                            size_t idx_start,
                                            size_t idx_end,
                                            void * buf )
@@ -1035,7 +971,7 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector_S * self,
+bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector * self,
                                                   size_t idx,
                                                   void * buf )
 {
@@ -1044,7 +980,7 @@ bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector_S * self,
+bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector * self,
                                                 size_t idx,
                                                 void * buf )
 {
@@ -1055,7 +991,7 @@ bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector_S * self,
 /******************************************************************************/
 /******************************************************************************/
 
-bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
+bool VectorSubRange_ClearElementsInRange( struct Vector * self,
                                           size_t idx_start,
                                           size_t idx_end )
 {
@@ -1076,7 +1012,7 @@ bool VectorSubRange_ClearElementsInRange( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector_S * self,
+bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector * self,
                                                  size_t idx )
 {
    return VectorSubRange_ClearElementsInRange(self, 0, idx);
@@ -1084,7 +1020,7 @@ bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector_S * self,
+bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector * self,
                                                size_t idx )
 {
    if ( (NULL == self) || (0 == self->len) ) return false;
@@ -1093,7 +1029,7 @@ bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector_S * self,
 
 /******************************************************************************/
 
-bool VectorClearAll( struct Vector_S * self )
+bool VectorClearAll( struct Vector * self )
 {
    if ( (NULL == self) || (0 == self->len) ) return false;
    return VectorSubRange_ClearElementsInRange(self, 0, self->len - 1);
@@ -1109,7 +1045,7 @@ bool VectorClearAll( struct Vector_S * self )
  * @param self Vector handle.
  * @return true if the expansion was successful, false otherwise.
  */
-static bool LocalVectorExpand( struct Vector_S * self )
+static bool LocalVectorExpand( struct Vector * self )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert(self != NULL);
@@ -1117,9 +1053,7 @@ static bool LocalVectorExpand( struct Vector_S * self )
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity);
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    assert(self->vec_realloc != NULL);
-#endif
 
    // If we're already at max capacity, can't expand further.
    if ( self->capacity == self->max_capacity )
@@ -1143,11 +1077,7 @@ static bool LocalVectorExpand( struct Vector_S * self )
    }
 
    void * new_ptr = 
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
       self->vec_realloc(
-#else
-      StaticArrayRealloc(
-#endif
          self->arr, (self->element_size * new_capacity) );
    if ( new_ptr != NULL )
    {
@@ -1166,7 +1096,7 @@ static bool LocalVectorExpand( struct Vector_S * self )
  * @param add_len The number of additional elements to expand the capacity by.
  * @return true if the expansion was successful; false otherwise.
  */
-static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
+static bool LocalVectorExpandBy( struct Vector * self, size_t add_len )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert(self != NULL);
@@ -1174,9 +1104,7 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
    assert(self->arr != NULL);
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity); 
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
    assert(self->vec_realloc != NULL);
-#endif
 
    // If there's no space in the vector, we can't expand
    if ( (self->capacity + add_len) > self->max_capacity )
@@ -1186,11 +1114,7 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
 
    size_t new_capacity = self->capacity + add_len;
    void * new_ptr = 
-#ifndef VEC_USE_BUILT_IN_STATIC_ALLOC
       self->vec_realloc(
-#else
-      StaticArrayRealloc(
-#endif
          self->arr, (self->element_size * new_capacity) );
    if ( new_ptr != NULL )
    {
@@ -1214,14 +1138,14 @@ static bool LocalVectorExpandBy( struct Vector_S * self, size_t add_len )
  * @note This function will also fail if you try to shift left by more than the
  *       length of the vector.
  *
- * @param self Pointer to the Vector_S structure.
+ * @param self Pointer to the Vector structure.
  * @param idx The index at which the shift operation begins.
  * @param n Number of indices to shift by.
  * @param move_right A boolean flag indicating the direction of the shift.
  *        - If true, elements are shifted to the right.
  *        - If false, elements are shifted to the left.
  */
-static void ShiftNOver( struct Vector_S * self, size_t idx,
+static void ShiftNOver( struct Vector * self, size_t idx,
                         bool move_right, size_t n )
 {
    assert(self != NULL);
@@ -1258,36 +1182,34 @@ static void ShiftNOver( struct Vector_S * self, size_t idx,
 
 /******************************************************************************/
 
-#ifdef VEC_USE_BUILT_IN_STATIC_ALLOC
-
 /********** Vector Arena Material **********/
 struct VectorArenaItem_S
 {
-   struct Vector_S vec;
+   struct Vector vec;
    bool is_allocated;
 };
 
 struct VectorArena_S
 {
-   struct VectorArenaItem_S pool[VEC_ARRAY_ARENA_SIZE];
+   struct VectorArenaItem_S pool[VEC_STRUCT_POOL_SIZE];
    size_t next_idx;
 };
 
 STATIC struct VectorArena_S VectorArena;
 
 /**
- * @brief Allocates a new Vector_S structure from a static arena.
- * @return Pointer to the allocated Vector_S struct if successful, NULL otherwise.
+ * @brief Allocates a new Vector structure from a static arena.
+ * @return Pointer to the allocated Vector struct if successful, NULL otherwise.
  */
-STATIC struct Vector_S * StaticVectorArenaAlloc(void)
+STATIC struct Vector * StaticVectorArenaAlloc(void)
 {
-   assert( VectorArena.next_idx < VEC_ARRAY_ARENA_SIZE );
+   assert( VectorArena.next_idx < VEC_STRUCT_POOL_SIZE );
    assert( VectorArena.pool != NULL );
 #ifndef NDEBUG
    // If next idx is allocated, by design, that must mean we are out of vectors.
    if ( VectorArena.pool[VectorArena.next_idx].is_allocated == true )
    {
-      for ( size_t i = 0; i < VEC_ARRAY_ARENA_SIZE; i++ )
+      for ( size_t i = 0; i < VEC_STRUCT_POOL_SIZE; i++ )
       {
          assert( VectorArena.pool[i].is_allocated == true );
       }
@@ -1299,15 +1221,15 @@ STATIC struct Vector_S * StaticVectorArenaAlloc(void)
       return NULL;
    }
 
-   struct Vector_S * new_vec = &VectorArena.pool[VectorArena.next_idx].vec;
+   struct Vector * new_vec = &VectorArena.pool[VectorArena.next_idx].vec;
    VectorArena.pool[VectorArena.next_idx].is_allocated = true;
 
    // 🗒️: Potential to place this in a separate asynchronous thread?
    // Find the next available spot
    size_t j = VectorArena.next_idx;
-   for ( size_t i = 1; i < VEC_ARRAY_ARENA_SIZE; i++, j++ )
+   for ( size_t i = 1; i < VEC_STRUCT_POOL_SIZE; i++, j++ )
    {
-      if ( j >= VEC_ARRAY_ARENA_SIZE ) j = 0; // Wrap-around
+      if ( j >= VEC_STRUCT_POOL_SIZE ) j = 0; // Wrap-around
 
       if ( !VectorArena.pool[j].is_allocated )
       {
@@ -1319,7 +1241,7 @@ STATIC struct Vector_S * StaticVectorArenaAlloc(void)
    return new_vec;
 }
 
-STATIC void StaticVectorArenaFree(const struct Vector_S * ptr)
+STATIC void StaticVectorArenaFree(const struct Vector * ptr)
 {
    if ( NULL == ptr )
    {
@@ -1328,7 +1250,7 @@ STATIC void StaticVectorArenaFree(const struct Vector_S * ptr)
 
    // Find the vector address that matches this pointer
    bool found = false;
-   for ( size_t i = 0; i < VEC_ARRAY_ARENA_SIZE; i++ )
+   for ( size_t i = 0; i < VEC_STRUCT_POOL_SIZE; i++ )
    {
       if ( ptr == &VectorArena.pool[i].vec )
       {
@@ -1346,9 +1268,9 @@ STATIC void StaticVectorArenaFree(const struct Vector_S * ptr)
    }
 }
 
-STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
+STATIC bool StaticVectorIsAlloc(const struct Vector * ptr)
 {
-   for ( size_t i = 0; i < VEC_ARRAY_ARENA_SIZE; i++ )
+   for ( size_t i = 0; i < VEC_STRUCT_POOL_SIZE; i++ )
    {
       if ( ptr == &VectorArena.pool[i].vec )
       {
@@ -1358,11 +1280,4 @@ STATIC bool StaticVectorIsAlloc(const struct Vector_S * ptr)
 
    return false;
 }
-
-
-/********** Array Arena Material **********/
-
-// TODO: TBD on Array Arena Material over here
-
-#endif // VEC_USE_BUILT_IN_STATIC_ALLOC
 
