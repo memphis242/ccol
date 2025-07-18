@@ -94,7 +94,7 @@ struct Vector * VectorNew( size_t element_size,
                            size_t initial_capacity,
                            size_t max_capacity,
                            size_t initial_len,
-                           struct Allocator mem_mgr )
+                           const struct Allocator * mem_mgr )
 {
    // Invalid inputs
    if ( (0 == element_size) ||
@@ -107,22 +107,25 @@ struct Vector * VectorNew( size_t element_size,
       return NULL;
    }
 
-   if ( (NULL == mem_mgr.alloc) || (NULL == mem_mgr.realloc) || (NULL == mem_mgr.reclaim) )
-   {
-      // TODO: Throw exception if user passed in a partially complete memory manager
-      // Default to stdlib memory allocation functions
-      mem_mgr.alloc = malloc;
-      mem_mgr.realloc = realloc;
-      mem_mgr.reclaim = free;
-   }
-
    struct Vector * NewVec = vec_pool_dispatch();
    if ( NULL == NewVec )
    {
       return NULL;
    }
 
-   NewVec->mem_mgr = mem_mgr;
+   if ( (NULL == mem_mgr) ||
+        (NULL == mem_mgr->alloc) || (NULL == mem_mgr->realloc) || (NULL == mem_mgr->reclaim) )
+   {
+      // TODO: Throw exception if user passed in a partially complete memory manager
+      // Default to stdlib memory allocation functions
+      NewVec->mem_mgr.alloc = malloc;
+      NewVec->mem_mgr.realloc = realloc;
+      NewVec->mem_mgr.reclaim = free;
+   }
+   else
+   {
+      NewVec->mem_mgr = *mem_mgr;
+   }
 
    if ( 0 == initial_capacity )
    {
@@ -587,7 +590,7 @@ struct Vector * VectorSplitAt( struct Vector * self, size_t idx )
                                            new_vec_len * 2,
                                            new_vec_len * 4,
                                            new_vec_len,
-                                           self->mem_mgr );
+                                           &self->mem_mgr );
    if ( (NULL == new_vec) || (NULL == new_vec->arr) )
    {
       return NULL;
@@ -636,7 +639,7 @@ struct Vector * VectorSlice( const struct Vector * self,
                                            new_vec_len * 2,
                                            new_vec_len * 4,
                                            new_vec_len,
-                                           self->mem_mgr );
+                                           &self->mem_mgr );
    if ( (NULL == new_vec) || (NULL == new_vec->arr) )
    {
       return NULL;
@@ -683,7 +686,7 @@ struct Vector * VectorConcatenate( const struct Vector * v1,
                            DEFAULT_INITIAL_CAPACITY,
                            DEFAULT_INITIAL_CAPACITY * DEFAULT_MAX_CAPACITY_FACTOR,
                            0,
-                           v1->mem_mgr );
+                           &v1->mem_mgr );
    }
 
    else if ( (v1->len > 0)  && (v2->len == 0) )
@@ -713,7 +716,7 @@ struct Vector * VectorConcatenate( const struct Vector * v1,
                            new_vec_cap,
                            new_vec_max_cap,
                            new_vec_len,
-                           v1->mem_mgr );
+                           &v1->mem_mgr );
       if ( (NewVec != NULL) && (NewVec->arr != NULL) )
       {
          memcpy( NewVec->arr,                 v1->arr, (v1->len * v1->element_size) );
