@@ -13,6 +13,7 @@
 /* File Inclusions */
 
 /* Public Macro Definitions */
+#define DEFAULT_ALLOCATOR ((struct Allocator){ .alloc = malloc, .realloc = realloc, .reclaim = free })
 
 /* Public Datatypes */
 
