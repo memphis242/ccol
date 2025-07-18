@@ -85,7 +85,6 @@ static bool            vec_isalloc(const struct Vector *);
 
 static bool vec_expand(struct Vector *);
 static bool vec_expandby(struct Vector *, size_t);
-// TODO: Use an enum instead of a boolean to indicate direction of shift.
 static void shiftn( struct Vector *, size_t, enum ShiftDir, size_t);
 
 /* Public API Implementations */

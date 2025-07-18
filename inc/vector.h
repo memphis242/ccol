@@ -50,7 +50,7 @@ struct Vector * VectorNew( size_t element_size,
                            size_t initial_capacity,
                            size_t max_capacity,
                            size_t initial_len,
-                           struct Allocator mem_mgr );
+                           const struct Allocator * mem_mgr );
 
 /**
  * @brief Frees the memory allocated for the vector.
