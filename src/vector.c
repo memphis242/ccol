@@ -117,10 +117,7 @@ struct Vector * VectorNew( size_t element_size,
         (NULL == mem_mgr->alloc) || (NULL == mem_mgr->realloc) || (NULL == mem_mgr->reclaim) )
    {
       // TODO: Throw exception if user passed in a partially complete memory manager
-      // Default to stdlib memory allocation functions
-      new_vec->mem_mgr.alloc = malloc;
-      new_vec->mem_mgr.realloc = realloc;
-      new_vec->mem_mgr.reclaim = free;
+      new_vec->mem_mgr = DEFAULT_ALLOCATOR;
    }
    else
    {
