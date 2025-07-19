@@ -175,13 +175,13 @@ struct Vector * VectorNew( size_t element_size,
 /******************************************************************************/
 void VectorFree( struct Vector * self )
 {
-   if ( (self != NULL) && (self->arr != NULL) && (!vec_isalloc(self)) )
+   if ( (self != NULL) && vec_isalloc(self) )
    {
-      if (self->mem_mgr.reclaim != NULL)
+      if ( (self->mem_mgr.reclaim != NULL) && (self->arr != NULL) )
       {
          self->mem_mgr.reclaim(self->arr);
-         vec_pool_reclaim(self);
       }
+      vec_pool_reclaim(self);
    }
 }
 
