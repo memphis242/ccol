@@ -107,8 +107,8 @@ struct Vector * VectorNew( size_t element_size,
       return NULL;
    }
 
-   struct Vector * NewVec = vec_pool_dispatch();
-   if ( NULL == NewVec )
+   struct Vector * new_vec = vec_pool_dispatch();
+   if ( NULL == new_vec )
    {
       return NULL;
    }
@@ -118,58 +118,58 @@ struct Vector * VectorNew( size_t element_size,
    {
       // TODO: Throw exception if user passed in a partially complete memory manager
       // Default to stdlib memory allocation functions
-      NewVec->mem_mgr.alloc = malloc;
-      NewVec->mem_mgr.realloc = realloc;
-      NewVec->mem_mgr.reclaim = free;
+      new_vec->mem_mgr.alloc = malloc;
+      new_vec->mem_mgr.realloc = realloc;
+      new_vec->mem_mgr.reclaim = free;
    }
    else
    {
-      NewVec->mem_mgr = *mem_mgr;
+      new_vec->mem_mgr = *mem_mgr;
    }
 
    if ( 0 == initial_capacity )
    {
-      NewVec->arr = NULL;
+      new_vec->arr = NULL;
    }
    else
    {
-      NewVec->arr = NewVec->mem_mgr.alloc( element_size * initial_capacity );
+      new_vec->arr = new_vec->mem_mgr.alloc( element_size * initial_capacity );
    }
 
    // If we failed to allocate space for the array...
-   if ( (initial_capacity > 0) && (NULL == NewVec->arr) )
+   if ( (initial_capacity > 0) && (NULL == new_vec->arr) )
    {
       // TODO: Throw exception to inform user...
-      NewVec->capacity = 0;
-      NewVec->len = 0;
+      new_vec->capacity = 0;
+      new_vec->len = 0;
    }
    else
    {
-      NewVec->capacity = initial_capacity;
+      new_vec->capacity = initial_capacity;
       if ( initial_len > 0 )
       {
-         memset( NewVec->arr, 0, (element_size * initial_len) );
-         NewVec->len = initial_len;
+         memset( new_vec->arr, 0, (element_size * initial_len) );
+         new_vec->len = initial_len;
       }
       else
       {
-         NewVec->len = 0;
+         new_vec->len = 0;
       }
    }
 
-   NewVec->element_size = element_size;
+   new_vec->element_size = element_size;
 
    if ( max_capacity > MAX_VEC_LEN )
    {
       // TODO: Throw exception for max_capacity too large
-      NewVec->max_capacity = MAX_VEC_LEN;
+      new_vec->max_capacity = MAX_VEC_LEN;
    }
    else
    {
-      NewVec->max_capacity = max_capacity;
+      new_vec->max_capacity = max_capacity;
    }
 
-   return NewVec;
+   return new_vec;
 }
 
 /******************************************************************************/
