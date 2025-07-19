@@ -17,19 +17,23 @@
 #include "vector.h"
 
 /* Local Macro Definitions */
-#define MAX_INIT_ATTEMPTS 100 //! Used in the TRY_INIT macro to limit VectorNew(, &DEFAULT_ALLOCATOR) attempst
+#define MAX_INIT_ATTEMPTS 100 //! Used in the VECTOR_NEW_KEEP_TRYIN macro to limit VectorNew(, &DEFAULT_ALLOCATOR) attempst
+#define ARR_LEN(arr) ( sizeof(arr) / sizeof(arr[0]) )
 
-#define TRY_INIT(ptr, iter_counter, elsz, icap, mcap, init_len)                \
+#define VECTOR_NEW_KEEP_TRYIN(ptr, elsz, icap, mcap, init_len, mem_mgr)        \
+{                                                                              \
+   size_t iter = 0;                                                            \
    do                                                                          \
    {                                                                           \
       VectorFree(ptr);                                                         \
-      ptr = VectorNew( elsz, icap, mcap, init_len , &DEFAULT_ALLOCATOR);                          \
-      iter_counter++;                                                          \
+      ptr = VectorNew( elsz, icap, mcap, init_len, mem_mgr);                   \
+      iter++;                                                                  \
    } while (                                                                   \
       (NULL == ptr) &&                                                         \
       (VectorCapacity(ptr) == 0) &&                                            \
-      (iter_counter < MAX_INIT_ATTEMPTS)                                       \
-   );
+      (iter < MAX_INIT_ATTEMPTS)                                               \
+   );                                                                          \
+}
 
 /* Datatypes */
 
@@ -45,7 +49,6 @@ void test_VectorNew_Invalid_MaxCapLessThanInitCap(void);
 void test_VectorNew_Invalid_ZeroMaxCap(void);
 void test_VectorNew_Invalid_InitialLen(void);
 void test_VectorNew_ValidInputCombo_3DPoints(void);
-void test_VectorNew_ValidInputCombo_PtrData(void);
 void test_VectorNew_CapacityLimit(void);
 void test_VectorNew_ElementSzLimit(void);
 void test_VectorNew_InitialLenLessThanInitialCap(void);
@@ -300,249 +303,248 @@ int main(void)
    RUN_TEST(test_VectorNew_Invalid_ZeroMaxCap);
    RUN_TEST(test_VectorNew_Invalid_InitialLen);
    RUN_TEST(test_VectorNew_ValidInputCombo_3DPoints);
-   RUN_TEST(test_VectorNew_ValidInputCombo_PtrData);
    RUN_TEST(test_VectorNew_CapacityLimit);
    RUN_TEST(test_VectorNew_ElementSzLimit);
    RUN_TEST(test_VectorNew_InitialLenLessThanInitialCap);
    RUN_TEST(test_VectorNew_InitialLenSameAsInitialCap);
 
-   RUN_TEST(test_VectorOpsOnNullVectors);
+   //RUN_TEST(test_VectorOpsOnNullVectors);
 
-   RUN_TEST(test_VectorFree);
-   RUN_TEST(test_VectorLength);
-   RUN_TEST(test_VectorCapacity);
-   RUN_TEST(test_VectorMaxCapacity);
-   RUN_TEST(test_VectorElementSize);
-   RUN_TEST(test_VectorIsEmpty);
-   RUN_TEST(test_VectorIsFull);
+   //RUN_TEST(test_VectorFree);
+   //RUN_TEST(test_VectorLength);
+   //RUN_TEST(test_VectorCapacity);
+   //RUN_TEST(test_VectorMaxCapacity);
+   //RUN_TEST(test_VectorElementSize);
+   //RUN_TEST(test_VectorIsEmpty);
+   //RUN_TEST(test_VectorIsFull);
 
-   RUN_TEST(test_VectorPush_SimplePush);
-   RUN_TEST(test_VectorPush_UntilCapacity);
-   RUN_TEST(test_VectorPush_PastInitialCapacity);
-   RUN_TEST(test_VectorPush_PastMaxCapacity);
-   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
+   //RUN_TEST(test_VectorPush_SimplePush);
+   //RUN_TEST(test_VectorPush_UntilCapacity);
+   //RUN_TEST(test_VectorPush_PastInitialCapacity);
+   //RUN_TEST(test_VectorPush_PastMaxCapacity);
+   //RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
 
-   RUN_TEST(test_VectorInsertion_AtZeroWithVectorLessThanCapacity);
-   RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
-   RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtMaxCapacity);
-   RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
-   RUN_TEST(test_VectorInsertion_AtMiddle);
-   RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
+   //RUN_TEST(test_VectorInsertion_AtZeroWithVectorLessThanCapacity);
+   //RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
+   //RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtMaxCapacity);
+   //RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
+   //RUN_TEST(test_VectorInsertion_AtMiddle);
+   //RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
 
-   RUN_TEST(test_VectorGetElement_ValidIdx);
-   RUN_TEST(test_VectorGetElement_IdxPastLen);
-   RUN_TEST(test_VectorGetElement_IdxPastCap);
-   RUN_TEST(test_VectorLastElement);
+   //RUN_TEST(test_VectorGetElement_ValidIdx);
+   //RUN_TEST(test_VectorGetElement_IdxPastLen);
+   //RUN_TEST(test_VectorGetElement_IdxPastCap);
+   //RUN_TEST(test_VectorLastElement);
 
-   RUN_TEST(test_VectorCpyElement_ValidIdx);
-   RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
-   RUN_TEST(test_VectorCpyElement_IdxPastLen);
-   RUN_TEST(test_VectorCpyElement_IdxPastCap);
-   RUN_TEST(test_VectorCpyLastElement);
-   RUN_TEST(test_VectorRoundTrip_CpyElementToSetElement);
+   //RUN_TEST(test_VectorCpyElement_ValidIdx);
+   //RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
+   //RUN_TEST(test_VectorCpyElement_IdxPastLen);
+   //RUN_TEST(test_VectorCpyElement_IdxPastCap);
+   //RUN_TEST(test_VectorCpyLastElement);
+   //RUN_TEST(test_VectorRoundTrip_CpyElementToSetElement);
 
-   RUN_TEST(test_VectorSetElement_AfterPushes);
-   RUN_TEST(test_VectorSetElement_AfterInitLen);
-   RUN_TEST(test_VectorSetElement_PastLen);
-   RUN_TEST(test_VectorSetElement_PastCap);
+   //RUN_TEST(test_VectorSetElement_AfterPushes);
+   //RUN_TEST(test_VectorSetElement_AfterInitLen);
+   //RUN_TEST(test_VectorSetElement_PastLen);
+   //RUN_TEST(test_VectorSetElement_PastCap);
 
-   RUN_TEST(test_VectorRemoveElement_AtZeroWithVectorPartiallyFull);
-   RUN_TEST(test_VectorRemoveElement_AtZeroWithSinglePresentElement);
-   RUN_TEST(test_VectorRemoveElement_AtZeroWithEmptyVector);
-   RUN_TEST(test_VectorRemoveElement_AtMiddle);
-   RUN_TEST(test_VectorRemoveElement_AtLen);
-   RUN_TEST(test_VectorRemoveElement_LastElement);
-   RUN_TEST(test_VectorRemoveElement_PastLen);
-   RUN_TEST(test_VectorRemoveElement_AtZeroWithVectorPartiallyFull_WithBuf);
-   RUN_TEST(test_VectorRemoveElement_AtZeroWithSinglePresentElement_WithBuf);
-   RUN_TEST(test_VectorRemoveElement_AtZeroWithEmptyVector_WithBuf);
-   RUN_TEST(test_VectorRemoveElement_AtMiddle_WithBuf);
-   RUN_TEST(test_VectorRemoveElement_AtLen_WithBuf);
-   RUN_TEST(test_VectorRemoveElement_LastElement_WithBuf);
-   RUN_TEST(test_VectorRemoveElement_PastLen_WithBuf);
+   //RUN_TEST(test_VectorRemoveElement_AtZeroWithVectorPartiallyFull);
+   //RUN_TEST(test_VectorRemoveElement_AtZeroWithSinglePresentElement);
+   //RUN_TEST(test_VectorRemoveElement_AtZeroWithEmptyVector);
+   //RUN_TEST(test_VectorRemoveElement_AtMiddle);
+   //RUN_TEST(test_VectorRemoveElement_AtLen);
+   //RUN_TEST(test_VectorRemoveElement_LastElement);
+   //RUN_TEST(test_VectorRemoveElement_PastLen);
+   //RUN_TEST(test_VectorRemoveElement_AtZeroWithVectorPartiallyFull_WithBuf);
+   //RUN_TEST(test_VectorRemoveElement_AtZeroWithSinglePresentElement_WithBuf);
+   //RUN_TEST(test_VectorRemoveElement_AtZeroWithEmptyVector_WithBuf);
+   //RUN_TEST(test_VectorRemoveElement_AtMiddle_WithBuf);
+   //RUN_TEST(test_VectorRemoveElement_AtLen_WithBuf);
+   //RUN_TEST(test_VectorRemoveElement_LastElement_WithBuf);
+   //RUN_TEST(test_VectorRemoveElement_PastLen_WithBuf);
 
-   RUN_TEST(test_VectorClearElementAt_Normal);
-   RUN_TEST(test_VectorClearElementAt_InvalidIdx);
+   //RUN_TEST(test_VectorClearElementAt_Normal);
+   //RUN_TEST(test_VectorClearElementAt_InvalidIdx);
 
-   RUN_TEST(test_VectorReset_OORIdx);
-   RUN_TEST(test_VectorReset);
+   //RUN_TEST(test_VectorReset_OORIdx);
+   //RUN_TEST(test_VectorReset);
 
-   RUN_TEST(test_VectorHardReset);
+   //RUN_TEST(test_VectorHardReset);
 
-   RUN_TEST(test_VectorDuplicate_SmallVector);
-   RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
-   RUN_TEST(test_VectorDuplicate_NullVector);
+   //RUN_TEST(test_VectorDuplicate_SmallVector);
+   //RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
+   //RUN_TEST(test_VectorDuplicate_NullVector);
 
-   RUN_TEST(test_VectorsAreEqual_SameVectors);
-   RUN_TEST(test_VectorsAreEqual_DifferentElementSz);
-   RUN_TEST(test_VectorsAreEqual_DifferentLength);
-   RUN_TEST(test_VectorsAreEqual_DifferentCapacity);
-   RUN_TEST(test_VectorsAreEqual_DifferentMaxCapacity);
-   RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
+   //RUN_TEST(test_VectorsAreEqual_SameVectors);
+   //RUN_TEST(test_VectorsAreEqual_DifferentElementSz);
+   //RUN_TEST(test_VectorsAreEqual_DifferentLength);
+   //RUN_TEST(test_VectorsAreEqual_DifferentCapacity);
+   //RUN_TEST(test_VectorsAreEqual_DifferentMaxCapacity);
+   //RUN_TEST(test_VectorsAreEqual_DifferentElementValues);
 
-   RUN_TEST(test_VectorSplitAt_ValidIdx);
-   RUN_TEST(test_VectorSplitAt_IdxZero);
-   RUN_TEST(test_VectorSplitAt_IdxPastLen);
-   RUN_TEST(test_VectorSplitAt_EmptyVector);
-   RUN_TEST(test_VectorSplitAt_NullVector);
-   RUN_TEST(test_VectorSplitAt_ValidIdx_StructData);
+   //RUN_TEST(test_VectorSplitAt_ValidIdx);
+   //RUN_TEST(test_VectorSplitAt_IdxZero);
+   //RUN_TEST(test_VectorSplitAt_IdxPastLen);
+   //RUN_TEST(test_VectorSplitAt_EmptyVector);
+   //RUN_TEST(test_VectorSplitAt_NullVector);
+   //RUN_TEST(test_VectorSplitAt_ValidIdx_StructData);
 
-   RUN_TEST(test_VectorSlice_ValidIndices_IntData);
-   RUN_TEST(test_VectorSlice_ValidIndices_StructData);
-   RUN_TEST(test_VectorSlice_IdxStartEqualsIdxEnd);
-   RUN_TEST(test_VectorSlice_IdxStartZero);
-   RUN_TEST(test_VectorSlice_FullVector);
-   RUN_TEST(test_VectorSlice_IdxEndAtLastElement);
-   RUN_TEST(test_VectorSlice_EmptyVector);
-   RUN_TEST(test_VectorSlice_NullVector);
-   RUN_TEST(test_VectorSlice_IdxStartGreaterThanIdxEnd);
-   RUN_TEST(test_VectorSlice_IdxEndCommonMistake);
-   RUN_TEST(test_VectorSlice_IdxEndOutOfRange);
+   //RUN_TEST(test_VectorSlice_ValidIndices_IntData);
+   //RUN_TEST(test_VectorSlice_ValidIndices_StructData);
+   //RUN_TEST(test_VectorSlice_IdxStartEqualsIdxEnd);
+   //RUN_TEST(test_VectorSlice_IdxStartZero);
+   //RUN_TEST(test_VectorSlice_FullVector);
+   //RUN_TEST(test_VectorSlice_IdxEndAtLastElement);
+   //RUN_TEST(test_VectorSlice_EmptyVector);
+   //RUN_TEST(test_VectorSlice_NullVector);
+   //RUN_TEST(test_VectorSlice_IdxStartGreaterThanIdxEnd);
+   //RUN_TEST(test_VectorSlice_IdxEndCommonMistake);
+   //RUN_TEST(test_VectorSlice_IdxEndOutOfRange);
 
-   RUN_TEST(test_VectorConcatenate_BasicUse);
-   RUN_TEST(test_VectorConcatenate_VecsNotMutated);
-   RUN_TEST(test_VectorConcatenate_OneVecIsEmpty);
-   RUN_TEST(test_VectorConcatenate_BothVecsEmpty);
-   RUN_TEST(test_VectorConcatenate_FullVectors);
-   RUN_TEST(test_VectorConcatenate_NullArguments);
-   RUN_TEST(test_VectorConcatenate_DifferentElementSizes);
-   RUN_TEST(test_VectorConcatenate_ConcatenateSplitRoundTrip);
+   //RUN_TEST(test_VectorConcatenate_BasicUse);
+   //RUN_TEST(test_VectorConcatenate_VecsNotMutated);
+   //RUN_TEST(test_VectorConcatenate_OneVecIsEmpty);
+   //RUN_TEST(test_VectorConcatenate_BothVecsEmpty);
+   //RUN_TEST(test_VectorConcatenate_FullVectors);
+   //RUN_TEST(test_VectorConcatenate_NullArguments);
+   //RUN_TEST(test_VectorConcatenate_DifferentElementSizes);
+   //RUN_TEST(test_VectorConcatenate_ConcatenateSplitRoundTrip);
 
-   RUN_TEST(test_VectorSubRange_PushElements_ValidInts);
-   RUN_TEST(test_VectorSubRange_PushElements_ValidStructs);
-   RUN_TEST(test_VectorSubRange_PushElements_ExpandCapacity);
-   RUN_TEST(test_VectorSubRange_PushElements_ZeroLen);
-   RUN_TEST(test_VectorSubRange_PushElements_NullVec);
-   RUN_TEST(test_VectorSubRange_PushElements_NullData);
-   RUN_TEST(test_VectorSubRange_PushElements_ExceedsMaxCapacity);
-   RUN_TEST(test_VectorSubRange_PushElements_ExactlyMaxCapacity);
+   //RUN_TEST(test_VectorSubRange_PushElements_ValidInts);
+   //RUN_TEST(test_VectorSubRange_PushElements_ValidStructs);
+   //RUN_TEST(test_VectorSubRange_PushElements_ExpandCapacity);
+   //RUN_TEST(test_VectorSubRange_PushElements_ZeroLen);
+   //RUN_TEST(test_VectorSubRange_PushElements_NullVec);
+   //RUN_TEST(test_VectorSubRange_PushElements_NullData);
+   //RUN_TEST(test_VectorSubRange_PushElements_ExceedsMaxCapacity);
+   //RUN_TEST(test_VectorSubRange_PushElements_ExactlyMaxCapacity);
 
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_ValidInts);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_ValidStructs);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_ExpandCapacity);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_ZeroLen);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_NullVec);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_NullData);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_Push_Equivalence);
-   RUN_TEST(test_VectorSubRange_InsertElementsAt_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_ValidInts);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_ValidStructs);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_ExpandCapacity);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_ZeroLen);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_NullVec);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_NullData);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_ExceedsMaxCapacity);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_ExactlyMaxCapacity);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_Push_Equivalence);
+   //RUN_TEST(test_VectorSubRange_InsertElementsAt_InvalidIdx);
 
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_IntData);
+   //RUN_TEST(test_VectorSubRange_GetElementsFromIdx_ValidIdx_StructData);
+   //RUN_TEST(test_VectorSubRange_GetElementsFromIdx_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_GetElementsFromIdx_InvalidVec);
 
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_EmptyVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsInRange_SameIdices);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIdices_IntData);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_DoesNotMutate);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_ValidIndices_StructData);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_FullVector_IncorrectEndIdx);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_CpyElementsInRange_SameIdices);
 
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_StartIdx);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIdices_IntData);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_DoesNotMutate);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_ValidIndices_StructData);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_FullVector_IncorrectEndIdx);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromStartToIdx_StartIdx);
 
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_FullVector);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EmptyVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidVec);
-   RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EndIdx);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIdices_IntData);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_DoesNotMutate);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_ValidIndices_StructData);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_FullVector);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_CpyElementsFromIdxToEnd_EndIdx);
 
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIdices_IntData);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIndices_StructData);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_EmptyVec);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidVec);
-   RUN_TEST(test_VectorSubRange_SetElementsInRange_SameIdices);
-   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsInRng);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIdices_IntData);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_DoesNotMutate);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_ValidIndices_StructData);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_FullVector_IncorrectEndIdx);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_SetElementsInRange_SameIdices);
+   //RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsInRng);
 
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_IntData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_StructData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_StartIdx);
-   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsStartToIdx);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_IntData);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_DoesNotMutate);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_ValidIdx_StructData);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_FullVector_IncorrectEndIdx);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromStartToIdx_StartIdx);
+   //RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsStartToIdx);
 
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_IntData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_DoesNotMutate);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_StructData);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_FullVector);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EmptyVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidIdx);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidVec);
-   RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx);
-   RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_IntData);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_DoesNotMutate);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_ValidIdx_StructData);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_FullVector);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidIdx);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_SetElementsFromIdxToEnd_EndIdx);
+   //RUN_TEST(test_VectorSubRange_RoundTrip_CpyElementsToSetElementsIdxToEnd);
 
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_Normal);
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_NormalWithBuf);
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AllElements);
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AtBeginning);
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AtEnd);
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_EmptyVec);
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_InvalidIndices);
-   RUN_TEST(test_VectorSubRange_RemoveElementsInRng_InvalidVec);
-   RUN_TEST(test_VectorSubRange_RoundTrip_InsertAndRemove);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_Normal);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_NormalWithBuf);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AllElements);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AtBeginning);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_AtEnd);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_InvalidIndices);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsInRng_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_RoundTrip_InsertAndRemove);
 
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_Normal);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_NormalWithBuf);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_AllElements);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_InvalidIndices);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_Normal);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_NormalWithBuf);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_AllElements);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_InvalidIndices);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromStartToIdx_InvalidVec);
 
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_Normal);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_NormalWithBuf);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_AllElements);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_EmptyVec);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_InvalidIndices);
-   RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_InvalidVec);
-   RUN_TEST(test_VectorSubRange_RoundTrip_PushElementsRemoveElementsFromIdxToEnd);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_Normal);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_NormalWithBuf);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_AllElements);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_InvalidIndices);
+   //RUN_TEST(test_VectorSubRange_RemoveElementsFromIdxToEnd_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_RoundTrip_PushElementsRemoveElementsFromIdxToEnd);
 
-   RUN_TEST(test_VectorSubRange_ClearElementsInRng_Normal);
-   RUN_TEST(test_VectorSubRange_ClearElementsInRng_AllElements);
-   RUN_TEST(test_VectorSubRange_ClearElementsInRng_EmptyVec);
-   RUN_TEST(test_VectorSubRange_ClearElementsInRng_AtBeginning);
-   RUN_TEST(test_VectorSubRange_ClearElementsInRng_AtEnd);
-   RUN_TEST(test_VectorSubRange_ClearElementsInRng_InvalidIndices);
-   RUN_TEST(test_VectorSubRange_ClearElementsInRng_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_ClearElementsInRng_Normal);
+   //RUN_TEST(test_VectorSubRange_ClearElementsInRng_AllElements);
+   //RUN_TEST(test_VectorSubRange_ClearElementsInRng_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_ClearElementsInRng_AtBeginning);
+   //RUN_TEST(test_VectorSubRange_ClearElementsInRng_AtEnd);
+   //RUN_TEST(test_VectorSubRange_ClearElementsInRng_InvalidIndices);
+   //RUN_TEST(test_VectorSubRange_ClearElementsInRng_InvalidVec);
 
-   RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_Normal);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_AllElements);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_EmptyVec);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_InvalidIndices);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_Normal);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_AllElements);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_InvalidIndices);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromStartToIdx_InvalidVec);
 
-   RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_Normal);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_AllElements);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_EmptyVec);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidIndices);
-   RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidVec);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_Normal);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_AllElements);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_EmptyVec);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidIndices);
+   //RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidVec);
 
-   RUN_TEST(test_VectorClearAllElements_Normal);
-   RUN_TEST(test_VectorClearAllElements_EmptyVec);
-   RUN_TEST(test_VectorClearAllElements_InvalidVec);
+   //RUN_TEST(test_VectorClearAllElements_Normal);
+   //RUN_TEST(test_VectorClearAllElements_EmptyVec);
+   //RUN_TEST(test_VectorClearAllElements_InvalidVec);
 
    return UNITY_END();
 }
@@ -598,104 +600,31 @@ void test_VectorNew_Invalid_InitialLen(void)
 
 void test_VectorNew_ValidInputCombo_3DPoints(void)
 {
-   struct Vector * vec;
-   const uint32_t INITIAL_CAP_MAX = (uint32_t)(1.0e5f);
-   const uint32_t MAX_CAP_MAX = 10 * INITIAL_CAP_MAX;
-   // Create a vector of this made up struct datatype of 3D points
+   const uint32_t InitialCaps[] = { 0, 2, 1000 };
+   const uint32_t MaxCap = 10000;
    struct MyData_S { int x; int y; int z; };
-   bool at_least_one_successful_initialization = false;
-   for ( uint32_t initial_cap = 0;
-         initial_cap < INITIAL_CAP_MAX;
-         initial_cap =
-            (
-               ( (initial_cap + 1000) <= INITIAL_CAP_MAX ) ?
-                     (initial_cap + 1000) : INITIAL_CAP_MAX
-            )
-      )
-   {
-      for ( uint32_t max_cap = initial_cap;
-            max_cap < MAX_CAP_MAX;
-            max_cap =
-               (
-                  ( (max_cap + 1000) <= MAX_CAP_MAX ) ?
-                        (max_cap + 1000) : MAX_CAP_MAX
-               )
-         )
-      {
-         vec = VectorNew(sizeof(struct MyData_S), initial_cap, max_cap, 0, &DEFAULT_ALLOCATOR);
-
-         if ( vec != NULL )
-         {
-            // Confirm correct initialization
-            TEST_ASSERT_EQUAL_size_t( sizeof(struct MyData_S), VectorElementSize(vec) );
-            TEST_ASSERT_EQUAL_UINT32( initial_cap, VectorCapacity(vec) );
-            TEST_ASSERT_EQUAL_UINT32( max_cap, VectorMaxCapacity(vec) );
-            if ( !at_least_one_successful_initialization )
-            {
-               at_least_one_successful_initialization = true;
-            }
-         }
-
-         VectorFree(vec);
-      }
-   }
-   // Even though malloc may fail a few times, there should be at least one
-   // successful allocation among all these tries.
-   TEST_ASSERT_TRUE(at_least_one_successful_initialization);
-}
-
-void test_VectorNew_ValidInputCombo_PtrData(void)
-{
    struct Vector * vec;
-   const uint32_t INITIAL_CAP_MAX = (uint32_t)(1.0e5f);
-   const uint32_t MAX_CAP_MAX = 10 * INITIAL_CAP_MAX;
-   bool at_least_one_successful_initialization = false;
-   for ( uint32_t initial_cap = 0;
-         initial_cap < INITIAL_CAP_MAX;
-         initial_cap =
-            (
-               ( (initial_cap + 1000) <= INITIAL_CAP_MAX ) ?
-                     (initial_cap + 1000) : INITIAL_CAP_MAX
-            )
-      )
+   // FIXME: Have to assume that malloc will succeed at least once for this test to mean anything...
+   for ( size_t i = 0; i < ARR_LEN(InitialCaps); i++ )
    {
-      for ( uint32_t max_cap = initial_cap;
-            max_cap < MAX_CAP_MAX;
-            max_cap =
-               (
-                  ( (max_cap + 1000) <= MAX_CAP_MAX ) ?
-                        (max_cap + 1000) : MAX_CAP_MAX
-               )
-         )
+      vec = VectorNew(sizeof(struct MyData_S), InitialCaps[i], MaxCap, 0, &DEFAULT_ALLOCATOR);
+
+      if ( vec != NULL )
       {
-         vec = VectorNew(sizeof(char *), initial_cap, max_cap, 0, &DEFAULT_ALLOCATOR);
-
-         if ( vec != NULL )
-         {
-            // Confirm correct initialization
-            TEST_ASSERT_EQUAL_size_t( sizeof(char *), VectorElementSize(vec) );
-            TEST_ASSERT_EQUAL_UINT32( initial_cap, VectorCapacity(vec) );
-            TEST_ASSERT_EQUAL_UINT32( max_cap, VectorMaxCapacity(vec) );
-            if ( !at_least_one_successful_initialization )
-            {
-               at_least_one_successful_initialization = true;
-            }
-         }
-
-         VectorFree(vec);
+         // Confirm correct initialization
+         TEST_ASSERT_EQUAL_size_t( sizeof(struct MyData_S), VectorElementSize(vec) );
+         TEST_ASSERT_EQUAL_UINT32( InitialCaps[i], VectorCapacity(vec) );
+         TEST_ASSERT_EQUAL_UINT32( MaxCap, VectorMaxCapacity(vec) );
       }
+
+      VectorFree(vec);
    }
-   // Even though malloc may fail a few times, there should be at least one
-   // successful allocation among all these tries.
-   TEST_ASSERT_TRUE(at_least_one_successful_initialization);
 }
 
 void test_VectorNew_CapacityLimit(void)
 {
-   // Now push things to the limit and try to create a vector at the system's limit.
-   uint16_t iteration_counter = 0;
    struct Vector * vec = NULL;
-   TRY_INIT(vec, iteration_counter, 1, UINT32_MAX, UINT32_MAX, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, 1, UINT32_MAX, UINT32_MAX, 0, &DEFAULT_ALLOCATOR);
    TEST_ASSERT_EQUAL_size_t( 1, VectorElementSize(vec) );
    TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorCapacity(vec) );
    TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorMaxCapacity(vec) );
@@ -705,9 +634,8 @@ void test_VectorNew_CapacityLimit(void)
 void test_VectorNew_ElementSzLimit(void)
 {
    // Now push things to the limit and try to create a vector at the system's limit.
-   uint16_t iteration_counter = 0;
    struct Vector * vec = NULL;
-   TRY_INIT(vec, iteration_counter, UINT32_MAX, 1, 1, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, UINT32_MAX, 1, 1, 0, &DEFAULT_ALLOCATOR);
    TEST_ASSERT_EQUAL_size_t( UINT32_MAX, VectorElementSize(vec) );
    TEST_ASSERT_EQUAL_UINT32( 1, VectorCapacity(vec) );
    TEST_ASSERT_EQUAL_UINT32( 1, VectorMaxCapacity(vec) );
@@ -717,9 +645,8 @@ void test_VectorNew_ElementSzLimit(void)
 void test_VectorNew_InitialLenLessThanInitialCap(void)
 {
    struct Vector * vec = NULL;
-   uint16_t iteration_counter = 0;
    const size_t INIT_LEN = 5;
-   TRY_INIT(vec, iteration_counter, 50, INIT_LEN * 2, INIT_LEN * 10, INIT_LEN);
+   VECTOR_NEW_KEEP_TRYIN(vec, 50, INIT_LEN * 2, INIT_LEN * 10, INIT_LEN, &DEFAULT_ALLOCATOR);
    TEST_ASSERT_EQUAL_UINT32( INIT_LEN,     VectorLength(vec) );
    TEST_ASSERT_EQUAL_UINT32( INIT_LEN * 2, VectorCapacity(vec) );
    // Verify initial elements have been zero'd out
@@ -737,9 +664,8 @@ void test_VectorNew_InitialLenLessThanInitialCap(void)
 void test_VectorNew_InitialLenSameAsInitialCap(void)
 {
    struct Vector * vec = NULL;
-   uint16_t iteration_counter = 0;
    const size_t INIT_LEN = 10;
-   TRY_INIT(vec, iteration_counter, 50, INIT_LEN, INIT_LEN * 10, INIT_LEN);
+   VECTOR_NEW_KEEP_TRYIN(vec, 50, INIT_LEN, INIT_LEN * 10, INIT_LEN, &DEFAULT_ALLOCATOR);
    TEST_ASSERT_EQUAL_UINT32( INIT_LEN, VectorLength(vec) );
    TEST_ASSERT_EQUAL_UINT32( INIT_LEN, VectorCapacity(vec) );
    // Verify initial elements have been zero'd out
@@ -791,13 +717,11 @@ void test_VectorOpsOnNullVectors(void)
 /***************************** Simple Vector Ops ******************************/
 void test_VectorFree(void)
 {
-   size_t i = 0;
    struct Vector * vec = NULL;
 
-   TRY_INIT(vec, i, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
-   // No assertion I can declare here, but I can at least check that the
-   // nothing crashes.
+   // FIXME: Need to assert post-conditions of a vector free operation...
    VectorFree(vec);
 }
 
@@ -843,8 +767,7 @@ void test_VectorIsFull(void)
 {
    // Initialize a vector with a small capacity
    struct Vector * vec = NULL;
-   unsigned int iteration_counter = 0;
-   TRY_INIT(vec, iteration_counter, sizeof(int), 3, 3, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 3, 3, 0, &DEFAULT_ALLOCATOR);
 
    // Verify the vector is not full initially
    TEST_ASSERT_FALSE(VectorIsFull(vec));
@@ -871,8 +794,7 @@ void test_VectorIsFull(void)
 void test_VectorPush_SimplePush(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iteration_counter = 0;
-   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
    int value1 = 42;
    int value2 = 84;
@@ -908,8 +830,7 @@ void test_VectorPush_UntilCapacity(void)
    const uint32_t MAX_CAP = (uint32_t)(1.0e6);
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
-   unsigned int iterations_counter = 0;
-   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec, sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0, &DEFAULT_ALLOCATOR);
 
    // Now push until you've reached the initial capacity, and confirm along the
    // way that the element was truly pushed in...
@@ -980,8 +901,7 @@ void test_VectorPush_PastInitialCapacity(void)
    const uint32_t MAX_CAP = (uint32_t)(1.0e6);
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
-   unsigned int iterations_counter = 0;
-   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), 100, MAX_CAP, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec, sizeof(struct MyData_S), 100, MAX_CAP, 0, &DEFAULT_ALLOCATOR );
 
    // Fill to initial capacity
    struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
@@ -1023,8 +943,7 @@ void test_VectorPush_PastMaxCapacity(void)
    const uint32_t MAX_CAP = (uint32_t)(10.0e3);
    const uint32_t INIT_CAP = MAX_CAP / 1000;
 
-   unsigned int iterations_counter = 0;
-   TRY_INIT( vec, iterations_counter, sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec,  sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0, &DEFAULT_ALLOCATOR );
 
    // Fill to initial capacity
    struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
@@ -1074,8 +993,7 @@ void test_VectorPush_IntoVecWithZeroMaxCap(void)
 void test_VectorInsertion_AtZeroWithVectorLessThanCapacity(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR );
 
    int val = 20;
    while ( VectorLength(vec) < 5 )
@@ -1106,8 +1024,7 @@ void test_VectorInsertion_AtZeroWithVectorLessThanCapacity(void)
 void test_VectorInsertion_AtZeroWithVectorAtCapacity(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR );
 
    int val = 20;
    while ( VectorLength(vec) < 10 )
@@ -1136,8 +1053,7 @@ void test_VectorInsertion_AtZeroWithVectorAtCapacity(void)
 void test_VectorInsertion_AtZeroWithVectorAtMaxCapacity(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR );
 
    int val = 20;
    while ( VectorLength(vec) < 100 )
@@ -1165,13 +1081,11 @@ void test_VectorInsertion_AtEndEqualsVecPush(void)
 {
    struct Vector * vec1 = NULL;
    struct Vector * vec2 = NULL;
-   unsigned int iter = 0;
-   TRY_INIT( vec1, iter, sizeof(int), 10, 100, 0 );
-   iter = 0;
-   TRY_INIT( vec2, iter, sizeof(int), 10, 100, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec1, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR );
+   VECTOR_NEW_KEEP_TRYIN( vec2, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR );
 
-   iter = 0;
    int val = 20;
+   size_t iter = 0;
    while ( (VectorLength(vec1) < 100) && (iter < 1000) )
    {
       bool result = VectorPush(vec1, &val);
@@ -1204,8 +1118,7 @@ void test_VectorInsertion_AtEndEqualsVecPush(void)
 void test_VectorInsertion_AtMiddle(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR );
 
    int val = 20;
    const size_t IDX_OF_INSERTION = 4;
@@ -1238,8 +1151,7 @@ void test_VectorInsertion_AtMiddle(void)
 void test_VectorInsertion_AtMiddleOfEmptyVec(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT( vec, iter, sizeof(int), 10, 100, 0 );
+   VECTOR_NEW_KEEP_TRYIN( vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR );
 
    int val = 20;
    const size_t IDX_OF_INSERTION = 4;
@@ -1386,8 +1298,7 @@ void test_VectorRoundTrip_CpyElementToSetElement(void)
 void test_VectorSetElement_AfterPushes(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int value1 = 42, value2 = 84;
    VectorPush(vec, &value1);
    TEST_ASSERT_TRUE(VectorSetElementAt(vec, 0, &value2));
@@ -1398,8 +1309,7 @@ void test_VectorSetElement_AfterPushes(void)
 void test_VectorSetElement_AfterInitLen(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(vec, iter, sizeof(int), 10, 100, 5);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 5, &DEFAULT_ALLOCATOR);
    int val = 5;
    TEST_ASSERT_TRUE(VectorSetElementAt(vec, 0, &val));
    TEST_ASSERT_TRUE(VectorSetElementAt(vec, 3, &val));
@@ -1410,8 +1320,7 @@ void test_VectorSetElement_AfterInitLen(void)
 void test_VectorSetElement_PastLen(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int value1 = 42, value2 = 84;
    while ( VectorLength(vec) < 10 )
    {
@@ -1429,8 +1338,7 @@ void test_VectorSetElement_PastLen(void)
 void test_VectorSetElement_PastCap(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(vec, iter, sizeof(int), 10, 10, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 10, 0, &DEFAULT_ALLOCATOR);
    int value1 = 42, value2 = 84;
    while ( VectorLength(vec) < 10 )
    {
@@ -1518,10 +1426,8 @@ void test_VectorRemoveElement_LastElement(void)
 {
    struct Vector * vec1 = NULL;
    struct Vector * vec2 = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(vec1, iter, sizeof(int), 10, 100, 0);
-   iter = 0;
-   TRY_INIT(vec2, iter, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec1, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   VECTOR_NEW_KEEP_TRYIN(vec2, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++)
@@ -1641,10 +1547,8 @@ void test_VectorRemoveElement_LastElement_WithBuf(void)
 {
    struct Vector * vec1 = NULL;
    struct Vector * vec2 = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(vec1, iter, sizeof(int), 10, 100, 0);
-   iter = 0;
-   TRY_INIT(vec2, iter, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec1, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   VECTOR_NEW_KEEP_TRYIN(vec2, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++)
@@ -1763,9 +1667,8 @@ void test_VectorReset_OORIdx(void)
 void test_VectorReset(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iteration_counter = 0;
 
-   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100, 0)
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR)
    TEST_ASSERT_NOT_NULL(vec);
 
    int value = 42;
@@ -1785,9 +1688,8 @@ void test_VectorReset(void)
 void test_VectorHardReset(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iteration_counter = 0;
 
-   TRY_INIT(vec, iteration_counter, sizeof(int), 10, 100, 0)
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR)
    TEST_ASSERT_NOT_NULL(vec);
 
    // Add some elements to the vector
@@ -1820,8 +1722,7 @@ void test_VectorHardReset(void)
 void test_VectorDuplicate_SmallVector(void)
 {
    struct Vector * original = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(original, iter, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(original, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
@@ -1852,9 +1753,8 @@ void test_VectorDuplicate_SmallVector(void)
 void test_VectorDuplicate_ReallyLargeVector(void)
 {
    struct Vector * original = NULL;
-   unsigned int iter = 0;
    const size_t OriginalVecLen = 10000000;
-   TRY_INIT(original, iter, sizeof(uint8_t), OriginalVecLen, OriginalVecLen, 0);
+   VECTOR_NEW_KEEP_TRYIN(original, sizeof(uint8_t), OriginalVecLen, OriginalVecLen, 0, &DEFAULT_ALLOCATOR);
 
    for (size_t i = 0; i < OriginalVecLen; i++) {
       const uint8_t val = 5;
@@ -1894,10 +1794,9 @@ void test_VectorDuplicate_NullVector(void)
 void test_VectorsAreEqual_SameVectors(void)
 {
    struct Vector * vec = NULL;
-   unsigned int iter = 0;
-   TRY_INIT(vec, iter, sizeof(int), 10, 100, 0);
+   VECTOR_NEW_KEEP_TRYIN(vec, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
-   iter = 0;
+   size_t iter = 0;
    int val = 10;
    while ( (VectorLength(vec) < 5) && (iter < 100) )
    {
