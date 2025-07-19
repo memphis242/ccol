@@ -308,40 +308,40 @@ int main(void)
    RUN_TEST(test_VectorNew_InitialLenLessThanInitialCap);
    RUN_TEST(test_VectorNew_InitialLenSameAsInitialCap);
 
-   //RUN_TEST(test_VectorOpsOnNullVectors);
+   RUN_TEST(test_VectorOpsOnNullVectors);
 
-   //RUN_TEST(test_VectorFree);
-   //RUN_TEST(test_VectorLength);
-   //RUN_TEST(test_VectorCapacity);
-   //RUN_TEST(test_VectorMaxCapacity);
-   //RUN_TEST(test_VectorElementSize);
-   //RUN_TEST(test_VectorIsEmpty);
-   //RUN_TEST(test_VectorIsFull);
+   RUN_TEST(test_VectorFree);
+   RUN_TEST(test_VectorLength);
+   RUN_TEST(test_VectorCapacity);
+   RUN_TEST(test_VectorMaxCapacity);
+   RUN_TEST(test_VectorElementSize);
+   RUN_TEST(test_VectorIsEmpty);
+   RUN_TEST(test_VectorIsFull);
 
-   //RUN_TEST(test_VectorPush_SimplePush);
-   //RUN_TEST(test_VectorPush_UntilCapacity);
-   //RUN_TEST(test_VectorPush_PastInitialCapacity);
-   //RUN_TEST(test_VectorPush_PastMaxCapacity);
-   //RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
+   RUN_TEST(test_VectorPush_SimplePush);
+   RUN_TEST(test_VectorPush_UntilCapacity);
+   RUN_TEST(test_VectorPush_PastInitialCapacity);
+   RUN_TEST(test_VectorPush_PastMaxCapacity);
+   RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
 
-   //RUN_TEST(test_VectorInsertion_AtZeroWithVectorLessThanCapacity);
-   //RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
-   //RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtMaxCapacity);
-   //RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
-   //RUN_TEST(test_VectorInsertion_AtMiddle);
-   //RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
+   RUN_TEST(test_VectorInsertion_AtZeroWithVectorLessThanCapacity);
+   RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
+   RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtMaxCapacity);
+   RUN_TEST(test_VectorInsertion_AtEndEqualsVecPush);
+   RUN_TEST(test_VectorInsertion_AtMiddle);
+   RUN_TEST(test_VectorInsertion_AtMiddleOfEmptyVec);
 
-   //RUN_TEST(test_VectorGetElement_ValidIdx);
-   //RUN_TEST(test_VectorGetElement_IdxPastLen);
-   //RUN_TEST(test_VectorGetElement_IdxPastCap);
-   //RUN_TEST(test_VectorLastElement);
+   RUN_TEST(test_VectorGetElement_ValidIdx);
+   RUN_TEST(test_VectorGetElement_IdxPastLen);
+   RUN_TEST(test_VectorGetElement_IdxPastCap);
+   RUN_TEST(test_VectorLastElement);
 
-   //RUN_TEST(test_VectorCpyElement_ValidIdx);
-   //RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
-   //RUN_TEST(test_VectorCpyElement_IdxPastLen);
-   //RUN_TEST(test_VectorCpyElement_IdxPastCap);
-   //RUN_TEST(test_VectorCpyLastElement);
-   //RUN_TEST(test_VectorRoundTrip_CpyElementToSetElement);
+   RUN_TEST(test_VectorCpyElement_ValidIdx);
+   RUN_TEST(test_VectorCpyElement_NullBufferPassedIn);
+   RUN_TEST(test_VectorCpyElement_IdxPastLen);
+   RUN_TEST(test_VectorCpyElement_IdxPastCap);
+   RUN_TEST(test_VectorCpyLastElement);
+   RUN_TEST(test_VectorRoundTrip_CpyElementToSetElement);
 
    //RUN_TEST(test_VectorSetElement_AfterPushes);
    //RUN_TEST(test_VectorSetElement_AfterInitLen);
@@ -728,8 +728,7 @@ void test_VectorFree(void)
 void test_VectorLength(void) {
     struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
     TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
-    int value = 42;
-    VectorPush(vec, &value);
+    VectorPush(vec, &(int){42});
     TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
     VectorFree(vec);
 }
@@ -757,8 +756,7 @@ void test_VectorIsEmpty(void)
 {
     struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
     TEST_ASSERT_TRUE(VectorIsEmpty(vec));
-    int value = 42;
-    VectorPush(vec, &value);
+    VectorPush(vec, &(int){42});
     TEST_ASSERT_FALSE(VectorIsEmpty(vec));
     VectorFree(vec);
 }
@@ -1185,11 +1183,10 @@ void test_VectorInsertion_AtMiddleOfEmptyVec(void)
 void test_VectorGetElement_ValidIdx(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-   int value = 42;
-   VectorPush(vec, &value);
+   VectorPush(vec, &(int){42});
    int * retrieved = (int *)VectorGetElementAt(vec, 0);
    TEST_ASSERT_NOT_NULL(retrieved);
-   TEST_ASSERT_EQUAL_INT(value, *retrieved);
+   TEST_ASSERT_EQUAL_INT(42, *retrieved);
    VectorFree(vec);
 }
 
