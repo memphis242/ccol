@@ -5,15 +5,10 @@
 .PHONY: release release-vec libvector
 .PHONY: debug debug-vec
 .PHONY: test-vec test-all
-.PHONY: test-vec-arena
 
 test-vec:
 	@$(MAKE) _test BUILD_TYPE=TEST DS=vector > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
-
-test-vec-arena:
-	@$(MAKE) _test BUILD_TYPE=TEST-ARENA DS=vector > /dev/null
-# TODO: Start up both the server test arena .c file and the client Python script
 
 test-all:
 	@$(MAKE) --always-make test-vec > /dev/null
