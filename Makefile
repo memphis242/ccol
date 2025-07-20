@@ -226,7 +226,7 @@ lib: $(BUILD_DIRS) $(LIB_FILE) $(LIB_LIST_FILE)
 $(LIB_FILE): $(OBJ_FILES) $(BUILD_DIRS) 
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mConstructing\033[0m the static library: $@..."
+	@echo -e "\033[32mConstructing\033[0m the static library: $@..."
 	@echo
 	ar rcs $@ $(OBJ_FILES)
 
@@ -240,14 +240,14 @@ _test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS
 $(PATH_RESULTS)%.txt: $(PATH_BUILD)%.$(TARGET_EXTENSION) $(COLORIZE_UNITY_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mRunning\033[0m $<..."
+	@echo -e "\033[35mExecuting\033[0m $<..."
 	@echo
 	-./$< 2>&1 | tee $@ | python $(COLORIZE_UNITY_SCRIPT)
 
 $(PATH_BUILD)%.$(TARGET_EXTENSION): $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mLinking\033[0m $(TEST_OBJ_FILES), $(UNITY_OBJ_FILES), and the collection static lib $(LIB_FILE) into an executable..."
+	@echo -e "\033[32mLinking\033[0m $(TEST_OBJ_FILES), $(UNITY_OBJ_FILES), and the collection static lib $(LIB_FILE) into an executable..."
 	@echo
 	$(CC) $(LDFLAGS) $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
 
@@ -271,7 +271,7 @@ $(PATH_OBJECT_FILES)%.o: $(PATH_UNITY)%.c $(PATH_UNITY)%.h
 unity_static_analysis: $(PATH_UNITY)unity.c $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mRunning static analysis\033[0m on $<..."
+	@echo -e "\033[33mRunning static analysis\033[0m on $<..."
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
@@ -317,7 +317,7 @@ $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c
 $(LIB_LIST_FILE): $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mDisassembly\033[0m of $< into $@..."
+	@echo -e "\033[33mDisassembly\033[0m of $< into $@..."
 	@echo
 	objdump -D $< > $@
 
@@ -325,7 +325,7 @@ $(LIB_LIST_FILE): $(LIB_FILE)
 $(PATH_BUILD)%.lst: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mDisassembly\033[0m of $< into $@..."
+	@echo -e "\033[33mDisassembly\033[0m of $< into $@..."
 	@echo
 	objdump -D $< > $@
 
