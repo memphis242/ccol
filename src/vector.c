@@ -124,6 +124,13 @@ struct Vector * VectorNew( size_t element_size,
       new_vec->mem_mgr = *mem_mgr;
    }
 
+   if ( new_vec->mem_mgr.alloca_init != NULL )
+   {
+      // The arena pointer may be NULL, but I won't let that stop me from calling
+      // the allocator's init fcn, because it may not need it.
+      new_vec->mem_mgr.alloca_init( new_vec->mem_mgr.arena );
+   }
+
    if ( 0 == initial_capacity )
    {
       new_vec->arr = NULL;
@@ -176,7 +183,7 @@ void VectorFree( struct Vector * self )
    {
       if ( (self->mem_mgr.reclaim != NULL) && (self->arr != NULL) )
       {
-         self->mem_mgr.reclaim(self->arr, self->len * self->element_size );
+         self->mem_mgr.reclaim(self->arr, self->len * self->element_size, self->mem_mgr.arena );
       }
       vec_pool_reclaim(self);
    }
@@ -482,7 +489,7 @@ bool VectorHardReset( struct Vector * self )
    assert(self->mem_mgr.reclaim != NULL);
 
    memset( self->arr, 0, self->len * self->element_size );
-   self->mem_mgr.reclaim( self->arr, self->len * self->element_size );
+   self->mem_mgr.reclaim( self->arr, self->len * self->element_size, self->mem_mgr.arena );
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
@@ -1092,7 +1099,8 @@ static bool vec_expand( struct Vector * self )
 
    void * new_ptr = self->mem_mgr.realloc( self->arr,
                                            self->element_size * new_capacity,
-                                           self->element_size * self->capacity );
+                                           self->element_size * self->capacity,
+                                           self->mem_mgr.arena );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1129,7 +1137,8 @@ static bool vec_expandby( struct Vector * self, size_t add_len )
    size_t new_capacity = self->capacity + add_len;
    void * new_ptr = self->mem_mgr.realloc( self->arr,
                                            self->element_size * new_capacity,
-                                           self->element_size * self->capacity );
+                                           self->element_size * self->capacity,
+                                           self->mem_mgr.arena );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;

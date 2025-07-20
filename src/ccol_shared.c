@@ -19,14 +19,16 @@ void * default_alloc(size_t req_sz, void * arena)
    return malloc(req_sz);
 }
 
-void * default_realloc(void * old_ptr, size_t new_sz, size_t old_sz)
+void * default_realloc(void * old_ptr, size_t new_sz, size_t old_sz, void * arena)
 {
    (void)old_sz;
+   (void)arena;
    return realloc(old_ptr, new_sz);
 }
 
-void default_reclaim(void * old_ptr, size_t old_sz)
+void default_reclaim(void * old_ptr, size_t old_sz, void * arena)
 {
    (void)old_sz;
+   (void)arena;
    free(old_ptr);
 }
