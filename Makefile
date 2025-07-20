@@ -87,18 +87,20 @@ COLLECTION_LIB_NAME = ccol
 BUILD_TYPE ?= RELEASE
 DS ?= ALL
 
+SHARED_SRC_FILES = $(PATH_SRC)ccol_shared.c
+SHARED_HDR_FILES = $(PATH_INC)ccol_shared.h
+SRC_FILES += $(SHARED_SRC_FILES)
+HDR_FILES += $(SHARED_HDR_FILES)
 ifeq ($(DS), ALL)
-  SRC_FILES = $(wildcard $(PATH_SRC)*.c)
-  HDR_FILES = $(wildcard $(PATH_INC)*.h) $(wildcard $(PATH_CFG)$(DS)_cfg.h)
+  SRC_FILES += $(wildcard $(PATH_SRC)*.c)
+  HDR_FILES += $(wildcard $(PATH_INC)*.h) $(wildcard $(PATH_CFG)$(DS)_cfg.h)
   SRC_TEST_FILES = $(wildcard $(PATH_TEST_FILES)*.c)
   LIB_FILE = $(PATH_BUILD)lib$(COLLECTION_LIB_NAME).$(STATIC_LIB_EXTENSION)
-  DS_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
 else
-  SRC_FILES = $(PATH_SRC)$(DS).c
-  HDR_FILES = $(PATH_INC)$(DS).h $(wildcard $(PATH_CFG)$(DS)_cfg.h)
+  SRC_FILES += $(PATH_SRC)$(DS).c
+  HDR_FILES += $(PATH_INC)$(DS).h $(wildcard $(PATH_CFG)$(DS)_cfg.h)
   SRC_TEST_FILES = $(PATH_TEST_FILES)test_$(DS).c
   LIB_FILE = $(PATH_BUILD)lib$(DS).$(STATIC_LIB_EXTENSION)
-  DS_OBJ_FILES = $(PATH_OBJECT_FILES)$(DS).o
 endif
 TEST_EXECUTABLES = $(patsubst %.c, $(PATH_BUILD)%.$(TARGET_EXTENSION), $(notdir $(SRC_TEST_FILES)))
 LIB_LIST_FILE = $(patsubst %.$(STATIC_LIB_EXTENSION), $(PATH_BUILD)%.lst, $(notdir $(LIB_FILE)))
@@ -221,12 +223,12 @@ lib: $(BUILD_DIRS) $(LIB_FILE) $(LIB_LIST_FILE)
 	@echo -e "Library \033[35m$(LIB_FILE) \033[32;1mbuilt\033[0m!"
 	@echo "----------------------------------------"
 
-$(LIB_FILE): $(DS_OBJ_FILES) $(BUILD_DIRS) 
+$(LIB_FILE): $(OBJ_FILES) $(BUILD_DIRS) 
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mConstructing\033[0m the static library: $@..."
 	@echo
-	ar rcs $@ $<
+	ar rcs $@ $(OBJ_FILES)
 
 ######################## Test Rules ########################
 _test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS)
@@ -284,7 +286,31 @@ $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h $(PATH_CFG)%_cfg.h $(COL
 	$(CC) -c $(CFLAGS) $< -o $@
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[36mRunning static analysis\033[0m on $<..."
+	@echo -e "\033[33mRunning static analysis\033[0m on $<..."
+	@echo
+	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
+
+$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."
+	@echo
+	$(CC) -c $(CFLAGS) $< -o $@
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[33mRunning static analysis\033[0m on $<..."
+	@echo
+	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
+
+$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."
+	@echo
+	$(CC) -c $(CFLAGS) $< -o $@
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[33mRunning static analysis\033[0m on $<..."
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 

@@ -130,7 +130,7 @@ struct Vector * VectorNew( size_t element_size,
    }
    else
    {
-      new_vec->arr = new_vec->mem_mgr.alloc( element_size * initial_capacity );
+      new_vec->arr = new_vec->mem_mgr.alloc( element_size * initial_capacity, mem_mgr->arena );
    }
 
    // If we failed to allocate space for the array...
@@ -176,7 +176,7 @@ void VectorFree( struct Vector * self )
    {
       if ( (self->mem_mgr.reclaim != NULL) && (self->arr != NULL) )
       {
-         self->mem_mgr.reclaim(self->arr);
+         self->mem_mgr.reclaim(self->arr, self->len * self->element_size );
       }
       vec_pool_reclaim(self);
    }
@@ -482,7 +482,7 @@ bool VectorHardReset( struct Vector * self )
    assert(self->mem_mgr.reclaim != NULL);
 
    memset( self->arr, 0, self->len * self->element_size );
-   self->mem_mgr.reclaim(self->arr);
+   self->mem_mgr.reclaim( self->arr, self->len * self->element_size );
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
@@ -503,24 +503,24 @@ struct Vector * VectorDuplicate( const struct Vector * self )
       return NULL;
    }
 
-   struct Vector * Duplicate = self->mem_mgr.alloc( sizeof(struct Vector) );
-   if ( NULL == Duplicate )
+   struct Vector * dup = vec_pool_dispatch();
+   if ( NULL == dup )
    {
       // TODO: Throw exception that the vector handle failed to get duplicated.
       return NULL;
    }
 
-   memcpy( Duplicate, self, sizeof(struct Vector) );
+   memcpy( dup, self, sizeof(struct Vector) );
    
-   Duplicate->arr = NULL;
-   if ( Duplicate->len > 0 )
+   dup->arr = NULL;
+   if ( dup->len > 0 )
    {
-      Duplicate->arr = self->mem_mgr.alloc( Duplicate->len * Duplicate->element_size );
-      if ( Duplicate->arr != NULL )
+      dup->arr = self->mem_mgr.alloc( dup->len * dup->element_size, self->mem_mgr.arena );
+      if ( dup->arr != NULL )
       {
-         memcpy( Duplicate->arr,
+         memcpy( dup->arr,
                  self->arr,
-                 Duplicate->len * Duplicate->element_size );
+                 dup->len * dup->element_size );
       }
       else
       {
@@ -528,10 +528,10 @@ struct Vector * VectorDuplicate( const struct Vector * self )
       }
    }
 
-   // Duplicated vector _must not_ reference original vector's data!
-   assert( Duplicate->arr != self->arr );
+   // dupd vector _must not_ reference original vector's data!
+   assert( dup->arr != self->arr );
 
-   return Duplicate;
+   return dup;
 }
 
 /******************************************************************************/
@@ -560,6 +560,10 @@ bool VectorsAreEqual( const struct Vector * a, const struct Vector * b )
          return false;
       }
    }
+
+   // We'll allow the vectors to be allocated from different allocators. I can't
+   // think of a case where it also matters how the vectors were allocated, if
+   // everything else about them is equal.
 
    return true;
 }
@@ -1087,7 +1091,8 @@ static bool vec_expand( struct Vector * self )
    }
 
    void * new_ptr = self->mem_mgr.realloc( self->arr,
-                                           self->element_size * new_capacity );
+                                           self->element_size * new_capacity,
+                                           self->element_size * self->capacity );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
@@ -1123,7 +1128,8 @@ static bool vec_expandby( struct Vector * self, size_t add_len )
 
    size_t new_capacity = self->capacity + add_len;
    void * new_ptr = self->mem_mgr.realloc( self->arr,
-                                           self->element_size * new_capacity );
+                                           self->element_size * new_capacity,
+                                           self->element_size * self->capacity );
    if ( new_ptr != NULL )
    {
       self->arr = new_ptr;
