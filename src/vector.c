@@ -55,9 +55,8 @@
 
 // Function-like macros
 
-#define IS_EMPTY(self)     ( 0 == (self)->len )
-#define PTR_TO_IDX(vec, idx) \
-      ( (uint8_t *)((vec)->arr) + ((vec)->element_size * (idx)) )
+#define IS_EMPTY(self) ( 0 == (self)->len )
+#define PTR_TO_IDX(vec, idx) ( (uint8_t *)((vec)->arr) + ((vec)->element_size * (idx)) )
 
 /* Local Datatypes */
 struct Vector
@@ -187,6 +186,166 @@ void VectorFree( struct Vector * self )
       }
       vec_pool_reclaim(self);
    }
+}
+
+/******************************************************************************/
+struct Vector * VectorDuplicate( const struct Vector * self )
+{
+   if ( (NULL == self) ||
+        // Check for internal paradoxes within passed in vector...
+        (0 == self->element_size) ||
+        (self->len > self->capacity) ||
+        (self->capacity > self->max_capacity) ||
+        ( (self->len > 0) && (NULL == self->arr) )
+        || (NULL == self->mem_mgr.alloc)
+      )
+   {
+      return NULL;
+   }
+
+   struct Vector * dup = vec_pool_dispatch();
+   if ( NULL == dup )
+   {
+      // TODO: Throw exception that the vector handle failed to get duplicated.
+      return NULL;
+   }
+
+   memcpy( dup, self, sizeof(struct Vector) );
+   
+   dup->arr = NULL;
+   if ( dup->len > 0 )
+   {
+      dup->arr = self->mem_mgr.alloc( dup->len * dup->element_size, self->mem_mgr.arena );
+      if ( dup->arr != NULL )
+      {
+         memcpy( dup->arr,
+                 self->arr,
+                 dup->len * dup->element_size );
+      }
+      else
+      {
+         // TODO: Throw exception that underlying data failed to get duplicated.
+      }
+   }
+
+   // dupd vector _must not_ reference original vector's data!
+   assert( dup->arr != self->arr );
+
+   return dup;
+}
+
+/******************************************************************************/
+bool VectorsAreEqual( const struct Vector * a, const struct Vector * b )
+{
+   // Check for NULL pointers
+   if ( (NULL == a) || (NULL == b) )   return false;
+
+   // First check lengths
+   if (a->len != b->len) return false;
+   
+   // Then check the element sizes
+   if (a->element_size != b->element_size) return false;
+
+   // Then check capacities
+   if (a->capacity != b->capacity) return false;
+
+   // Then check max capacities
+   if (a->max_capacity != b->max_capacity) return false;
+
+   // Then check each element in the vector
+   for ( size_t i = 0; i < a->len; i++ )
+   {
+      if ( memcmp( PTR_TO_IDX(a,i), PTR_TO_IDX(b,i), a->element_size ) )
+      {
+         return false;
+      }
+   }
+
+   // We'll allow the vectors to be allocated from different allocators. I can't
+   // think of a case where it also matters how the vectors were allocated, if
+   // everything else about them is equal.
+
+   return true;
+}
+
+/******************************************************************************/
+struct Vector * VectorConcatenate( const struct Vector * v1,
+                                     const struct Vector * v2 )
+{
+   if ( (NULL == v1) || (NULL == v2) ||
+        (v1->element_size != v2->element_size) ||
+        (v2->len > (MAX_VEC_LEN - v1->len)) // Unsupported length
+      )
+   {
+      return NULL;
+   }
+
+   assert(
+      ( (v1->len > 0) && (v1->arr != NULL) ) ||
+        (0 == v1->len)
+   );
+   assert(
+      ( (v2->len > 0) && (v2->arr != NULL) ) ||
+        (0 == v2->len)
+   );
+   assert(v1->element_size > 0);
+   assert(v2->element_size > 0);
+   assert(v1->element_size == v2->element_size);
+
+   struct Vector * NewVec = NULL;
+   // If one of the vectors is empty, simply create a duplicate of the non-empty
+   // vector. If both vectors are empty, create an empty vector.
+   if ( (0 == v1->len) && (0 == v2->len) )
+   {
+      NewVec = VectorNew( v1->element_size,
+                           DEFAULT_INITIAL_CAPACITY,
+                           DEFAULT_INITIAL_CAPACITY * DEFAULT_MAX_CAPACITY_FACTOR,
+                           0,
+                           &v1->mem_mgr );
+   }
+
+   else if ( (v1->len > 0)  && (v2->len == 0) )
+   {
+      NewVec = VectorDuplicate(v1);
+   }
+   else if ( (v1->len == 0) && (v2->len > 0) )
+   {
+      NewVec = VectorDuplicate(v2);
+   }
+
+   else  // Both must be non-empty
+   {
+      size_t new_vec_len = v1->len + v2->len;
+      size_t new_vec_cap = MAX_VEC_LEN;
+      if ( v2->capacity < (MAX_VEC_LEN - v1->capacity) )
+      {
+         new_vec_cap = v1->capacity + v2->capacity;
+      }
+      size_t new_vec_max_cap = MAX_VEC_LEN;
+      if ( v2->max_capacity < (MAX_VEC_LEN - v1->max_capacity) )
+      {
+         new_vec_max_cap = v1->max_capacity + v2->max_capacity;
+      }
+
+      NewVec = VectorNew( v1->element_size,
+                           new_vec_cap,
+                           new_vec_max_cap,
+                           new_vec_len,
+                           &v1->mem_mgr );
+      if ( (NewVec != NULL) && (NewVec->arr != NULL) )
+      {
+         memcpy( NewVec->arr,                 v1->arr, (v1->len * v1->element_size) );
+         memcpy( PTR_TO_IDX(NewVec, v1->len), v2->arr, (v2->len * v2->element_size) );
+      }
+      else
+      {
+         // Something failed in creating the vector...
+         VectorFree(NewVec);
+         NewVec = NULL; // We'll return NULL
+      }
+   }
+
+   return NewVec;
 }
 
 /******************************************************************************/
@@ -503,86 +662,6 @@ bool VectorHardReset( struct Vector * self )
    return true;
 }
 
-/******************************************************************************/
-struct Vector * VectorDuplicate( const struct Vector * self )
-{
-   if ( (NULL == self) ||
-        // Check for internal paradoxes within passed in vector...
-        (0 == self->element_size) ||
-        (self->len > self->capacity) ||
-        (self->capacity > self->max_capacity) ||
-        ( (self->len > 0) && (NULL == self->arr) )
-        || (NULL == self->mem_mgr.alloc)
-      )
-   {
-      return NULL;
-   }
-
-   struct Vector * dup = vec_pool_dispatch();
-   if ( NULL == dup )
-   {
-      // TODO: Throw exception that the vector handle failed to get duplicated.
-      return NULL;
-   }
-
-   memcpy( dup, self, sizeof(struct Vector) );
-   
-   dup->arr = NULL;
-   if ( dup->len > 0 )
-   {
-      dup->arr = self->mem_mgr.alloc( dup->len * dup->element_size, self->mem_mgr.arena );
-      if ( dup->arr != NULL )
-      {
-         memcpy( dup->arr,
-                 self->arr,
-                 dup->len * dup->element_size );
-      }
-      else
-      {
-         // TODO: Throw exception that underlying data failed to get duplicated.
-      }
-   }
-
-   // dupd vector _must not_ reference original vector's data!
-   assert( dup->arr != self->arr );
-
-   return dup;
-}
-
-/******************************************************************************/
-bool VectorsAreEqual( const struct Vector * a, const struct Vector * b )
-{
-   // Check for NULL pointers
-   if ( (NULL == a) || (NULL == b) )   return false;
-
-   // First check lengths
-   if (a->len != b->len) return false;
-   
-   // Then check the element sizes
-   if (a->element_size != b->element_size) return false;
-
-   // Then check capacities
-   if (a->capacity != b->capacity) return false;
-
-   // Then check max capacities
-   if (a->max_capacity != b->max_capacity) return false;
-
-   // Then check each element in the vector
-   for ( size_t i = 0; i < a->len; i++ )
-   {
-      if ( memcmp( PTR_TO_IDX(a,i), PTR_TO_IDX(b,i), a->element_size ) )
-      {
-         return false;
-      }
-   }
-
-   // We'll allow the vectors to be allocated from different allocators. I can't
-   // think of a case where it also matters how the vectors were allocated, if
-   // everything else about them is equal.
-
-   return true;
-}
-
 /* Sub-Range Based Vector Operations */
 
 /******************************************************************************/
@@ -666,87 +745,6 @@ struct Vector * VectorSlice( const struct Vector * self,
            new_vec_len * self->element_size );
    
    return new_vec;
-}
-
-/******************************************************************************/
-
-struct Vector * VectorConcatenate( const struct Vector * v1,
-                                     const struct Vector * v2 )
-{
-   if ( (NULL == v1) || (NULL == v2) ||
-        (v1->element_size != v2->element_size) ||
-        (v2->len > (MAX_VEC_LEN - v1->len)) // Unsupported length
-      )
-   {
-      return NULL;
-   }
-
-   assert(
-      ( (v1->len > 0) && (v1->arr != NULL) ) ||
-        (0 == v1->len)
-   );
-   assert(
-      ( (v2->len > 0) && (v2->arr != NULL) ) ||
-        (0 == v2->len)
-   );
-   assert(v1->element_size > 0);
-   assert(v2->element_size > 0);
-   assert(v1->element_size == v2->element_size);
-
-   struct Vector * NewVec = NULL;
-   // If one of the vectors is empty, simply create a duplicate of the non-empty
-   // vector. If both vectors are empty, create an empty vector.
-   if ( (0 == v1->len) && (0 == v2->len) )
-   {
-      NewVec = VectorNew( v1->element_size,
-                           DEFAULT_INITIAL_CAPACITY,
-                           DEFAULT_INITIAL_CAPACITY * DEFAULT_MAX_CAPACITY_FACTOR,
-                           0,
-                           &v1->mem_mgr );
-   }
-
-   else if ( (v1->len > 0)  && (v2->len == 0) )
-   {
-      NewVec = VectorDuplicate(v1);
-   }
-   else if ( (v1->len == 0) && (v2->len > 0) )
-   {
-      NewVec = VectorDuplicate(v2);
-   }
-
-   else  // Both must be non-empty
-   {
-      size_t new_vec_len = v1->len + v2->len;
-      size_t new_vec_cap = MAX_VEC_LEN;
-      if ( v2->capacity < (MAX_VEC_LEN - v1->capacity) )
-      {
-         new_vec_cap = v1->capacity + v2->capacity;
-      }
-      size_t new_vec_max_cap = MAX_VEC_LEN;
-      if ( v2->max_capacity < (MAX_VEC_LEN - v1->max_capacity) )
-      {
-         new_vec_max_cap = v1->max_capacity + v2->max_capacity;
-      }
-
-      NewVec = VectorNew( v1->element_size,
-                           new_vec_cap,
-                           new_vec_max_cap,
-                           new_vec_len,
-                           &v1->mem_mgr );
-      if ( (NewVec != NULL) && (NewVec->arr != NULL) )
-      {
-         memcpy( NewVec->arr,                 v1->arr, (v1->len * v1->element_size) );
-         memcpy( PTR_TO_IDX(NewVec, v1->len), v2->arr, (v2->len * v2->element_size) );
-      }
-      else
-      {
-         // Something failed in creating the vector...
-         VectorFree(NewVec);
-         NewVec = NULL; // We'll return NULL
-      }
-   }
-
-   return NewVec;
 }
 
 /******************************************************************************/
@@ -1204,7 +1202,8 @@ static void shiftn( struct Vector * self, size_t start_idx,
 
 /******************************************************************************/
 
-/********** Vector Arena Material **********/
+/*************************** Vector Arena Material ****************************/
+
 struct VectorPoolItem
 {
    struct Vector vec;

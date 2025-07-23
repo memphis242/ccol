@@ -26,7 +26,7 @@ struct Vector * VectorDuplicate( const struct Vector * self );
 bool            VectorsAreEqual( const struct Vector * a, const struct Vector * b );
 struct Vector * VectorConcatenate( const struct Vector * v1, const struct Vector * v2 );
 
-/*** Basic Stats Get Functions ***/
+/*** Basic Stats ***/
 
 size_t VectorLength( const struct Vector * self );
 size_t VectorCapacity( const struct Vector * self );

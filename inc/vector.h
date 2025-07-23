@@ -25,8 +25,10 @@ struct Vector;
 
 /* Public API */
 
+/*************************** Constructor/Destructor ***************************/
+
 /**
- * @brief Constructor for the vector object
+ * @brief Constructor
  *
  * Allocates memory for a dynamic array (vector) and initializes its properties.
  *
@@ -35,7 +37,7 @@ struct Vector;
  * @param max_capacity The maximum number of elements the vector can hold ever.
  *                     Note that if max_capacity is larger than an internal limit
  *                     set within the implementation, that internal limit will be
- *                     used instead.
+ *                     used instead and the vector will still be created.
  * @param initial_len  Initial length of the vector that allows the user to get
  *                     some zero elements in to begin with. 0 if user will handle
  *                     manual push/insertion operations to initially fill the vec.
@@ -53,13 +55,69 @@ struct Vector * VectorNew( size_t element_size,
                            const struct Allocator * mem_mgr );
 
 /**
- * @brief Frees the memory allocated for the vector.
+ * @brief Destructor
  *
  * Releases all resources associated with the vector, including its internal data.
  *
  * @param self Vector handle
  */
 void VectorFree( struct Vector * self );
+
+/******************** Vector-Vector Operations (Copy/Move) ********************/
+
+/**
+ * @brief Duplicates the vector passed in and returns a pointer to the result.
+ * 
+ * @note Performs a deep copy - i.e., the underlying data is also copied over
+ *       to a new location, so the returned object has no association to the
+ *       original.
+ *
+ * @note Memory is dynamically allocated for this duplicatation. The user is
+ *       responsible for free'ing this later (e.g., by calling VectorFree).
+ *
+ * @param self Vector handle
+ */
+struct Vector * VectorDuplicate( const struct Vector * self );
+
+bool VectorMove( struct Vector * old, struct Vector * new );
+
+/**
+ * @brief Checks if two vectors are equivalent element-wise, length-wise,
+ *        and capacity-wise (including max capacity).
+ *
+ * @param a Vector handle for the first vector
+ * @param b Vector handle for the second vector
+ */
+bool VectorsAreEqual( const struct Vector * a, const struct Vector * b );
+
+/**
+ * @brief Concatenates two vectors into a new vector.
+ *
+ * This function creates a new vector that contains all elements of `v1`
+ * followed by all elements of `v2`. Neither input vector is mutated.
+ * 
+ * @note The two vectors must at least have elements of the same size. Of course,
+ *       you probably shouldn't mix datatypes that are the same size but there's
+ *       not practical way for this library to distinguish datatypes of the same
+ *       size, so that's up to you friend.
+ * 
+ * @note Empty vectors are allowed.
+ * 
+ * @note If the sum of the vector lengths of both vectors is greater than the
+ *       max size supported by this library, the operation will fail and NULL
+ *       will be returned.
+ * 
+ * @note The resultant vector shall have a length, capacity, and max capacity
+ *       that is a sum of the argument vectors.
+ *
+ * @param v1 The first vector (elements will appear first in the result).
+ * @param v2 The second vector (elements will appear after v1's elements).
+ * @return Pointer to the newly allocated concatenated vector, or NULL on failure.
+ */
+struct Vector * VectorConcatenate( const struct Vector * v1,
+                                   const struct Vector * v2 );
+
+/******************************** Basic Stats *********************************/
 
 /**
  * @brief Retrieves the number of elements in the vector.
@@ -122,6 +180,8 @@ bool VectorIsEmpty( const struct Vector * self );
  * @return true if full, false otherwise.
  */
 bool VectorIsFull( const struct Vector * self );
+
+/******************************** Vector Ops **********************************/
 
 /**
  * @brief Inserts an element at the _end_ of the vector.
@@ -309,31 +369,7 @@ bool VectorReset( struct Vector * self );
  */
 bool VectorHardReset( struct Vector * self );
 
-/**
- * @brief Duplicates the vector passed in and returns a pointer to the result.
- * 
- * @note Performs a deep copy - i.e., the underlying data is also copied over
- *       to a new location, so the returned object has no association to the
- *       original.
- *
- * @note Memory is dynamically allocated for this duplicatation. The user is
- *       responsible for free'ing this later (e.g., by calling VectorFree).
- *
- * @param self Vector handle
- */
-struct Vector * VectorDuplicate( const struct Vector * self );
-
-/**
- * @brief Checks if two vectors are equivalent element-wise, length-wise,
- *        and capacity-wise (including max capacity).
- *
- * @param a Vector handle for the first vector
- * @param b Vector handle for the second vector
- */
-bool VectorsAreEqual( const struct Vector * a, const struct Vector * b );
-
-
-/* Sub-Range Based Vector Operations */
+/*************************** Sub-Range Vector Ops *****************************/
 
 /**
  * @brief Splits a vector at the specified index into two separate vectors.
@@ -374,33 +410,6 @@ struct Vector * VectorSplitAt( struct Vector * self, size_t idx );
 struct Vector * VectorSlice( const struct Vector * self,
                                size_t idx_start,
                                size_t idx_end );
-
-/**
- * @brief Concatenates two vectors into a new vector.
- *
- * This function creates a new vector that contains all elements of `v1`
- * followed by all elements of `v2`. Neither input vector is mutated.
- * 
- * @note The two vectors must at least have elements of the same size. Of course,
- *       you probably shouldn't mix datatypes that are the same size but there's
- *       not practical way for this library to distinguish datatypes of the same
- *       size, so that's up to you friend.
- * 
- * @note Empty vectors are allowed.
- * 
- * @note If the sum of the vector lengths of both vectors is greater than the
- *       max size supported by this library, the operation will fail and NULL
- *       will be returned.
- * 
- * @note The resultant vector shall have a length, capacity, and max capacity
- *       that is a sum of the argument vectors.
- *
- * @param v1 The first vector (elements will appear first in the result).
- * @param v2 The second vector (elements will appear after v1's elements).
- * @return Pointer to the newly allocated concatenated vector, or NULL on failure.
- */
-struct Vector * VectorConcatenate( const struct Vector * v1,
-                                   const struct Vector * v2 );
 
 /**
  * @brief Pushes several elements into the vector.
