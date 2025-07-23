@@ -112,6 +112,10 @@ void test_VectorRemoveElement_PastLen_WithBuf(void);
 void test_VectorClearElementAt_Normal(void);
 void test_VectorClearElementAt_InvalidIdx(void);
 
+void test_VectorClearElements_Normal(void);
+void test_VectorClearElements_EmptyVec(void);
+void test_VectorClearElements_InvalidVec(void);
+
 void test_VectorReset_OORIdx(void);
 void test_VectorReset(void);
 
@@ -288,10 +292,6 @@ void test_VectorSubRange_ClearElementsFromIdxToEnd_EmptyVec(void);
 void test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidIndices(void);
 void test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidVec(void);
 
-void test_VectorClearAllElements_Normal(void);
-void test_VectorClearAllElements_EmptyVec(void);
-void test_VectorClearAllElements_InvalidVec(void);
-
 /* Meat of the Program */
 
 int main(void)
@@ -365,6 +365,10 @@ int main(void)
 
    RUN_TEST(test_VectorClearElementAt_Normal);
    RUN_TEST(test_VectorClearElementAt_InvalidIdx);
+
+   RUN_TEST(test_VectorClearElements_Normal);
+   RUN_TEST(test_VectorClearElements_EmptyVec);
+   RUN_TEST(test_VectorClearElements_InvalidVec);
 
    RUN_TEST(test_VectorReset_OORIdx);
    RUN_TEST(test_VectorReset);
@@ -541,10 +545,6 @@ int main(void)
    RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_EmptyVec);
    RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidIndices);
    RUN_TEST(test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidVec);
-
-   RUN_TEST(test_VectorClearAllElements_Normal);
-   RUN_TEST(test_VectorClearAllElements_EmptyVec);
-   RUN_TEST(test_VectorClearAllElements_InvalidVec);
 
    return UNITY_END();
 }
@@ -1635,6 +1635,37 @@ void test_VectorClearElementAt_InvalidIdx(void)
    }
 
    VectorFree(vec);
+}
+
+/********** Vector Subrange: Clear Elements From Start To Idx *****************/
+
+void test_VectorClearElements_Normal(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   VectorSubRange_PushElements(vec, values, 5);
+
+   TEST_ASSERT_TRUE(VectorClear(vec));
+   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   for (size_t i = 0; i < 5; i++) {
+      TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGetElementAt(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorClearElements_EmptyVec(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+
+   TEST_ASSERT_FALSE(VectorClear(vec));
+
+   VectorFree(vec);
+}
+
+void test_VectorClearElements_InvalidVec(void)
+{
+   TEST_ASSERT_FALSE(VectorClear(NULL));
 }
 
 /******************************** Vector Resets *******************************/
@@ -4384,35 +4415,4 @@ void test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidIndices(void)
 void test_VectorSubRange_ClearElementsFromIdxToEnd_InvalidVec(void)
 {
    TEST_ASSERT_FALSE(VectorSubRange_ClearElementsFromIdxToEnd(NULL, 0));
-}
-
-/********** Vector Subrange: Clear Elements From Start To Idx *****************/
-
-void test_VectorClearAllElements_Normal(void)
-{
-   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-   int values[] = {10, 20, 30, 40, 50};
-   VectorSubRange_PushElements(vec, values, 5);
-
-   TEST_ASSERT_TRUE(VectorClearAll(vec));
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
-   for (size_t i = 0; i < 5; i++) {
-      TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGetElementAt(vec, i));
-   }
-
-   VectorFree(vec);
-}
-
-void test_VectorClearAllElements_EmptyVec(void)
-{
-   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-
-   TEST_ASSERT_FALSE(VectorClearAll(vec));
-
-   VectorFree(vec);
-}
-
-void test_VectorClearAllElements_InvalidVec(void)
-{
-   TEST_ASSERT_FALSE(VectorClearAll(NULL));
 }

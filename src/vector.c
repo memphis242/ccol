@@ -465,6 +465,14 @@ bool VectorClearElementAt( struct Vector * self, size_t idx )
 }
 
 /******************************************************************************/
+
+bool VectorClear( struct Vector * self )
+{
+   if ( (NULL == self) || (0 == self->len) ) return false;
+   return VectorSubRange_ClearElementsInRange(self, 0, self->len - 1);
+}
+
+/******************************************************************************/
 bool VectorReset( struct Vector * self )
 {
    if ( NULL == self )
@@ -1046,14 +1054,6 @@ bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector * self,
 {
    if ( (NULL == self) || (0 == self->len) ) return false;
    return VectorSubRange_ClearElementsInRange(self, idx, self->len - 1);
-}
-
-/******************************************************************************/
-
-bool VectorClearAll( struct Vector * self )
-{
-   if ( (NULL == self) || (0 == self->len) ) return false;
-   return VectorSubRange_ClearElementsInRange(self, 0, self->len - 1);
 }
 
 /******************************************************************************/

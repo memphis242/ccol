@@ -282,6 +282,15 @@ bool VectorRemoveLastElement( struct Vector * self, void * data );
 bool VectorClearElementAt( struct Vector * self, size_t idx );
 
 /**
+ * @brief Clears (memset to zero) all elements in the vector.
+ *
+ * @param self Pointer to the Vector structure.
+ * @return true if the operation was successful, false otherwise (e.g., if idx
+ *         is out of bounds).
+ */
+bool VectorClear( struct Vector * self );
+
+/**
  * @brief Resets the vector length to zero but leaves the previously allocated
  *        memory for the vector's data untouched.
  *
@@ -391,7 +400,7 @@ struct Vector * VectorSlice( const struct Vector * self,
  * @return Pointer to the newly allocated concatenated vector, or NULL on failure.
  */
 struct Vector * VectorConcatenate( const struct Vector * v1,
-                                     const struct Vector * v2 );
+                                   const struct Vector * v2 );
 
 /**
  * @brief Pushes several elements into the vector.
@@ -635,12 +644,3 @@ bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector * self,
  */
 bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector * self,
                                                size_t idx );
-
-/**
- * @brief Clears (memset to zero) all elements in the vector.
- *
- * @param self Pointer to the Vector structure.
- * @return true if the operation was successful, false otherwise (e.g., if idx
- *         is out of bounds).
- */
-bool VectorClearAll( struct Vector * self );
