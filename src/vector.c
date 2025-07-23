@@ -136,7 +136,8 @@ struct Vector * VectorNew( size_t element_size,
    }
    else
    {
-      new_vec->arr = new_vec->mem_mgr.alloc( element_size * initial_capacity, mem_mgr->arena );
+      new_vec->arr = new_vec->mem_mgr.alloc( element_size * initial_capacity,
+                                             new_vec->mem_mgr.arena );
    }
 
    // If we failed to allocate space for the array...
@@ -232,6 +233,12 @@ struct Vector * VectorDuplicate( const struct Vector * self )
    assert( dup->arr != self->arr );
 
    return dup;
+}
+
+/******************************************************************************/
+bool VectorMove( struct Vector * dest, struct Vector * src )
+{
+   return false;
 }
 
 /******************************************************************************/

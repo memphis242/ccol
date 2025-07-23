@@ -125,6 +125,11 @@ void test_VectorDuplicate_SmallVector(void);
 void test_VectorDuplicate_ReallyLargeVector(void);
 void test_VectorDuplicate_NullVector(void);
 
+void test_VectorMove_SmallVector(void);
+void test_VectorMove_ReallyLargeVector(void);
+void test_VectorMove_NullVector(void);
+void test_VectorMove_MismatchedVec(void);
+
 void test_VectorsAreEqual_SameVectors(void);
 void test_VectorsAreEqual_DifferentElementSz(void);
 void test_VectorsAreEqual_DifferentLength(void);
@@ -378,6 +383,11 @@ int main(void)
    RUN_TEST(test_VectorDuplicate_SmallVector);
    RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
    RUN_TEST(test_VectorDuplicate_NullVector);
+
+   RUN_TEST(test_VectorMove_SmallVector);
+   RUN_TEST(test_VectorMove_ReallyLargeVector);
+   RUN_TEST(test_VectorMove_NullVector);
+   RUN_TEST(test_VectorMove_MismatchedVec);
 
    RUN_TEST(test_VectorsAreEqual_SameVectors);
    RUN_TEST(test_VectorsAreEqual_DifferentElementSz);
@@ -1806,6 +1816,100 @@ void test_VectorDuplicate_NullVector(void)
 
    struct Vector * duplicate = VectorDuplicate(original);
    TEST_ASSERT_NULL(duplicate);
+}
+
+/********************************* Vector Move ********************************/
+void test_VectorMove_SmallVector(void)
+{
+   struct Vector * original = NULL;
+   VECTOR_NEW_KEEP_TRYIN(original, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+
+   int values[] = {42, 84, 126};
+   for (size_t i = 0; i < 3; i++)
+   {
+      VectorPush(original, &values[i]);
+   }
+
+   struct Vector * new_vec;
+   TEST_ASSERT_TRUE(VectorMove(new_vec, original));
+   TEST_ASSERT_NOT_NULL(new_vec);
+
+   // Verify the contents of new_vec
+   TEST_ASSERT_EQUAL_UINT32(VectorLength(new_vec), 3);
+   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(new_vec), 10);
+   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(new_vec), 100);
+   TEST_ASSERT_EQUAL_size_t(VectorElementSize(new_vec), sizeof(int));
+   for (size_t i = 0; i < 3; i++)
+   {
+      TEST_ASSERT_EQUAL_INT( *( (int *)VectorGetElementAt(new_vec, i) ), values[i] );
+   }
+
+   // Verify that the old vector is in an empty but valid state
+   TEST_ASSERT_EQUAL_UINT32(VectorLength(original), 0);
+   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(original), 0);
+   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(original), 100);
+   TEST_ASSERT_EQUAL_size_t(VectorElementSize(original), sizeof(int));
+
+   VectorFree(original);
+   VectorFree(new_vec);
+}
+
+void test_VectorMove_ReallyLargeVector(void)
+{
+   struct Vector * original = NULL;
+   const size_t OriginalVecLen = 10000000;
+   VECTOR_NEW_KEEP_TRYIN(original, sizeof(uint8_t), OriginalVecLen, OriginalVecLen, 0, &DEFAULT_ALLOCATOR);
+
+   for (size_t i = 0; i < OriginalVecLen; i++) {
+      const uint8_t val = 5;
+      VectorPush(original, &val);
+   }
+
+   struct Vector * new_vec;
+   TEST_ASSERT_TRUE(VectorMove(new_vec, original));
+   TEST_ASSERT_NOT_NULL(new_vec);
+
+   // Verify the contents of new_vec
+   TEST_ASSERT_EQUAL_UINT32(VectorLength(new_vec), OriginalVecLen);
+   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(new_vec), OriginalVecLen);
+   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(new_vec), OriginalVecLen);
+   TEST_ASSERT_EQUAL_size_t(VectorElementSize(new_vec), sizeof(uint8_t));
+   for (size_t i = 0; i < OriginalVecLen; i++)
+   {
+      TEST_ASSERT_EQUAL_INT( *( (int *)VectorGetElementAt(new_vec, i) ), 5 );
+   }
+
+   // Verify that the old vector is in an empty but valid state
+   TEST_ASSERT_EQUAL_UINT32(VectorLength(original), 0);
+   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(original), 0);
+   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(original), OriginalVecLen);
+   TEST_ASSERT_EQUAL_size_t(VectorElementSize(original), sizeof(uint8_t));
+
+   VectorFree(original);
+   VectorFree(new_vec);
+}
+
+void test_VectorMove_NullVector(void)
+{
+   struct Vector * original = NULL;
+   struct Vector * new_vec = NULL;
+   (void)VectorMove(new_vec, original);
+   TEST_ASSERT_NULL(new_vec);
+}
+
+void test_VectorMove_MismatchedVec(void)
+{
+   struct Vector * original = VectorNew(sizeof(int),  10, 100, 0, NULL);
+   struct Vector * new_vec  = VectorNew(sizeof(char), 10, 100, 0, NULL);
+   TEST_ASSERT_FALSE(VectorMove(new_vec, original));
+
+   VectorFree(new_vec);
+   new_vec = VectorNew(sizeof(int), 5, 100, 0, NULL);
+   TEST_ASSERT_FALSE(VectorMove(new_vec, original));
+
+   VectorFree(new_vec);
+   new_vec = VectorNew(sizeof(int), 10, 50, 0, NULL);
+   TEST_ASSERT_FALSE(VectorMove(new_vec, original));
 }
 
 /****************************** Vectors Are Equal *****************************/

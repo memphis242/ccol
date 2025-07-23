@@ -22,7 +22,7 @@ void VectorFree( struct Vector * self );
 /*** Vector-Vector Operations (Copy/Move) ***/
 
 struct Vector * VectorDuplicate( const struct Vector * self );
-// TODO: bool VectorMove(struct Vector * old, struct Vector * new);
+bool            VectorMove(struct Vector * dest, struct Vector * src);
 bool            VectorsAreEqual( const struct Vector * a, const struct Vector * b );
 struct Vector * VectorConcatenate( const struct Vector * v1, const struct Vector * v2 );
 

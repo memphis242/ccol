@@ -66,11 +66,10 @@ void VectorFree( struct Vector * self );
 /******************** Vector-Vector Operations (Copy/Move) ********************/
 
 /**
- * @brief Duplicates the vector passed in and returns a pointer to the result.
+ * @brief Copy constructor (deep).
  * 
- * @note Performs a deep copy - i.e., the underlying data is also copied over
- *       to a new location, so the returned object has no association to the
- *       original.
+ * Performs a deep copy - i.e., the underlying data is also copied over to a
+ * new location, so the returned object has no association to the original.
  *
  * @note Memory is dynamically allocated for this duplicatation. The user is
  *       responsible for free'ing this later (e.g., by calling VectorFree).
@@ -79,7 +78,19 @@ void VectorFree( struct Vector * self );
  */
 struct Vector * VectorDuplicate( const struct Vector * self );
 
-bool VectorMove( struct Vector * old, struct Vector * new );
+/**
+ * @brief Move constructor.
+ * 
+ * Moves internal references (such as to the underlying array) from the old
+ * vector to the new one, leaving the old vector in a valid but empty state.
+ *
+ * @note No memory is allocated for the destination vector. This vector needs to
+ *       match the general configuration of the original one, or the operation
+ *       will fail.
+ *
+ * @param self Vector handle
+ */
+bool VectorMove( struct Vector * dest, struct Vector * src );
 
 /**
  * @brief Checks if two vectors are equivalent element-wise, length-wise,
