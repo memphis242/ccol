@@ -659,7 +659,7 @@ bool VectorClearElementAt( struct Vector * self, size_t idx )
 bool VectorClear( struct Vector * self )
 {
    if ( (NULL == self) || (0 == self->len) ) return false;
-   return VectorRangeClear(self, 0, self->len - 1);
+   return VectorRangeClear(self, 0, self->len);
 }
 
 /******************************************************************************/
@@ -903,7 +903,7 @@ bool VectorRangeCpyToEnd( const struct Vector * self,
                           void * buffer )
 {
    if ( NULL == self )  return false;
-   return VectorRangeCpy(self, idx, self->len - 1, buffer);
+   return VectorRangeCpy(self, idx, self->len, buffer);
 }
 
 /******************************************************************************/
@@ -963,7 +963,7 @@ bool VectorRangeRemove( struct Vector * self,
    // Only need to shift over if the removal does not include the end
    if ( idx_end < self->len )
    {
-      shiftn(self, idx_end + 1, ShiftDir_Left, num_of_removed);
+      shiftn(self, idx_end, ShiftDir_Left, num_of_removed);
    }
 #ifdef SECURE_REMOVAL
    else
@@ -981,11 +981,11 @@ bool VectorRangeRemove( struct Vector * self,
 /******************************************************************************/
 
 bool VectorRangeClear( struct Vector * self,
-                                          size_t idx_start,
-                                          size_t idx_end )
+                       size_t idx_start,
+                       size_t idx_end )
 {
    if ( (NULL == self) || (NULL == self->arr) ||
-        (idx_start >= self->len) || (idx_end >= self->len) ||
+        (idx_start >= self->len) || (idx_end > self->len) ||
         (idx_start >= idx_end) ) 
    {
       return false;
