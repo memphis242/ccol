@@ -7,10 +7,12 @@
 .PHONY: test-vec test-all
 
 test-vec:
+	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) _test BUILD_TYPE=TEST DS=vector > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
 
 test-all:
+	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) --always-make test-vec > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
 

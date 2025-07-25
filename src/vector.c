@@ -238,24 +238,18 @@ struct Vector * VectorDuplicate( const struct Vector * self )
 /******************************************************************************/
 bool VectorMove( struct Vector * dest, struct Vector * src )
 {
-   if ( (NULL == src) ||
-        ( (dest != NULL) &&
-          (
-            (dest->element_size != src->element_size) ||
-            (dest->mem_mgr.alloc   != src->mem_mgr.alloc) ||
-            (dest->mem_mgr.realloc != src->mem_mgr.realloc) ||
-            (dest->mem_mgr.reclaim != src->mem_mgr.reclaim) ||
-            (dest->mem_mgr.arena   != src->mem_mgr.arena)
-          )
-        )
-      )
+   if ( (NULL == src) || (NULL == dest) ||
+        (dest->element_size != src->element_size) ||
+        (dest->mem_mgr.alloc   != src->mem_mgr.alloc) ||
+        (dest->mem_mgr.realloc != src->mem_mgr.realloc) ||
+        (dest->mem_mgr.reclaim != src->mem_mgr.reclaim) ||
+        (dest->mem_mgr.arena   != src->mem_mgr.arena) )
    {
       return false;
    }
 
    // Free resources of existing destination vector, if applicable
-   if ( dest != NULL)
-      dest->mem_mgr.reclaim(dest->arr, dest->element_size * dest->capacity, NULL);
+   dest->mem_mgr.reclaim(dest->arr, dest->element_size * dest->capacity, NULL);
 
    // Move resources over
    dest->capacity = src->capacity;
