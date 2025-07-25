@@ -189,7 +189,6 @@ void test_VectorSlice_IdxEndAtLastElement(void);
 void test_VectorSlice_EmptyVector(void);
 void test_VectorSlice_NullVector(void);
 void test_VectorSlice_IdxStartGreaterThanIdxEnd(void);
-void test_VectorSlice_IdxEndCommonMistake(void);
 void test_VectorSlice_IdxEndOutOfRange(void);
 
 void test_VectorConcatenate_BasicUse(void);
@@ -448,7 +447,6 @@ int main(void)
    RUN_TEST(test_VectorSlice_EmptyVector);
    RUN_TEST(test_VectorSlice_NullVector);
    RUN_TEST(test_VectorSlice_IdxStartGreaterThanIdxEnd);
-   RUN_TEST(test_VectorSlice_IdxEndCommonMistake);
    RUN_TEST(test_VectorSlice_IdxEndOutOfRange);
 
    RUN_TEST(test_VectorConcatenate_BasicUse);
@@ -646,8 +644,8 @@ void test_VectorNew_Invalid_InitialLen(void)
 
 void test_VectorNew_ValidInputCombo_3DPoints(void)
 {
-   const uint32_t InitialCaps[] = { 0, 2, 1000 };
-   const uint32_t MaxCap = 10000;
+   const size_t InitialCaps[] = { 0, 2, 1000 };
+   const size_t MaxCap = 10000;
    struct MyData_S { int x; int y; int z; };
    struct Vector * vec;
    // FIXME: Have to assume that malloc will succeed at least once for this test to mean anything...
@@ -871,8 +869,8 @@ void test_VectorPush_UntilCapacity(void)
       float y;
       float z;
    };
-   const uint32_t MAX_CAP = (uint32_t)(1.0e6);
-   const uint32_t INIT_CAP = MAX_CAP / 1000;
+   const size_t MAX_CAP = (size_t)(1.0e6);
+   const size_t INIT_CAP = MAX_CAP / 1000;
 
    VECTOR_NEW_KEEP_TRYIN( vec, sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0, &DEFAULT_ALLOCATOR);
 
@@ -880,7 +878,7 @@ void test_VectorPush_UntilCapacity(void)
    // way that the element was truly pushed in...
    struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
    struct MyData_S * last_element;
-   uint32_t vec_len = 0;
+   size_t vec_len = 0;
    srand( (unsigned int) time(NULL) );
    while ( VectorLength(vec) < INIT_CAP )
    {
@@ -942,15 +940,15 @@ void test_VectorPush_PastInitialCapacity(void)
       float y;
       float z;
    };
-   const uint32_t MAX_CAP = (uint32_t)(1.0e6);
-   const uint32_t INIT_CAP = MAX_CAP / 1000;
+   const size_t MAX_CAP = (size_t)(1.0e6);
+   const size_t INIT_CAP = MAX_CAP / 1000;
 
    VECTOR_NEW_KEEP_TRYIN( vec, sizeof(struct MyData_S), 100, MAX_CAP, 0, &DEFAULT_ALLOCATOR );
 
    // Fill to initial capacity
    struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
    struct MyData_S * last_element;
-   uint32_t vec_len = 0;
+   size_t vec_len = 0;
    while ( VectorLength(vec) < INIT_CAP )
    {
       bool push_successfull = VectorPush( vec, &test_element );
@@ -984,15 +982,15 @@ void test_VectorPush_PastMaxCapacity(void)
       float y;
       float z;
    };
-   const uint32_t MAX_CAP = (uint32_t)(10.0e3);
-   const uint32_t INIT_CAP = MAX_CAP / 1000;
+   const size_t MAX_CAP = (size_t)(10.0e3);
+   const size_t INIT_CAP = MAX_CAP / 1000;
 
    VECTOR_NEW_KEEP_TRYIN( vec,  sizeof(struct MyData_S), INIT_CAP, MAX_CAP, 0, &DEFAULT_ALLOCATOR );
 
    // Fill to initial capacity
    struct MyData_S test_element = { .x = 0.0f, .y = FLT_MAX, .z = -FLT_MIN };
    struct MyData_S * last_element;
-   uint32_t vec_len = 0;
+   size_t vec_len = 0;
    while ( VectorLength(vec) < MAX_CAP )
    {
       bool push_successfull = VectorPush( vec, &test_element );
@@ -2170,8 +2168,8 @@ void test_VectorSlice_ValidIndices_IntData(void)
       VectorPush(vec, &values[i]);
    }
 
-   // Slice from index 1 to 3 (inclusive)
-   struct Vector * slice = VectorSlice(vec, 1, 3);
+   // Slice from index 1 to 4 (exclusive, so elements 1,2,3)
+   struct Vector * slice = VectorSlice(vec, 1, 4);
    TEST_ASSERT_NOT_NULL(slice);
    TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGetElementAt(slice, 0));
@@ -2204,8 +2202,8 @@ void test_VectorSlice_ValidIndices_StructData(void)
       VectorPush(vec, &values[i]);
    }
 
-   // Slice from index 2 to 4 (inclusive)
-   struct Vector * slice = VectorSlice(vec, 2, 4);
+   // Slice from index 2 to 5 (exclusive, so elements 2,3,4)
+   struct Vector * slice = VectorSlice(vec, 2, 5);
    TEST_ASSERT_NOT_NULL(slice);
    TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
    struct MyData_S * elm = (struct MyData_S *)VectorGetElementAt(slice, 0);
@@ -2233,8 +2231,8 @@ void test_VectorSlice_IdxStartEqualsIdxEnd(void)
       VectorPush(vec, &values[i]);
    }
 
-   // Slice a single element
-   struct Vector * slice = VectorSlice(vec, 3, 3);
+   // Slice a single element (from 3 to 4, exclusive)
+   struct Vector * slice = VectorSlice(vec, 3, 4);
    TEST_ASSERT_NOT_NULL(slice);
    TEST_ASSERT_EQUAL_UINT32(1, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGetElementAt(slice, 0));
@@ -2251,8 +2249,8 @@ void test_VectorSlice_IdxStartZero(void)
       VectorPush(vec, &values[i]);
    }
 
-   // Slice from start to index 2
-   struct Vector * slice = VectorSlice(vec, 0, 2);
+   // Slice from start to index 3 (exclusive, so elements 0,1,2)
+   struct Vector * slice = VectorSlice(vec, 0, 3);
    TEST_ASSERT_NOT_NULL(slice);
    TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGetElementAt(slice, 0));
@@ -2272,8 +2270,8 @@ void test_VectorSlice_FullVector(void)
       VectorPush(vec, &values[i]);
    }
 
-   // Slice that is the full vector
-   struct Vector * slice = VectorSlice(vec, 0, 4);
+   // Slice that is the full vector (0 to 5 exclusive)
+   struct Vector * slice = VectorSlice(vec, 0, 5);
    // Duplicate, which should be equivalent
    struct Vector * dup = VectorDuplicate(vec);
 
@@ -2306,8 +2304,8 @@ void test_VectorSlice_IdxEndAtLastElement(void)
       VectorPush(vec, &values[i]);
    }
 
-   // Slice from index 2 to last element
-   struct Vector * slice = VectorSlice(vec, 2, 4);
+   // Slice from index 2 to 5 (exclusive, so elements 2,3,4)
+   struct Vector * slice = VectorSlice(vec, 2, 5);
    TEST_ASSERT_NOT_NULL(slice);
    TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGetElementAt(slice, 0));
@@ -2343,20 +2341,6 @@ void test_VectorSlice_IdxStartGreaterThanIdxEnd(void)
    }
 
    struct Vector * slice = VectorSlice(vec, 3, 2);
-   TEST_ASSERT_NULL(slice);
-
-   VectorFree(vec);
-}
-
-void test_VectorSlice_IdxEndCommonMistake(void)
-{
-   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-   int values[] = {10, 20, 30};
-   for (size_t i = 0; i < 3; i++) {
-      VectorPush(vec, &values[i]);
-   }
-
-   struct Vector * slice = VectorSlice(vec, 1, VectorLength(vec));
    TEST_ASSERT_NULL(slice);
 
    VectorFree(vec);

@@ -743,15 +743,15 @@ struct Vector * VectorSlice( const struct Vector * self,
                                size_t idx_end )
 {
    if ( (NULL == self) || (self->len == 0) || (self->capacity == 0) ||
-        (idx_start >= self->len) || (idx_end >= self->len) ||
-        (idx_start > idx_end) || (idx_end == 0) )
+        (idx_start >= self->len) || (idx_end > self->len) ||
+        (idx_start > idx_end)    || (idx_end == 0) )
    {
       // TODO: Throw exception
       return NULL;
    }
 
    // Slicing the whole vector is the same as duplication
-   if ( (0 == idx_start) && ((self->len - 1) == idx_end) )
+   if ( (0 == idx_start) && (self->len == idx_end) )
    {
       return VectorDuplicate(self);
    }
@@ -760,7 +760,7 @@ struct Vector * VectorSlice( const struct Vector * self,
    assert(self->arr != NULL);
    assert(self->element_size > 0);
 
-   size_t new_vec_len = idx_end - idx_start + 1;   // inclusive of both indices
+   size_t new_vec_len = idx_end - idx_start;   // inclusive of both indices
    struct Vector * new_vec = VectorNew( self->element_size,
                                            new_vec_len * 2,
                                            new_vec_len * 4,
