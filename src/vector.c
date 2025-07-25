@@ -478,7 +478,7 @@ bool VectorPush( struct Vector * self, const void * element )
 }
 
 /******************************************************************************/
-bool VectorInsertAt( struct Vector * self,
+bool VectorInsert( struct Vector * self,
                      size_t idx,
                      const void * element )
 {
@@ -522,7 +522,7 @@ bool VectorInsertAt( struct Vector * self,
 }
 
 /******************************************************************************/
-void * VectorGetElementAt( const struct Vector * self, size_t idx )
+void * VectorGet( const struct Vector * self, size_t idx )
 {
    if ( (NULL == self) || (idx >= self->len) )
    {
@@ -659,7 +659,7 @@ bool VectorClearElementAt( struct Vector * self, size_t idx )
 bool VectorClear( struct Vector * self )
 {
    if ( (NULL == self) || (0 == self->len) ) return false;
-   return VectorSubRange_ClearElementsInRange(self, 0, self->len - 1);
+   return VectorRangeClear(self, 0, self->len - 1);
 }
 
 /******************************************************************************/
@@ -693,7 +693,7 @@ bool VectorHardReset( struct Vector * self )
    return true;
 }
 
-/* Sub-Range Based Vector Operations */
+/* Range Based Vector Operations */
 
 /******************************************************************************/
 /******************************************************************************/
@@ -781,9 +781,7 @@ struct Vector * VectorSlice( const struct Vector * self,
 /******************************************************************************/
 /******************************************************************************/
 
-bool VectorSubRange_PushElements( struct Vector * self,
-                                  const void * data,
-                                  size_t dlen )
+bool VectorRangePush( struct Vector * self, const void * data, size_t dlen )
 {
    if ( (NULL == self) || (NULL == data) ||
         ( (self->len + dlen) > self->max_capacity ) || (dlen == 0) )
@@ -822,10 +820,10 @@ bool VectorSubRange_PushElements( struct Vector * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_InsertElementsAt( struct Vector * self,
-                                      size_t idx, 
-                                      const void * data,
-                                      size_t dlen )
+bool VectorRangeInsertAt( struct Vector * self,
+                          size_t idx, 
+                          const void * data,
+                          size_t dlen )
 {
    if ( (NULL == self) || (NULL == data) ||
         ( (self->len + dlen) > self->max_capacity ) || (dlen == 0) ||
@@ -841,7 +839,7 @@ bool VectorSubRange_InsertElementsAt( struct Vector * self,
 
    if ( dlen == 1 )
    {
-      return VectorInsertAt(self, idx, data);
+      return VectorInsert(self, idx, data);
    }
 
    // Ensure there's space
@@ -874,34 +872,14 @@ bool VectorSubRange_InsertElementsAt( struct Vector * self,
 
 /******************************************************************************/
 
-void * VectorSubRange_GetElementsFromIdx( const struct Vector * self,
-                                          size_t idx )
-{
-   if ( (NULL == self) ||
-        (idx >= self->len) ||
-        IS_EMPTY(self) )
-   {
-      return NULL;
-   }
-
-   assert(self->len > 0);
-   assert(self->arr != NULL);
-   assert(self->element_size > 0);
-
-   return (void *)PTR_TO_IDX(self, idx);
-}
-
-/******************************************************************************/
-/******************************************************************************/
-
-bool VectorSubRange_CpyElementsInRange( const struct Vector * self,
-                                        size_t idx_start,
-                                        size_t idx_end,
-                                        void * buffer )
+bool VectorRangeCpy( const struct Vector * self,
+                     size_t idx_start,
+                     size_t idx_end,
+                     void * buffer )
 {
    if ( (NULL == self) || (NULL == buffer) ||
-        (idx_start >= self->len) || (idx_end >= self->len) ||
-        (idx_start > idx_end)
+        (idx_start >= self->len) || (idx_end > self->len) ||
+        (idx_start >= idx_end)
       )
    {
       return false;
@@ -912,7 +890,7 @@ bool VectorSubRange_CpyElementsInRange( const struct Vector * self,
    assert(self->element_size > 0);
 
    uint8_t * ptr_to_start = PTR_TO_IDX(self, idx_start);
-   size_t idx_diff = (idx_end - idx_start) + 1; // inclusive copy!
+   size_t idx_diff = idx_end - idx_start; // inclusive copy!
    memcpy( buffer, ptr_to_start, (idx_diff * self->element_size) );
 
    return true;
@@ -920,30 +898,21 @@ bool VectorSubRange_CpyElementsInRange( const struct Vector * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_CpyElementsFromStartToIdx( const struct Vector * self,
-                                               size_t idx,
-                                               void * buffer )
-{
-   return VectorSubRange_CpyElementsInRange(self, 0, idx, buffer);
-}
-
-/******************************************************************************/
-
-bool VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector * self,
-                                             size_t idx,
-                                             void * buffer )
+bool VectorRangeCpyToEnd( const struct Vector * self,
+                          size_t idx,
+                          void * buffer )
 {
    if ( NULL == self )  return false;
-   return VectorSubRange_CpyElementsInRange(self, idx, self->len - 1, buffer);
+   return VectorRangeCpy(self, idx, self->len - 1, buffer);
 }
 
 /******************************************************************************/
 /******************************************************************************/
 
-bool VectorSubRange_SetElementsInRange( struct Vector * self,
-                                        size_t idx_start,
-                                        size_t idx_end,
-                                        const void * data )
+bool VectorRangeSet( struct Vector * self,
+                     size_t idx_start,
+                     size_t idx_end,
+                     const void * data )
 {
    if ( (NULL == self) || (NULL == data) ||
         (idx_start >= self->len) || (idx_end >= self->len) ||
@@ -965,33 +934,14 @@ bool VectorSubRange_SetElementsInRange( struct Vector * self,
 
 /******************************************************************************/
 
-bool VectorSubRange_SetElementsFromStartToIdx( struct Vector * self,
-                                               size_t idx,
-                                               const void * data )
-{
-   return VectorSubRange_SetElementsInRange( self, 0, idx, data );
-}
-
-/******************************************************************************/
-
-bool VectorSubRange_SetElementsFromIdxToEnd( struct Vector * self,
-                                             size_t idx,
-                                             const void * data )
-{
-   if ( NULL == self )  return false;
-   return VectorSubRange_SetElementsInRange( self, idx, self->len - 1, data );
-}
-
-/******************************************************************************/
-
-bool VectorSubRange_RemoveElementsInRange( struct Vector * self,
-                                           size_t idx_start,
-                                           size_t idx_end,
-                                           void * buf )
+bool VectorRangeRemove( struct Vector * self,
+                        size_t idx_start,
+                        size_t idx_end,
+                        void * buf )
 {
    if ( (NULL == self) || (NULL == self->arr) ||
-        (idx_start >= self->len) || (idx_end >= self->len) ||
-        (idx_start > idx_end) || (self->len == 0) ) 
+        (idx_start >= self->len) || (idx_end > self->len) ||
+        (idx_start >= idx_end) || (self->len == 0) ) 
    {
       return false;
    }
@@ -1000,18 +950,18 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector * self,
    assert(self->arr != NULL);
    assert(self->element_size > 0);
 
-   if ( idx_start == idx_end )
+   if ( idx_start == (idx_end - 1) )
    {
       return VectorRemoveElementAt(self, idx_start, buf);
    }
 
-   size_t num_of_removed = idx_end - idx_start + 1;
+   size_t num_of_removed = idx_end - idx_start;
    if ( NULL != buf )
    {
-      VectorSubRange_CpyElementsInRange(self, idx_start, idx_end, buf);
+      VectorRangeCpy(self, idx_start, idx_end, buf);
    }
    // Only need to shift over if the removal does not include the end
-   if ( idx_end < (self->len - 1) )
+   if ( idx_end < self->len )
    {
       shiftn(self, idx_end + 1, ShiftDir_Left, num_of_removed);
    }
@@ -1019,7 +969,7 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector * self,
    else
    {
       // Zero out that leftover data
-      VectorSubRange_ClearElementsInRange(self, idx_start, idx_end);
+      VectorRangeClear(self, idx_start, idx_end);
    }
 #endif
    self->len -= num_of_removed;
@@ -1028,34 +978,15 @@ bool VectorSubRange_RemoveElementsInRange( struct Vector * self,
 }
 
 /******************************************************************************/
-
-bool VectorSubRange_RemoveElementsFromStartToIdx( struct Vector * self,
-                                                  size_t idx,
-                                                  void * buf )
-{
-   return VectorSubRange_RemoveElementsInRange( self, 0, idx, buf );
-}
-
 /******************************************************************************/
 
-bool VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector * self,
-                                                size_t idx,
-                                                void * buf )
-{
-   if ( NULL == self )  return false;
-   return VectorSubRange_RemoveElementsInRange(self, idx, self->len-1, buf);
-}
-
-/******************************************************************************/
-/******************************************************************************/
-
-bool VectorSubRange_ClearElementsInRange( struct Vector * self,
+bool VectorRangeClear( struct Vector * self,
                                           size_t idx_start,
                                           size_t idx_end )
 {
    if ( (NULL == self) || (NULL == self->arr) ||
         (idx_start >= self->len) || (idx_end >= self->len) ||
-        (idx_start > idx_end) ) 
+        (idx_start >= idx_end) ) 
    {
       return false;
    }
@@ -1063,28 +994,13 @@ bool VectorSubRange_ClearElementsInRange( struct Vector * self,
    memset(
       PTR_TO_IDX(self, idx_start),
       0,
-      self->element_size * (idx_end - idx_start + 1) );
+      self->element_size * (idx_end - idx_start)
+   );
 
    return true;
 }
 
 /******************************************************************************/
-
-bool VectorSubRange_ClearElementsFromStartToIdx( struct Vector * self,
-                                                 size_t idx )
-{
-   return VectorSubRange_ClearElementsInRange(self, 0, idx);
-}
-
-/******************************************************************************/
-
-bool VectorSubRange_ClearElementsFromIdxToEnd( struct Vector * self,
-                                               size_t idx )
-{
-   if ( (NULL == self) || (0 == self->len) ) return false;
-   return VectorSubRange_ClearElementsInRange(self, idx, self->len - 1);
-}
-
 /******************************************************************************/
 
 /* Private Function Implementations */

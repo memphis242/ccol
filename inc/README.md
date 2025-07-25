@@ -39,8 +39,8 @@ bool   VectorIsFull( const struct Vector * self );
 /*** Vector Operations ***/
 
 bool   VectorPush( struct Vector * self, const void * element );
-bool   VectorInsertAt( struct Vector * self, size_t idx, const void * element );
-void * VectorGetElementAt( const struct Vector * self, size_t idx );
+bool   VectorInsert( struct Vector * self, size_t idx, const void * element );
+void * VectorGet( const struct Vector * self, size_t idx );
 void * VectorLastElement( const struct Vector * self );
 bool   VectorCpyElementAt( const struct Vector * self, size_t idx, void * data );
 bool   VectorCpyLastElement( const struct Vector * self, void * data );
@@ -52,26 +52,18 @@ bool   VectorClear( struct Vector * self );
 bool   VectorReset( struct Vector * self );
 bool   VectorHardReset( struct Vector * self );
 
-/*** Sub-Range Based Vector Operations ***/
+/*** Range Based Vector Operations ***/
 
 struct Vector * VectorSplitAt( struct Vector * self, size_t idx );
 struct Vector * VectorSlice( const struct Vector * self, size_t idx_start, size_t idx_end );
 
-bool   VectorSubRange_PushElements( struct Vector * self, const void * data, size_t dlen );
-bool   VectorSubRange_InsertElementsAt( struct Vector * self, size_t idx,  const void * data, size_t dlen );
-void * VectorSubRange_GetElementsFromIdx( const struct Vector * self, size_t idx );
-bool   VectorSubRange_CpyElementsInRange( const struct Vector * self, size_t idx_start, size_t idx_end, void * buffer );
-bool   VectorSubRange_CpyElementsFromStartToIdx( const struct Vector * self, size_t idx, void * buffer );
-bool   VectorSubRange_CpyElementsFromIdxToEnd( const struct Vector * self, size_t idx, void * buffer );
-bool   VectorSubRange_SetElementsInRange( struct Vector * self, size_t idx_start, size_t idx_end, const void * data );
-bool   VectorSubRange_SetElementsFromStartToIdx( struct Vector * self, size_t idx, const void * data );
-bool   VectorSubRange_SetElementsFromIdxToEnd( struct Vector * self, size_t idx, const void * data );
-bool   VectorSubRange_RemoveElementsInRange( struct Vector * self, size_t idx_start, size_t idx_end, void * buf );
-bool   VectorSubRange_RemoveElementsFromStartToIdx( struct Vector * self, size_t idx, void * buf );
-bool   VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector * self, size_t idx, void * buf );
-bool   VectorSubRange_ClearElementsInRange( struct Vector * self, size_t idx_start, size_t idx_end );
-bool   VectorSubRange_ClearElementsFromStartToIdx( struct Vector * self, size_t idx );
-bool   VectorSubRange_ClearElementsFromIdxToEnd( struct Vector * self, size_t idx );
+bool VectorRangePush( struct Vector * self, const void * data, size_t dlen );
+bool VectorRangeInsertAt( struct Vector * self, size_t idx,  const void * data, size_t dlen );
+bool VectorRangeCpy( const struct Vector * self, size_t idx_start, size_t idx_end, void * buffer );
+bool VectorRangeCpyToEnd( const struct Vector * self, size_t idx, void * buffer );
+bool VectorRangeSet( struct Vector * self, size_t idx_start, size_t idx_end, const void * data );
+bool VectorRangeRemove( struct Vector * self, size_t idx_start, size_t idx_end, void * buf );
+bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
 ```
 ### Example Usage
 ```c
