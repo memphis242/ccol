@@ -13,6 +13,7 @@ struct Allocator
 ```
 
 ## Vector
+### API Summary
 ```c
 /*** Constructor/Destructor ***/
 
@@ -71,4 +72,12 @@ bool   VectorSubRange_RemoveElementsFromIdxToEnd( struct Vector * self, size_t i
 bool   VectorSubRange_ClearElementsInRange( struct Vector * self, size_t idx_start, size_t idx_end );
 bool   VectorSubRange_ClearElementsFromStartToIdx( struct Vector * self, size_t idx );
 bool   VectorSubRange_ClearElementsFromIdxToEnd( struct Vector * self, size_t idx );
+```
+### Example Usage
+```c
+struct Vector * vec = VectorNew( sizeof(int), 10, 100, 0, NULL );
+(void)VectorPush( vec, &(int){42} ); // occassionally more convenient to use compound literals
+int a = 5;
+(void)VectorPush( vec, &5 );
+// TODO
 ```
