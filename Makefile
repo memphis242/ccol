@@ -142,7 +142,6 @@ COMPILER_WARNINGS_TEST_BUILD = \
     -Wdeprecated-declarations -Wmissing-prototypes -Wparentheses \
     -Wreturn-type -Wlogical-op -Wstrict-aliasing \
     -Wuninitialized -Wmaybe-uninitialized -Wshadow \
-    -Wsuggest-attribute=const \
     -Walloc-zero -Walloc-size \
     -Wno-analyzer-use-of-uninitialized-value -Wno-uninitialized \
     -Wno-maybe-uninitialized
