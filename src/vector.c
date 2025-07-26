@@ -1140,6 +1140,11 @@ static void shiftn( struct Vector * self, size_t start_idx,
       old_spot = PTR_TO_IDX(self, start_idx);
       new_spot = PTR_TO_IDX(self, start_idx - n);
    }
+   // Use memmove instead of memcpy because shifting means the new state of the
+   // sequence being moved and the old state of that sequence will overlap if
+   // the sequence's length is greater than the amount of shifting. memmove is
+   // specifically made for this kind of operation, whereas memcpy isn't
+   // guaranteed to behave correctly here.
    memmove( new_spot, old_spot, (self->len - start_idx) * self->element_size );
 }
 
