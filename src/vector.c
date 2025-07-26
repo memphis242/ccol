@@ -212,11 +212,11 @@ struct Vector * VectorDuplicate( const struct Vector * self )
    }
 
    memcpy( dup, self, sizeof(struct Vector) );
-   
+
    dup->arr = NULL;
    if ( dup->len > 0 )
    {
-      dup->arr = self->mem_mgr.alloc( dup->len * dup->element_size, self->mem_mgr.arena );
+      dup->arr = self->mem_mgr.alloc( dup->capacity * dup->element_size, self->mem_mgr.arena );
       if ( dup->arr != NULL )
       {
          memcpy( dup->arr,
@@ -701,7 +701,7 @@ bool VectorHardReset( struct Vector * self )
    assert(self->element_size > 0);
    assert(self->mem_mgr.reclaim != NULL);
 
-   memset( self->arr, 0, self->len * self->element_size );
+   memset( self->arr, 0, self->capacity * self->element_size );
    self->mem_mgr.reclaim( self->arr, self->capacity * self->element_size, self->mem_mgr.arena );
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
