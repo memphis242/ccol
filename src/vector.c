@@ -1050,7 +1050,7 @@ static bool vec_expand( struct Vector * self )
    {
       size_t new_capacity = (self->max_capacity < DEFAULT_INITIAL_CAPACITY) ?
                              self->max_capacity : DEFAULT_INITIAL_CAPACITY;
-      self->arr = self->mem_mgr.alloc( new_capacity, self->mem_mgr.arena );
+      self->arr = self->mem_mgr.alloc( new_capacity * self->element_size, self->mem_mgr.arena );
       if ( self->arr != NULL )
       {
          self->capacity = new_capacity;
@@ -1109,9 +1109,8 @@ static bool vec_expandby( struct Vector * self, size_t add_cap )
 
    if ( 0 == self->capacity )
    {
-      size_t new_capacity = (self->max_capacity < add_cap) ?
-                             self->max_capacity : DEFAULT_INITIAL_CAPACITY;
-      self->arr = self->mem_mgr.alloc( new_capacity, self->mem_mgr.arena );
+      size_t new_capacity = add_cap;
+      self->arr = self->mem_mgr.alloc( new_capacity * self->element_size, self->mem_mgr.arena );
       if ( self->arr != NULL )
       {
          self->capacity = new_capacity;
