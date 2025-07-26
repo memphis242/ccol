@@ -837,10 +837,10 @@ bool VectorRangePush( struct Vector * self, const void * data, size_t dlen )
 
 /******************************************************************************/
 
-bool VectorRangeInsertAt( struct Vector * self,
-                          size_t idx, 
-                          const void * data,
-                          size_t dlen )
+bool VectorRangeInsert( struct Vector * self,
+                        size_t idx, 
+                        const void * data,
+                        size_t dlen )
 {
    if ( (NULL == self) || (NULL == data) ||
         ( (self->len + dlen) > self->max_capacity ) || (dlen == 0) ||

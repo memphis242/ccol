@@ -276,7 +276,7 @@ bool VectorRangePush( struct Vector * self, const void * data, size_t dlen );
  * @param dlen Number of elements to insert.
  * @return true if the insertion was successful, false otherwise
  */
-bool VectorRangeInsertAt( struct Vector * self, size_t idx, const void * data, size_t dlen );
+bool VectorRangeInsert( struct Vector * self, size_t idx, const void * data, size_t dlen );
 
 /**
  * @brief Copies elements from a specified range in the vector to a provided buffer.

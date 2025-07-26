@@ -58,7 +58,7 @@ struct Vector * VectorSplitAt( struct Vector * self, size_t idx );
 struct Vector * VectorSlice( const struct Vector * self, size_t idx_start, size_t idx_end );
 
 bool VectorRangePush( struct Vector * self, const void * data, size_t dlen );
-bool VectorRangeInsertAt( struct Vector * self, size_t idx,  const void * data, size_t dlen );
+bool VectorRangeInsert( struct Vector * self, size_t idx,  const void * data, size_t dlen );
 bool VectorRangeCpy( const struct Vector * self, size_t idx_start, size_t idx_end, void * buffer );
 bool VectorRangeCpyToEnd( const struct Vector * self, size_t idx, void * buffer );
 bool VectorRangeSet( struct Vector * self, size_t idx_start, size_t idx_end, const void * data );
