@@ -454,6 +454,8 @@ bool VectorPush( struct Vector * self, const void * element )
    assert( self->len <= self->capacity );
    assert( self->len <= self->max_capacity );
    assert( (self->element_size * self->len) <= PTRDIFF_MAX );
+   assert( ( self->capacity == 0 && self->arr == NULL ) ||
+           ( self->capacity >  0 && self->arr != NULL ) );
 
    bool ret_val = true;
 
@@ -1018,7 +1020,8 @@ static bool vec_expand( struct Vector * self )
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert(self != NULL);
    assert(self->element_size != 0);
-   assert(self->arr != NULL);
+   assert( (self->capacity == 0 && self->arr == NULL) ||
+           (self->capacity >  0 && self->arr != NULL) );
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity);
    assert(self->mem_mgr.realloc != NULL);
@@ -1070,7 +1073,8 @@ static bool vec_expandby( struct Vector * self, size_t add_len )
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert(self != NULL);
    assert(self->element_size != 0);
-   assert(self->arr != NULL);
+   assert( (self->capacity == 0 && self->arr == NULL) ||
+           (self->capacity >  0 && self->arr != NULL) );
    assert(self->len <= self->capacity);
    assert(self->len <= self->max_capacity); 
    assert(self->mem_mgr.realloc != NULL);
