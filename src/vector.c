@@ -1035,29 +1035,38 @@ static bool vec_expand( struct Vector * self )
    }
 
    // First determine new capacity, and then realloc.
-   size_t new_capacity;
    if ( 0 == self->capacity )
    {
-      new_capacity = DEFAULT_INITIAL_CAPACITY;
-   }
-   else if ( (self->capacity * EXPANSION_FACTOR) < self->max_capacity )
-   {
-      new_capacity = self->capacity * EXPANSION_FACTOR;
+      size_t new_capacity = (self->max_capacity < DEFAULT_INITIAL_CAPACITY) ?
+                             self->max_capacity : DEFAULT_INITIAL_CAPACITY;
+      self->arr = self->mem_mgr.alloc( new_capacity, self->mem_mgr.arena );
+      if ( self->arr != NULL )
+      {
+         self->capacity = new_capacity;
+         return true;
+      }
    }
    else
    {
-      new_capacity = self->max_capacity;
-   }
-
-   void * new_ptr = self->mem_mgr.realloc( self->arr,
-                                           self->element_size * new_capacity,
-                                           self->element_size * self->capacity,
-                                           self->mem_mgr.arena );
-   if ( new_ptr != NULL )
-   {
-      self->arr = new_ptr;
-      self->capacity = new_capacity;
-      return true;
+      size_t new_capacity;
+      if ( (self->capacity * EXPANSION_FACTOR) < self->max_capacity )
+      {
+         new_capacity = self->capacity * EXPANSION_FACTOR;
+      }
+      else
+      {
+         new_capacity = self->max_capacity;
+      }
+      void * new_ptr = self->mem_mgr.realloc( self->arr,
+                                              self->element_size * new_capacity,
+                                              self->element_size * self->capacity,
+                                              self->mem_mgr.arena );
+      if ( new_ptr != NULL )
+      {
+         self->arr = new_ptr;
+         self->capacity = new_capacity;
+         return true;
+      }
    }
 
    return false;
@@ -1070,7 +1079,7 @@ static bool vec_expand( struct Vector * self )
  * @param add_len The number of additional elements to expand the capacity by.
  * @return true if the expansion was successful; false otherwise.
  */
-static bool vec_expandby( struct Vector * self, size_t add_len )
+static bool vec_expandby( struct Vector * self, size_t add_cap )
 {
    // Since this is a purely internal function, I will destructively assert at any invalid inputs
    assert(self != NULL);
@@ -1082,21 +1091,35 @@ static bool vec_expandby( struct Vector * self, size_t add_len )
    assert(self->mem_mgr.realloc != NULL);
 
    // If there's no space in the vector, we can't expand
-   if ( (self->capacity + add_len) > self->max_capacity )
+   if ( (self->capacity + add_cap) > self->max_capacity )
    {
       return false;
    }
 
-   size_t new_capacity = self->capacity + add_len;
-   void * new_ptr = self->mem_mgr.realloc( self->arr,
-                                           self->element_size * new_capacity,
-                                           self->element_size * self->capacity,
-                                           self->mem_mgr.arena );
-   if ( new_ptr != NULL )
+   if ( 0 == self->capacity )
    {
-      self->arr = new_ptr;
-      self->capacity = new_capacity;
-      return true;
+      size_t new_capacity = (self->max_capacity < add_cap) ?
+                             self->max_capacity : DEFAULT_INITIAL_CAPACITY;
+      self->arr = self->mem_mgr.alloc( new_capacity, self->mem_mgr.arena );
+      if ( self->arr != NULL )
+      {
+         self->capacity = new_capacity;
+         return true;
+      }
+   }
+   else
+   {
+      size_t new_capacity = self->capacity + add_cap;
+      void * new_ptr = self->mem_mgr.realloc( self->arr,
+                                              self->element_size * new_capacity,
+                                              self->element_size * self->capacity,
+                                              self->mem_mgr.arena );
+      if ( new_ptr != NULL )
+      {
+         self->arr = new_ptr;
+         self->capacity = new_capacity;
+         return true;
+      }
    }
 
    return false;
