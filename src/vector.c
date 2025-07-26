@@ -259,6 +259,9 @@ bool VectorMove( struct Vector * dest, struct Vector * src )
    dest->len = src->len;
 
    // Leave original vector in valid but empty state
+   // Note: This is not the same as hard resetting. We don't want the original
+   //       underlying array to be free'd because "ownership" of that has been
+   //       moved to dest.
    src->capacity = 0;
    src->arr = NULL;
    src->len = 0;
