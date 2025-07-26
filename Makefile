@@ -16,6 +16,15 @@ test-all:
 	@$(MAKE) --always-make test-vec > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
 
+test-vec-verbose:
+	@$(MAKE) _test BUILD_TYPE=TEST DS=vector
+	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
+
+test-all-verbose:
+	@$(MAKE) --always-make test-vec
+	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
+
+
 release:
 	@$(MAKE) lib BUILD_TYPE=RELEASE DS=ALL
 
