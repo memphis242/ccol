@@ -1135,16 +1135,11 @@ static bool vec_expandby( struct Vector * self, size_t add_cap )
 
 /**
  * @brief Shifts elements in the vector either to the left or right from a given idx.
- * 
- * This function moves all elements in the vector starting from the given index
- * n positions to the right or left.
- * 
+ *
  * @note This function won't automatically expand capacity. Make sure there's
  *       room before calling this function to shift right, or it will fail.
- * 
  * @note This function will also fail if you try to shift left by more than the
  *       length of the vector.
- *
  * @param struct Vector * : Pointer to the Vector structure
  * @param size_t : The index at which the shift operation begins
  * @param enum ShiftDir : Direction of shift
@@ -1155,6 +1150,7 @@ static void shiftn( struct Vector * self, size_t start_idx,
 {
    assert(self != NULL);
    assert(self->arr != NULL);
+   // Length must be less than capacity (i.e., shiftn should only be called after expansions)
    assert(self->len < self->capacity);
    // Extra checks to trap paradox states
    assert(self->element_size > 0);
