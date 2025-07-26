@@ -183,7 +183,7 @@ void VectorFree( struct Vector * self )
    {
       if ( (self->mem_mgr.reclaim != NULL) && (self->arr != NULL) )
       {
-         self->mem_mgr.reclaim(self->arr, self->len * self->element_size, self->mem_mgr.arena );
+         self->mem_mgr.reclaim(self->arr, self->capacity * self->element_size, self->mem_mgr.arena );
       }
       vec_pool_reclaim(self);
    }
@@ -687,7 +687,7 @@ bool VectorHardReset( struct Vector * self )
    assert(self->mem_mgr.reclaim != NULL);
 
    memset( self->arr, 0, self->len * self->element_size );
-   self->mem_mgr.reclaim( self->arr, self->len * self->element_size, self->mem_mgr.arena );
+   self->mem_mgr.reclaim( self->arr, self->capacity * self->element_size, self->mem_mgr.arena );
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
    return true;
