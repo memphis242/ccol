@@ -1102,7 +1102,7 @@ static bool vec_expandby( struct Vector * self, size_t add_cap )
    assert(self->mem_mgr.realloc != NULL);
 
    // If there's no space in the vector, we can't expand
-   if ( (self->capacity + add_cap) > self->max_capacity )
+   if ( add_cap > (self->max_capacity - self->capacity) )
    {
       return false;
    }
