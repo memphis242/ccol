@@ -216,16 +216,17 @@ void test_VectorRangePush_NullData(void);
 void test_VectorRangePush_ExceedsMaxCapacity(void);
 void test_VectorRangePush_ExactlyMaxCapacity(void);
 
-void test_VectorRangeInsertAt_ValidInts(void);
-void test_VectorRangeInsertAt_ValidStructs(void);
-void test_VectorRangeInsertAt_ExpandCapacity(void);
-void test_VectorRangeInsertAt_ZeroLen(void);
-void test_VectorRangeInsertAt_NullVec(void);
-void test_VectorRangeInsertAt_NullData(void);
-void test_VectorRangeInsertAt_ExceedsMaxCapacity(void);
-void test_VectorRangeInsertAt_ExactlyMaxCapacity(void);
-void test_VectorRangeInsertAt_Push_Equivalence(void);
-void test_VectorRangeInsertAt_InvalidIdx(void);
+void test_VectorRangeInsert_ValidInts(void);
+void test_VectorRangeInsert_ValidStructs(void);
+void test_VectorRangeInsert_ExpandCapacity(void);
+void test_VectorRangeInsert_ZeroLen(void);
+void test_VectorRangeInsert_NullVec(void);
+void test_VectorRangeInsert_NullData(void);
+void test_VectorRangeInsert_ExceedsMaxCapacity(void);
+void test_VectorRangeInsert_ExactlyMaxCapacity(void);
+void test_VectorRangeInsert_Push_Equivalence(void);
+void test_VectorRangeInsert_InvalidIdx(void);
+void test_VectorRangeInsert_OneElm(void);
 
 void test_VectorRangeCpy_ValidIdices_IntData(void);
 void test_VectorRangeCpy_DoesNotMutate(void);
@@ -266,6 +267,7 @@ void test_VectorRange_RemoveElementsInRng_AtEnd(void);
 void test_VectorRange_RemoveElementsInRng_InvalidIndices(void);
 void test_VectorRange_RemoveElementsInRng_InvalidVec(void);
 void test_VectorRange_RoundTrip_InsertAndRemove(void);
+void test_VectorRangeRemove_OneElm(void);
 
 void test_VectorRange_ClearElementsInRng_Normal(void);
 void test_VectorRange_ClearElementsInRng_AllElements(void);
@@ -415,16 +417,17 @@ int main(void)
    RUN_TEST(test_VectorRangePush_ExceedsMaxCapacity);
    RUN_TEST(test_VectorRangePush_ExactlyMaxCapacity);
 
-   RUN_TEST(test_VectorRangeInsertAt_ValidInts);
-   RUN_TEST(test_VectorRangeInsertAt_ValidStructs);
-   RUN_TEST(test_VectorRangeInsertAt_ExpandCapacity);
-   RUN_TEST(test_VectorRangeInsertAt_ZeroLen);
-   RUN_TEST(test_VectorRangeInsertAt_NullVec);
-   RUN_TEST(test_VectorRangeInsertAt_NullData);
-   RUN_TEST(test_VectorRangeInsertAt_ExceedsMaxCapacity);
-   RUN_TEST(test_VectorRangeInsertAt_ExactlyMaxCapacity);
-   RUN_TEST(test_VectorRangeInsertAt_Push_Equivalence);
-   RUN_TEST(test_VectorRangeInsertAt_InvalidIdx);
+   RUN_TEST(test_VectorRangeInsert_ValidInts);
+   RUN_TEST(test_VectorRangeInsert_ValidStructs);
+   RUN_TEST(test_VectorRangeInsert_ExpandCapacity);
+   RUN_TEST(test_VectorRangeInsert_ZeroLen);
+   RUN_TEST(test_VectorRangeInsert_NullVec);
+   RUN_TEST(test_VectorRangeInsert_NullData);
+   RUN_TEST(test_VectorRangeInsert_ExceedsMaxCapacity);
+   RUN_TEST(test_VectorRangeInsert_ExactlyMaxCapacity);
+   RUN_TEST(test_VectorRangeInsert_Push_Equivalence);
+   RUN_TEST(test_VectorRangeInsert_InvalidIdx);
+   RUN_TEST(test_VectorRangeInsert_OneElm);
 
    RUN_TEST(test_VectorRangeCpy_ValidIdices_IntData);
    RUN_TEST(test_VectorRangeCpy_DoesNotMutate);
@@ -465,6 +468,7 @@ int main(void)
    RUN_TEST(test_VectorRange_RemoveElementsInRng_InvalidIndices);
    RUN_TEST(test_VectorRange_RemoveElementsInRng_InvalidVec);
    RUN_TEST(test_VectorRange_RoundTrip_InsertAndRemove);
+   RUN_TEST(test_VectorRangeRemove_OneElm);
 
    RUN_TEST(test_VectorRange_ClearElementsInRng_Normal);
    RUN_TEST(test_VectorRange_ClearElementsInRng_AllElements);
@@ -629,8 +633,8 @@ void test_VectorOpsOnNullVectors(void)
    TEST_ASSERT_FALSE(VectorCpyElementAt(NULL, UINT32_MAX, NULL));
    TEST_ASSERT_FALSE(VectorSet(NULL, 0, NULL));
    TEST_ASSERT_FALSE(VectorSet(NULL, UINT32_MAX, NULL));
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(NULL, 0, NULL));
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(NULL, UINT32_MAX, NULL));
+   TEST_ASSERT_FALSE(VectorRemove(NULL, 0, NULL));
+   TEST_ASSERT_FALSE(VectorRemove(NULL, UINT32_MAX, NULL));
    TEST_ASSERT_NULL(VectorLastElement(NULL));
    TEST_ASSERT_FALSE(VectorCpyLastElement(NULL, NULL));
    TEST_ASSERT_FALSE(VectorClearElementAt(NULL, 0));
@@ -1320,7 +1324,7 @@ void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull(void)
       VectorPush(vec, &values[i]);
    }
 
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, NULL));
+   TEST_ASSERT_TRUE(VectorRemove(vec, 0, NULL));
    TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(values[2], *(int *)VectorGet(vec, 1));
@@ -1334,7 +1338,7 @@ void test_VectorRemoveElement_AtZeroWithSinglePresentElement(void)
    int value = 42;
    VectorPush(vec, &value);
 
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, NULL));
+   TEST_ASSERT_TRUE(VectorRemove(vec, 0, NULL));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
 
    VectorFree(vec);
@@ -1344,7 +1348,7 @@ void test_VectorRemoveElement_AtZeroWithEmptyVector(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 0, NULL));
+   TEST_ASSERT_FALSE(VectorRemove(vec, 0, NULL));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
 
    VectorFree(vec);
@@ -1358,7 +1362,7 @@ void test_VectorRemoveElement_AtMiddle(void)
       VectorPush(vec, &values[i]);
    }
 
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 1, NULL));
+   TEST_ASSERT_TRUE(VectorRemove(vec, 1, NULL));
    TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(values[2], *(int *)VectorGet(vec, 1));
@@ -1374,7 +1378,7 @@ void test_VectorRemoveElement_AtLen(void)
       VectorPush(vec, &values[i]);
    }
 
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, VectorLength(vec), NULL));
+   TEST_ASSERT_FALSE(VectorRemove(vec, VectorLength(vec), NULL));
    TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
@@ -1394,7 +1398,7 @@ void test_VectorRemoveElement_LastElement(void)
       VectorPush(vec2, &values[i]);
    }
 
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec1, 2, NULL));
+   TEST_ASSERT_TRUE(VectorRemove(vec1, 2, NULL));
    TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec1));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec1, 0));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec1, 1));
@@ -1417,7 +1421,7 @@ void test_VectorRemoveElement_PastLen(void)
       VectorPush(vec, &values[i]);
    }
 
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 5, NULL));
+   TEST_ASSERT_FALSE(VectorRemove(vec, 5, NULL));
    TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
@@ -1432,7 +1436,7 @@ void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull_WithBuf(void)
    }
 
    int buffer;
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, &buffer));
+   TEST_ASSERT_TRUE(VectorRemove(vec, 0, &buffer));
    TEST_ASSERT_EQUAL_INT(42, buffer);
    TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec, 0));
@@ -1448,7 +1452,7 @@ void test_VectorRemoveElement_AtZeroWithSinglePresentElement_WithBuf(void)
    VectorPush(vec, &value);
 
    int buffer;
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, &buffer));
+   TEST_ASSERT_TRUE(VectorRemove(vec, 0, &buffer));
    TEST_ASSERT_EQUAL_INT(42, buffer);
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
 
@@ -1460,7 +1464,7 @@ void test_VectorRemoveElement_AtZeroWithEmptyVector_WithBuf(void)
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
    int buffer = 52;
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 0, &buffer));
+   TEST_ASSERT_FALSE(VectorRemove(vec, 0, &buffer));
    TEST_ASSERT_EQUAL_INT(52, buffer); // Confirm buffer is unchanged
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
 
@@ -1476,7 +1480,7 @@ void test_VectorRemoveElement_AtMiddle_WithBuf(void)
    }
 
    int buffer;
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 1, &buffer));
+   TEST_ASSERT_TRUE(VectorRemove(vec, 1, &buffer));
    TEST_ASSERT_EQUAL_INT(84, buffer);
    TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec, 0));
@@ -1494,7 +1498,7 @@ void test_VectorRemoveElement_AtLen_WithBuf(void)
    }
 
    int buffer = 52;
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 3, &buffer));
+   TEST_ASSERT_FALSE(VectorRemove(vec, 3, &buffer));
    TEST_ASSERT_EQUAL_INT(52, buffer); // Confirm buffer is unchanged
    TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
@@ -1516,7 +1520,7 @@ void test_VectorRemoveElement_LastElement_WithBuf(void)
    }
 
    int buffer;
-   TEST_ASSERT_TRUE(VectorRemoveElementAt(vec1, 2, &buffer));
+   TEST_ASSERT_TRUE(VectorRemove(vec1, 2, &buffer));
    TEST_ASSERT_EQUAL_INT(values[2], buffer);
    TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec1));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec1, 0));
@@ -1542,7 +1546,7 @@ void test_VectorRemoveElement_PastLen_WithBuf(void)
    }
 
    int buffer;
-   TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 5, &buffer));
+   TEST_ASSERT_FALSE(VectorRemove(vec, 5, &buffer));
    TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
@@ -2362,9 +2366,20 @@ void test_VectorConcatenate_OneVecIsEmpty(void)
       TEST_ASSERT_EQUAL_INT(vals1[i], *(int*)VectorGet(cat, i));
    }
 
+   // Test reverse operation: cat2 = v2 + v1
+   struct Vector * cat2 = VectorConcatenate(v2, v1);
+
+   TEST_ASSERT_NOT_NULL(cat);
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(cat));
+   for (size_t i = 0; i < 3; i++)
+   {
+      TEST_ASSERT_EQUAL_INT(vals1[i], *(int*)VectorGet(cat, i));
+   }
+
    VectorFree(v1);
    VectorFree(v2);
    VectorFree(cat);
+   VectorFree(cat2);
 }
 
 void test_VectorConcatenate_BothVecsEmpty(void)
@@ -2578,7 +2593,7 @@ void test_VectorRangePush_ExactlyMaxCapacity(void)
 
 /********************** Vector Range: Insert Elements **********************/
 
-void test_VectorRangeInsertAt_ValidInts(void)
+void test_VectorRangeInsert_ValidInts(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 5, 10, 0, &DEFAULT_ALLOCATOR);
 
@@ -2590,7 +2605,7 @@ void test_VectorRangeInsertAt_ValidInts(void)
 
    int insert[] = {3, 4};
    // Insert at index 2 (before 5)
-   TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 2, insert, 2));
+   TEST_ASSERT_TRUE(VectorRangeInsert(vec, 2, insert, 2));
    TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(2, *(int *)VectorGet(vec, 1));
@@ -2601,7 +2616,7 @@ void test_VectorRangeInsertAt_ValidInts(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeInsertAt_ValidStructs(void)
+void test_VectorRangeInsert_ValidStructs(void)
 {
    struct MyData_S { int x, y, z; };
    struct Vector * vec = VectorNew(sizeof(struct MyData_S), 4, 10, 0, &DEFAULT_ALLOCATOR);
@@ -2611,7 +2626,7 @@ void test_VectorRangeInsertAt_ValidStructs(void)
 
    struct MyData_S insert[2] = { {7,8,9}, {10,11,12} };
    // Insert at index 1
-   TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 1, insert, 2));
+   TEST_ASSERT_TRUE(VectorRangeInsert(vec, 1, insert, 2));
 
    TEST_ASSERT_EQUAL_size_t(4, VectorLength(vec));
 
@@ -2631,7 +2646,7 @@ void test_VectorRangeInsertAt_ValidStructs(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeInsertAt_ExpandCapacity(void)
+void test_VectorRangeInsert_ExpandCapacity(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 2, 10, 0, &DEFAULT_ALLOCATOR);
 
@@ -2640,7 +2655,7 @@ void test_VectorRangeInsertAt_ExpandCapacity(void)
 
    int insert[] = {3, 4, 5};
    // Insert at index 1, should expand capacity
-   TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 1, insert, 3));
+   TEST_ASSERT_TRUE(VectorRangeInsert(vec, 1, insert, 3));
 
    TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
 
@@ -2653,35 +2668,35 @@ void test_VectorRangeInsertAt_ExpandCapacity(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeInsertAt_ZeroLen(void)
+void test_VectorRangeInsert_ZeroLen(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 2, 10, 0, &DEFAULT_ALLOCATOR);
 
    int data[] = {1, 2, 3};
    VectorPush(vec, &data[0]);
 
-   TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 0, data, 0));
+   TEST_ASSERT_FALSE(VectorRangeInsert(vec, 0, data, 0));
    TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
 
    VectorFree(vec);
 }
 
-void test_VectorRangeInsertAt_NullVec(void)
+void test_VectorRangeInsert_NullVec(void)
 {
    int data[] = {1, 2, 3};
-   TEST_ASSERT_FALSE(VectorRangeInsertAt(NULL, 0, data, 2));
+   TEST_ASSERT_FALSE(VectorRangeInsert(NULL, 0, data, 2));
 }
 
-void test_VectorRangeInsertAt_NullData(void)
+void test_VectorRangeInsert_NullData(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 2, 10, 0, &DEFAULT_ALLOCATOR);
    VectorPush(vec, &(int){1});
-   TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 0, NULL, 1));
+   TEST_ASSERT_FALSE(VectorRangeInsert(vec, 0, NULL, 1));
 
    VectorFree(vec);
 }
 
-void test_VectorRangeInsertAt_ExceedsMaxCapacity(void)
+void test_VectorRangeInsert_ExceedsMaxCapacity(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 2, 4, 0, &DEFAULT_ALLOCATOR);
 
@@ -2689,13 +2704,13 @@ void test_VectorRangeInsertAt_ExceedsMaxCapacity(void)
    VectorPush(vec, &data[0]);
 
    // Would exceed max capacity (1+5 > 4)
-   TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 0, data, 5));
+   TEST_ASSERT_FALSE(VectorRangeInsert(vec, 0, data, 5));
    TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
 
    VectorFree(vec);
 }
 
-void test_VectorRangeInsertAt_ExactlyMaxCapacity(void)
+void test_VectorRangeInsert_ExactlyMaxCapacity(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 2, 5, 0, &DEFAULT_ALLOCATOR);
 
@@ -2705,7 +2720,7 @@ void test_VectorRangeInsertAt_ExactlyMaxCapacity(void)
    val = 4;
    VectorPush(vec, &val);
 
-   TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 1, data, 3));
+   TEST_ASSERT_TRUE(VectorRangeInsert(vec, 1, data, 3));
    
    TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
    TEST_ASSERT_EQUAL_size_t(5, VectorCapacity(vec));
@@ -2720,7 +2735,7 @@ void test_VectorRangeInsertAt_ExactlyMaxCapacity(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeInsertAt_Push_Equivalence(void)
+void test_VectorRangeInsert_Push_Equivalence(void)
 {
    struct Vector * vecpush = VectorNew(sizeof(int), 5, 10, 0, &DEFAULT_ALLOCATOR);
    struct Vector * vecinsert = VectorNew(sizeof(int), 5, 10, 0, &DEFAULT_ALLOCATOR);
@@ -2730,7 +2745,7 @@ void test_VectorRangeInsertAt_Push_Equivalence(void)
    VectorPush(vecpush, &val);
    VectorPush(vecinsert, &val);
    VectorRangePush(vecpush, data, 3);
-   VectorRangeInsertAt(vecinsert, 1, data, 3);
+   VectorRangeInsert(vecinsert, 1, data, 3);
 
    for ( size_t i=0; i < 4; i++ )
    {
@@ -2742,20 +2757,33 @@ void test_VectorRangeInsertAt_Push_Equivalence(void)
    VectorFree(vecinsert);
 }
 
-void test_VectorRangeInsertAt_InvalidIdx(void)
+void test_VectorRangeInsert_InvalidIdx(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 2, 4, 0, &DEFAULT_ALLOCATOR);
 
    int data[] = {1, 2, 3};
    VectorPush(vec, &data[0]);
 
-   TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 2, &data[1], 2));
-   TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 4, &data[1], 2));
-   TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 1000, &data[1], 2));
+   TEST_ASSERT_FALSE(VectorRangeInsert(vec, 2, &data[1], 2));
+   TEST_ASSERT_FALSE(VectorRangeInsert(vec, 4, &data[1], 2));
+   TEST_ASSERT_FALSE(VectorRangeInsert(vec, 1000, &data[1], 2));
    
    TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
 
    VectorFree(vec);
+}
+
+void test_VectorRangeInsert_OneElm(void)
+{
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, 0, NULL);
+   (void)VectorInsert(v, 0, &(int){1});
+   int val_ins; (void)VectorCpyElementAt(v, 0, &val_ins);
+   (void)VectorSet(v, 0, &(int){0});
+   (void)VectorReset(v);
+   (void)VectorRangeInsert(v, 0, (int[]){1}, 1);
+   int val_insrng; (void)VectorCpyElementAt(v, 0, &val_insrng);
+   TEST_ASSERT_EQUAL_INT(val_ins, val_insrng);
+   VectorFree(v);
 }
 
 /****************** Vector Range: Copy Elements In Range *******************/
@@ -3390,7 +3418,7 @@ void test_VectorRange_RoundTrip_InsertAndRemove(void)
 
    // Insert some elements
    int insert[] = {10, 11, 12};
-   VectorRangeInsertAt(vec, 2, insert, 3);
+   VectorRangeInsert(vec, 2, insert, 3);
    TEST_ASSERT_FALSE( VectorsAreEqual(vec_dup, vec) );
 
    // Now remove the inserted elements (exclusive end at 5)
@@ -3405,6 +3433,21 @@ void test_VectorRange_RoundTrip_InsertAndRemove(void)
 
    VectorFree(vec);
    VectorFree(vec_dup);
+}
+
+void test_VectorRangeRemove_OneElm(void)
+{
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, 0, NULL);
+   (void)VectorPush(v, &(int){1});
+   TEST_ASSERT_FALSE(VectorIsEmpty(v));
+   int val_ins; (void)VectorRemove(v, 0, &val_ins);
+   TEST_ASSERT_TRUE(VectorIsEmpty(v));
+   (void)VectorPush(v, &(int){1});
+   TEST_ASSERT_FALSE(VectorIsEmpty(v));
+   int val_insrng; (void)VectorRangeRemove(v, 0, 1, &val_insrng);
+   TEST_ASSERT_EQUAL_INT(val_ins, val_insrng);
+   TEST_ASSERT_TRUE(VectorIsEmpty(v));
+   VectorFree(v);
 }
 
 /*************** Vector Range: Clear Elements in Range *********************/
