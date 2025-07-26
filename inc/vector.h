@@ -198,7 +198,7 @@ bool VectorSet( struct Vector * self, size_t idx, const void * element );
  * @param data Pointer to buffer to copy data to (if NULL, deletion still occurs)
  * @return true if the element was removed, false otherwise
  */
-bool VectorRemoveElementAt( struct Vector * self, size_t idx, void * data );
+bool VectorRemove( struct Vector * self, size_t idx, void * data );
 
 /**
  * @brief Removes the last element from the vector and optionally retrieves its data.

@@ -612,7 +612,7 @@ bool VectorSet( struct Vector * self,
 }
 
 /******************************************************************************/
-bool VectorRemoveElementAt( struct Vector * self, size_t idx, void * data )
+bool VectorRemove( struct Vector * self, size_t idx, void * data )
 {
    if ( (NULL == self) || (idx >= self->len) || (self->len == 0) )
    {
@@ -641,7 +641,7 @@ bool VectorRemoveElementAt( struct Vector * self, size_t idx, void * data )
 bool VectorRemoveLastElement( struct Vector * self, void * data )
 {
    if ( VectorLength(self) == 0 ) return false;
-   return VectorRemoveElementAt( self, VectorLength(self) - 1, data );
+   return VectorRemove( self, VectorLength(self) - 1, data );
 }
 
 /******************************************************************************/
@@ -969,7 +969,7 @@ bool VectorRangeRemove( struct Vector * self,
 
    if ( idx_start == (idx_end - 1) )
    {
-      return VectorRemoveElementAt(self, idx_start, buf);
+      return VectorRemove(self, idx_start, buf);
    }
 
    size_t num_of_removed = idx_end - idx_start;
