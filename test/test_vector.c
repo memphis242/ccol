@@ -158,10 +158,11 @@ void test_VectorClearElements_Normal(void);
 void test_VectorClearElements_EmptyVec(void);
 void test_VectorClearElements_InvalidVec(void);
 
-void test_VectorReset_OORIdx(void);
+void test_VectorReset_EmptyVec(void);
 void test_VectorReset(void);
 
 void test_VectorHardReset(void);
+void test_VectorHardReset_EmptyVector(void);
 
 void test_VectorDuplicate_SmallVector(void);
 void test_VectorDuplicate_ReallyLargeVector(void);
@@ -356,10 +357,11 @@ int main(void)
    RUN_TEST(test_VectorClearElements_EmptyVec);
    RUN_TEST(test_VectorClearElements_InvalidVec);
 
-   RUN_TEST(test_VectorReset_OORIdx);
+   RUN_TEST(test_VectorReset_EmptyVec);
    RUN_TEST(test_VectorReset);
 
    RUN_TEST(test_VectorHardReset);
+   RUN_TEST(test_VectorHardReset_EmptyVector);
 
    RUN_TEST(test_VectorDuplicate_SmallVector);
    RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
@@ -639,6 +641,7 @@ void test_VectorOpsOnNullVectors(void)
    TEST_ASSERT_FALSE(VectorsAreEqual(NULL, (struct Vector *)1));
    TEST_ASSERT_FALSE(VectorsAreEqual((struct Vector *)1, NULL));
    TEST_ASSERT_FALSE(VectorRemoveLastElement(NULL, NULL));
+   // FIXME: Finish this up with the rest of the API
 }
 
 /***************************** Simple Vector Ops ******************************/
@@ -1635,25 +1638,12 @@ void test_VectorClearElements_InvalidVec(void)
 
 /******************************** Vector Resets *******************************/
 
-void test_VectorReset_OORIdx(void)
+void test_VectorReset_EmptyVec(void)
 {
-   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-   int values[] = {42, 84, 126};
-   for (size_t i = 0; i < 3; i++) {
-      VectorPush(vec, &values[i]);
-   }
-
-   // Attempt to clear an out-of-range index
-   TEST_ASSERT_FALSE(VectorClearElementAt(vec, 5)); // Index greater than length
-   TEST_ASSERT_FALSE(VectorClearElementAt(vec, UINT32_MAX)); // Extreme out-of-range index
-
-   // Verify that the vector remains unchanged
-   for (size_t i = 0; i < 3; i++) {
-      int * element = (int *)VectorGet(vec, i);
-      TEST_ASSERT_NOT_NULL(element);
-      TEST_ASSERT_EQUAL_INT(values[i], *element);
-   }
-
+   // FIXME: Assumes allocations don't fail
+   struct Vector * vec = VectorNew( sizeof(char), 0, 10, 0, NULL );
+   TEST_ASSERT_TRUE( VectorReset(vec) );
+   TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
    VectorFree(vec);
 }
 
@@ -1699,6 +1689,13 @@ void test_VectorHardReset(void)
    TEST_ASSERT_EQUAL_size_t(0, VectorCapacity(vec));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
 
+   VectorFree(vec);
+}
+
+void test_VectorHardReset_EmptyVector(void)
+{
+   struct Vector * vec = VectorNew( sizeof(int), 0, 10, 0, NULL );
+   TEST_ASSERT_TRUE( VectorHardReset(vec) );
    VectorFree(vec);
 }
 
