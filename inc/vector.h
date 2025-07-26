@@ -187,7 +187,7 @@ bool VectorCpyLastElement( const struct Vector * self, void * data );
  * @param element A pointer to the new value to set at the specified index.
  * @return true if the update was successful, false otherwise
  */
-bool VectorSetElementAt( struct Vector * self, size_t idx, const void * element );
+bool VectorSet( struct Vector * self, size_t idx, const void * element );
 
 /**
  * @brief Removes an element from the vector at the specified index and optional
@@ -302,7 +302,7 @@ bool VectorRangeCpyToEnd( const struct Vector * self, size_t idx, void * buffer 
  * @brief Sets the elements of a vector within a specified range to the given data.
  * @param self Vector handle (if NULL, nothing happens)
  * @param idx_start The starting index of the range (inclusive).
- * @param idx_end The ending index of the range (inclusive).
+ * @param idx_end The ending index of the range (exclusive).
  * @param data Pointer to the data to set for the specified range.
  * @return true if the operation is successful, false otherwise
  */

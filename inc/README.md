@@ -44,7 +44,7 @@ void * VectorGet( const struct Vector * self, size_t idx );
 void * VectorLastElement( const struct Vector * self );
 bool   VectorCpyElementAt( const struct Vector * self, size_t idx, void * data );
 bool   VectorCpyLastElement( const struct Vector * self, void * data );
-bool   VectorSetElementAt( struct Vector * self, size_t idx, const void * element );
+bool   VectorSet( struct Vector * self, size_t idx, const void * element );
 bool   VectorRemoveElementAt( struct Vector * self, size_t idx, void * data );
 bool   VectorRemoveLastElement( struct Vector * self, void * data );
 bool   VectorClearElementAt( struct Vector * self, size_t idx );

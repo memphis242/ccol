@@ -588,7 +588,7 @@ bool VectorCpyLastElement( const struct Vector * self, void * data )
 }
 
 /******************************************************************************/
-bool VectorSetElementAt( struct Vector * self,
+bool VectorSet( struct Vector * self,
                            size_t idx,
                            const void * element )
 {
@@ -760,7 +760,7 @@ struct Vector * VectorSlice( const struct Vector * self,
    assert(self->arr != NULL);
    assert(self->element_size > 0);
 
-   size_t new_vec_len = idx_end - idx_start;   // inclusive of both indices
+   size_t new_vec_len = idx_end - idx_start;
    struct Vector * new_vec = VectorNew( self->element_size,
                                            new_vec_len * 2,
                                            new_vec_len * 4,
@@ -890,7 +890,7 @@ bool VectorRangeCpy( const struct Vector * self,
    assert(self->element_size > 0);
 
    uint8_t * ptr_to_start = PTR_TO_IDX(self, idx_start);
-   size_t idx_diff = idx_end - idx_start; // inclusive copy!
+   size_t idx_diff = idx_end - idx_start;
    memcpy( buffer, ptr_to_start, (idx_diff * self->element_size) );
 
    return true;
@@ -915,8 +915,8 @@ bool VectorRangeSet( struct Vector * self,
                      const void * data )
 {
    if ( (NULL == self) || (NULL == data) ||
-        (idx_start >= self->len) || (idx_end >= self->len) ||
-        (idx_start > idx_end) ) 
+        (idx_start >= self->len) || (idx_end > self->len) ||
+        (idx_start >= idx_end) ) 
    {
       return false;
    }
@@ -926,7 +926,7 @@ bool VectorRangeSet( struct Vector * self,
    assert(self->element_size > 0);
 
    uint8_t * ptr_to_start = PTR_TO_IDX(self, idx_start);
-   size_t idx_diff = (idx_end - idx_start) + 1; // inclusive copy!
+   size_t idx_diff = idx_end - idx_start;
    memcpy( ptr_to_start, data, (idx_diff * self->element_size) );
 
    return true;
