@@ -1125,26 +1125,19 @@ static void shiftn( struct Vector * self, size_t start_idx,
    assert(direction < ShiftDir_InvalidDir);
    assert( (direction && ((n + self->len) <= self->capacity)) || (!direction && (n <= self->len)) );
 
+   uint8_t * old_spot = NULL;
+   uint8_t * new_spot = NULL;
    if ( direction == ShiftDir_Right )
    {
-      // Start at the end and shift over to the right until we hit start_idx
-      for ( size_t i = self->len; i > start_idx; i-- )
-      {
-         uint8_t * old_spot = PTR_TO_IDX(self, i - 1);
-         uint8_t * new_spot = PTR_TO_IDX(self, (i + n) - 1);
-         memcpy( new_spot, old_spot, self->element_size );
-      }
+      old_spot = PTR_TO_IDX(self, start_idx);
+      new_spot = PTR_TO_IDX(self, start_idx + n);
    }
    else // shift left
    {
-      // Start at the one to the right of the start_idx and shift over to left by n
-      for ( size_t i = start_idx; i < self->len; i++ )
-      {
-         uint8_t * old_spot = PTR_TO_IDX(self, i);
-         uint8_t * new_spot = PTR_TO_IDX(self, i - (n - 1) - 1);
-         memcpy( new_spot, old_spot, self->element_size );
-      }
+      old_spot = PTR_TO_IDX(self, start_idx);
+      new_spot = PTR_TO_IDX(self, start_idx - n);
    }
+   memmove( new_spot, old_spot, (self->len - start_idx) * self->element_size );
 }
 
 /******************************************************************************/
