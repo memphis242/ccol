@@ -1,3 +1,5 @@
+# General build artifacts
+build/
 *.exe
 *.o
 *.lst
@@ -12,3 +14,12 @@ leetcode.c
 
 # VSCode
 .vscode/
+
+# Unit Test
+*.txt
+*.gcda
+*.gcno
+*.gcov
+
+# Vim
+*.swp

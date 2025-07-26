@@ -11,144 +11,352 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#include "ccol_shared.h"
+#include "vector_cfg.h"
 // TODO: Exceptions
-// TODO: Support custom allocators passed in
 
 /* Public Macro Definitions */
 
 /* Public Datatypes */
 
-// Opaque type to act as a handle for the user to pass into the API
-struct Vector_S;
+// Opaque type declaration to act as a handle for the user to pass into the API
+struct Vector;
 
 /* Public API */
 
+/*************************** Constructor/Destructor ***************************/
+
 /**
- * @brief Constructor for the vector object
- *
- * Allocates memory for a dynamic array (vector) and initializes its properties.
- *
- * @param element_size The size of each element in the vector (in bytes).
- * @param initial_capacity The initial number of elements the vector can hold.
- *
+ * @brief Constructor
+ * @param element_size     The size of each element in the vector (in bytes)
+ * @param initial_capacity The initial number of elements the vector can hold
+ * @param max_capacity     Maximum number of elements the vector can hold ever
+ * @param initial_len      Number of initial (zero) elements
+ * @param mem_mgr          Allocator that the user provides; if NULL, defaults to stdlib
  * @return A pointer to the initialized vector, or NULL if allocation fails.
  */
-struct Vector_S * VectorInit( size_t element_size, uint32_t initial_capacity );
+struct Vector * VectorNew( size_t element_size,
+                           size_t initial_capacity,
+                           size_t max_capacity,
+                           size_t initial_len,
+                           const struct Allocator * mem_mgr );
 
 /**
- * @brief Frees the memory allocated for the vector.
- *
- * Releases all resources associated with the vector, including its internal data.
- *
- * @param self Vector handle
+ * @brief Destructor
+ * @param self Vector handle (if NULL, nothing happens)
  */
-void VectorFree( struct Vector_S * self );
+void VectorFree( struct Vector * self );
+
+/******************** Vector-Vector Operations (Copy/Move) ********************/
 
 /**
- * @brief Inserts an element at the _end_ of the vector.
- *
- * @param self Vector handle
- * @param element A pointer to the element to be inserted.
- *
- * @return `true` if the insertion is successful, `false` otherwise.
- *         (e.g., memory allocation fails).
+ * @brief Copy constructor (deep).
+ * @param self Vector handle (if NULL, nothing happens)
  */
-bool VectorPush( struct Vector_S * self, const void * restrict element );
+struct Vector * VectorDuplicate( const struct Vector * self );
 
 /**
- * @brief Inserts an element into the vector at the specified index.
- * 
- * This function inserts the given element into the vector at the specified
- * index, shifting all subsequent elements one position to the right.
- *  
- * @param self Vector handle
- * @param idx The index at which the element should be inserted.
- * @param element Pointer to the element to be inserted.
- * 
- * @return true if the element was successfully inserted, false otherwise
- *         (e.g., memory allocation fails).
+ * @brief Move constructor.
+ * @note No memory is allocated for the destination vector.
+ * @note dest needs to have the same element size and allocator as src
+ * @param self Vector handle (if NULL, nothing happens)
  */
-bool VectorInsertAt( struct Vector_S * self, uint32_t idx, const void * restrict element );
+bool VectorMove( struct Vector * dest, struct Vector * src );
 
 /**
- * @brief Retrieves the element at the specified index in the vector.
- *
- * Provides access to the element at the given index _without_ removing it.
- *
- * @param self Vector handle
- * @param idx The index of the element to retrieve.
- * 
- * @return A pointer to the element at the specified index, or NULL if the index
- *         is out of bounds.
+ * @brief Equivalent lengths, sizes, maximums, and underlying data.
+ * @param a Vector handle for the first vector
+ * @param b Vector handle for the second vector
  */
-void * VectorGetElementAt( struct Vector_S * self, uint32_t idx );
+bool VectorsAreEqual( const struct Vector * a, const struct Vector * b );
 
 /**
- * @brief Sets the value of an element at the specified index in the vector.
- *
- * Updates the element at the given index with the provided value.
- *
- * @param self Vector handle
- * @param idx The index of the element to update.
- * @param element A pointer to the new value to set at the specified index.
- *                The memory pointed to must not overlap with the vector's memory.
- * 
- * @return A pointer to the updated element, or NULL if the index is out of bounds.
+ * @brief Concatenates two vectors into a new vector.
+ * @note The two vectors must at least have elements of the same size
+ * @note Empty vectors are allowed
+ * @note Sum of lens must be less than the max len of any single vector
+ * @note The resultant vector shall have a length, capacity, and max capacity
+ *       that is a sum of the argument vectors.
+ * @note v1's allocator will be used, not v2's.
+ * @param v1 The first vector (elements will appear first in the result).
+ * @param v2 The second vector (elements will appear after v1's elements).
+ * @return Pointer to the newly allocated vector, or NULL on failure.
  */
-void * VectorSetElementAt( struct Vector_S * self,
-                           uint32_t idx,
-                           const void * restrict element );
+struct Vector * VectorConcatenate( const struct Vector * v1,
+                                   const struct Vector * v2 );
 
-/**
- * @brief Removes an element from the vector at the specified index.
- *
- * Deletes the element at the given index and shifts subsequent elements to fill
- * the gap.
- *
- * @param self Vector handle
- * @param idx The index of the element to be removed.
- * 
- * @return A pointer to the removed element, or NULL if the index is out of bounds.
- */
-void * VectorRemoveElementAt( struct Vector_S * self, uint32_t idx );
+/******************************** Basic Stats *********************************/
 
 /**
  * @brief Retrieves the number of elements in the vector.
- *
- * Returns the current number of elements stored in the vector.
- *
- * @param self Vector handle
- * 
- * @return The number of elements in the vector.
+ * @param self Vector handle (if NULL, nothing happens)
  */
-uint32_t VectorLength( struct Vector_S * self );
+size_t VectorLength( const struct Vector * self );
 
 /**
- * @brief Retrieves the last element in the vector.
- *
- * Provides access to the last element in the vector without removing it.
- *
- * @param self Vector handle
- * 
- * @return A pointer to the last element, or NULL if the vector is empty.
+ * @brief Retrieves the current capacity of the vector.
+ * @param self Vector handle (if NULL, nothing happens)
  */
-void * VectorLastElement( struct Vector_S * self );
+size_t VectorCapacity( const struct Vector * self );
 
 /**
- * @brief Clears all elements in the vector.
- *
- * Removes all elements from the vector, resetting its length to zero.
- * The allocated memory is not freed, allowing the vector to be reused.
- *
- * @param self Vector handle
+ * @brief Retrieves the maximum capacity of the vector.
+ * @param self Vector handle (if NULL, nothing happens)
  */
-void VectorClear( struct Vector_S * self );
+size_t VectorMaxCapacity( const struct Vector * self );
+
+/**
+ * @brief Retrieves the size of each element in the vector.
+ * @param self Vector handle (if NULL, nothing happens)
+ */
+size_t VectorElementSize( const struct Vector * self );
 
 /**
  * @brief Checks if the vector is empty.
- * 
- * @param self A pointer to the Vector_S structure representing the vector.
- * 
- * @return true is empty, false otherwise.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @return true if empty, false otherwise.
  */
-bool VectorIsEmpty( struct Vector_S * self );
+bool VectorIsEmpty( const struct Vector * self );
+
+/**
+ * @brief Checks if the vector is full - i.e., at max capacity.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @return true if full, false otherwise.
+ */
+bool VectorIsFull( const struct Vector * self );
+
+/******************************** Vector Ops **********************************/
+
+/**
+ * @brief Inserts an element at the _end_ of the vector.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param element A pointer to the element to be inserted
+ * @return `true` if the insertion is successful, `false` otherwise.
+ */
+bool VectorPush( struct Vector * self, const void * element );
+
+/**
+ * @brief Inserts an element into the vector at the specified index.
+ * @note You are not allowed to insert past the length of the vector.
+ * @note Causes shift of elements when insertion is in the middle
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx The index at which the element should be inserted.
+ * @param element Pointer to the element to be inserted.
+ * @return true if the element was successfully inserted, false otherwise
+ *         (e.g., memory allocation fails).
+ */
+bool VectorInsert( struct Vector * self, size_t idx, const void * element );
+
+/**
+ * @brief Retrieves a pointer to the element at the specified index in the vector.
+ * @note Future vector operations may render this pointer stale
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx The index of the element to retrieve, 0-indexed.
+ * @return A pointer to the element if the retrieval was successful; NULL otherwise
+ */
+void * VectorGet( const struct Vector * self, size_t idx );
+
+/**
+ * @brief Retrieves a pointer to the last element in the vector.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @return Pointer to the data that will be returned.
+ */
+void * VectorLastElement( const struct Vector * self );
+
+/**
+* @brief Copies the element at the specified index in the vector to a provided buffer.
+* @param self Vector handle (if NULL, nothing happens)
+* @param idx The index of the element to retrieve, 0-indexed.
+* @param data Pointer to the buffer where the element will be copied.
+* @return true if the retrieval and copy were successful, false otherwise
+*/
+bool VectorCpyElementAt( const struct Vector * self, size_t idx, void * data );
+
+/**
+ * @brief Copies the last element in the vector to a provided buffer.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param data Pointer to the buffer where the last element will be copied.
+ * @return true if the last element was successfully copied to the buffer, false otherwise
+ */
+bool VectorCpyLastElement( const struct Vector * self, void * data );
+
+/**
+ * @brief Sets the value of an element at the specified index in the vector.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx The index of the element to update, 0-indexed.
+ * @param element A pointer to the new value to set at the specified index.
+ * @return true if the update was successful, false otherwise
+ */
+bool VectorSet( struct Vector * self, size_t idx, const void * element );
+
+/**
+ * @brief Removes an element from the vector at the specified index and optional
+ *        retrieves its data.
+ * @note No realloc is done to release memory.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx The index of the element to be removed
+ * @param data Pointer to buffer to copy data to (if NULL, deletion still occurs)
+ * @return true if the element was removed, false otherwise
+ */
+bool VectorRemove( struct Vector * self, size_t idx, void * data );
+
+/**
+ * @brief Removes the last element from the vector and optionally retrieves its data.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param data Pointer to buffer to copy data to (if NULL, deletion still occurs)
+ * @return true if the element was removed, false otherwise
+ */
+bool VectorRemoveLastElement( struct Vector * self, void * data );
+
+/**
+ * @brief Clears (zeros) the element at the specified index in the vector.
+ * @param self Vector handle (if NULL, nothing happens).
+ * @param idx Index of the element to clear.
+ * @return true if the element was successfully cleared, false otherwise
+ */
+bool VectorClearElementAt( struct Vector * self, size_t idx );
+
+/**
+ * @brief Clears (zeros) all elements in the vector.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @return true if the operation was successful, false otherwise
+ */
+bool VectorClear( struct Vector * self );
+
+/**
+ * @brief Resets the vector length to zero
+ * @note Leaves the previously allocated memory for the vector's data untouched.
+ * @param self Vector handle (if NULL, nothing happens)
+ */
+bool VectorReset( struct Vector * self );
+
+/**
+ * @brief Zeros elements first, then frees, then resets the vector length and capacity to zero.
+ * @param self Vector handle (if NULL, nothing happens)
+ */
+bool VectorHardReset( struct Vector * self );
+
+/*************************** Vector Range Ops *****************************/
+
+/**
+ * @brief Splits a vector at the specified index into two, returning the second
+ *        half in a new vector and truncating the original vector to the first half.
+ * @note Passing in an idx of 0 results no action being taken and NULL return
+ * @note This will mutate the original vector.
+ * @param self Pointer to the original vector to be split.
+ * @param idx The index at which to split the vector. Elements from this index
+ *            onward will be moved to the new vector.
+ * @return Vector that received second half of split; NULL otherwise
+ */
+struct Vector * VectorSplitAt( struct Vector * self, size_t idx );
+
+/**
+ * @brief Creates a slice (subvector) from the given vector.
+ * @param self Pointer to the original Vector structure.
+ * @param idx_start The starting index of the slice (inclusive).
+ * @param idx_end The ending index of the slice (exclusive).
+ * @return Pointer to a new Vector containing the specified slice; NULL otherwise
+ */
+struct Vector * VectorSlice( const struct Vector * self, size_t idx_start, size_t idx_end );
+
+/**
+ * @brief Pushes several elements into the vector.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param data Pointer to the source data to be copied into the vector.
+ * @param dlen Number of elements to push into the vector.
+ * @return true if the elements were successfully pushed; false otherwise
+ */
+bool VectorRangePush( struct Vector * self, const void * data, size_t dlen );
+
+/**
+ * @brief Inserts a range of elements into the vector at the specified index.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx  Index at which to insert the new elements.
+ * @param data Pointer to the data to be inserted (not mutated).
+ * @param dlen Number of elements to insert.
+ * @return true if the insertion was successful, false otherwise
+ */
+bool VectorRangeInsert( struct Vector * self, size_t idx, const void * data, size_t dlen );
+
+/**
+ * @brief Copies elements from a specified range in the vector to a provided buffer.
+ * @note Passing in the same start and end results in nothing being copied.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (exclusive).
+ * @param buffer Pointer to the destination buffer where the elements will be copied.
+ * @return true if the elements were successfully copied; false otherwise
+ */
+bool VectorRangeCpy( const struct Vector * self, size_t idx_start, size_t idx_end, void * buffer );
+
+/**
+ * @brief Copies elements from the specified index to the end of the vector into a provided buffer.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx The starting index from which elements will be copied (inclusive).
+ * @param buffer Pointer to the destination buffer where the elements will be copied.
+ * @return true if the operation is successful, false otherwise
+ */
+bool VectorRangeCpyToEnd( const struct Vector * self, size_t idx, void * buffer );
+
+/**
+ * @brief Sets the data in a sub-range of the vector to the data array provided.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (exclusive).
+ * @param arr Pointer to the data array that contains the new values for the subrange.
+ * @note Of course, arr should be sized at least (idx_end - idx_start).
+ * @note This is not to set the vector sub-range to a single value. Use VectorRangeSetToVal for that.
+ * @example
+ *          Assume vec is a vector of int's with 20 elements like so:
+ *          vec: { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ... (20 0's in total) }
+ * 
+ *          int arr[5] = { 1, 2, 3, 4, 5 };
+ *          VectorRangeSetWithArr(vec, 4, 9, arr );
+ * 
+ *          Results in:
+ *          vec: { 0, 0, 0, 0, 1, 2, 3, 4, 5, 0, ... }
+ * 
+ *          VectorRangeSetWithArr(vec, 4, 9, &(int){5}); <-- INVALID!
+ *
+ * @return true if the operation is successful, false otherwise
+ */
+bool VectorRangeSetWithArr( struct Vector * self, size_t idx_start, size_t idx_end, const void * arr );
+
+/**
+ * @brief Sets a sub-range of the vector to the single value provided.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (exclusive).
+ * @param val Pointer to the value to set each element in the subrange to.
+ * @example Assume vec is a vector of int's with 20 elements like so:
+ *          vec: { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ... (20 0's in total) }
+ * 
+ *          VectorRangeSetToVal(vec, 4, 9, &(int){5} );
+ * 
+ *          Results in:
+ *          vec: { 0, 0, 0, 0, 5, 5, 5, 5, 5, 0, ... }
+ *
+ * @return true if the operation is successful, false otherwise
+ */
+bool VectorRangeSetToVal( struct Vector * self, size_t idx_start, size_t idx_end, const void * val );
+
+/**
+ * @brief Removes elements from the vector within the specified range.
+ * @note Passing in the same start and end results in nothing being done.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (exclusive).
+ * @param buf Buffer to hold removed data (optional).
+ * @return true if the elements were successfully removed, false otherwise.
+ */
+bool VectorRangeRemove( struct Vector * self, size_t idx_start, size_t idx_end, void * buf );
+
+/**
+ * @brief Clears (zeros) the elements in the specified range.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx_start The starting index of the range to clear (inclusive).
+ * @param idx_end The ending index of the range to clear (exclusive).
+ * @return true if the operation was successful, false otherwise
+ */
+bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
