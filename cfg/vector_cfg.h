@@ -1,5 +1,5 @@
 /**
- * @file vector_cfg.c
+ * @file vector_cfg.h
  * @brief Configuration of aspects of the vector implementation.
  *
  * @author Abdulla Almosalami (memphis242)
