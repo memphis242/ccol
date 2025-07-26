@@ -965,7 +965,7 @@ bool VectorRangeSetToVal( struct Vector * self, size_t idx_start, size_t idx_end
    assert(self->element_size > 0);
 
    uint8_t * ptr = PTR_TO_IDX(self, idx_start);
-   for ( size_t i = 0; i < (idx_end - idx_start); i++, ptr++ )
+   for ( size_t i = 0; i < (idx_end - idx_start); i++, (ptr += self->element_size) )
       memcpy( ptr, val, self->element_size );
 
    return true;

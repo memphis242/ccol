@@ -3380,15 +3380,15 @@ void test_VectorRangeSetToVal_ValidIdices_IntData(void)
       VectorPush(vec, &values[i]);
    }
 
-   int new_value = 999;
+   int new_val = 999;
    // Set indices 1, 2, 3 (exclusive end at 4)
-   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 1, 4, &new_value));
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 1, 4, &new_val));
 
-   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
-   TEST_ASSERT_EQUAL_INT(999, *(int *)VectorGet(vec, 1));
-   TEST_ASSERT_EQUAL_INT(999, *(int *)VectorGet(vec, 2));
-   TEST_ASSERT_EQUAL_INT(999, *(int *)VectorGet(vec, 3));
-   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(vec, 4));
+   TEST_ASSERT_EQUAL_INT(10,      *(int *)VectorGet(vec, 0));
+   TEST_ASSERT_EQUAL_INT(new_val, *(int *)VectorGet(vec, 1));
+   TEST_ASSERT_EQUAL_INT(new_val, *(int *)VectorGet(vec, 2));
+   TEST_ASSERT_EQUAL_INT(new_val, *(int *)VectorGet(vec, 3));
+   TEST_ASSERT_EQUAL_INT(50,      *(int *)VectorGet(vec, 4));
 
    VectorFree(vec);
 }
