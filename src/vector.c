@@ -1125,7 +1125,8 @@ static void shiftn( struct Vector * self, size_t start_idx,
    assert(start_idx < self->len);
    assert(start_idx < MAX_VEC_LEN);
    assert(direction < ShiftDir_InvalidDir);
-   assert( (direction && ((n + self->len) <= self->capacity)) || (!direction && (n <= self->len)) );
+   assert( (direction == ShiftDir_Right && ((n + self->len) <= self->capacity)) ||
+           (direction == ShiftDir_Left  && (n <= self->len)) );
 
    uint8_t * old_spot = NULL;
    uint8_t * new_spot = NULL;
