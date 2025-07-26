@@ -166,6 +166,7 @@ void test_VectorHardReset_EmptyVector(void);
 
 void test_VectorDuplicate_SmallVector(void);
 void test_VectorDuplicate_ReallyLargeVector(void);
+void test_VectorDuplicate_CatchBadCapDuplication(void);
 void test_VectorDuplicate_NullVector(void);
 
 void test_VectorMove_SmallVector(void);
@@ -368,6 +369,7 @@ int main(void)
 
    RUN_TEST(test_VectorDuplicate_SmallVector);
    RUN_TEST(test_VectorDuplicate_ReallyLargeVector);
+   RUN_TEST(test_VectorDuplicate_CatchBadCapDuplication);
    RUN_TEST(test_VectorDuplicate_NullVector);
 
    RUN_TEST(test_VectorMove_SmallVector);
@@ -1714,8 +1716,9 @@ void test_VectorHardReset_EmptyVector(void)
 /******************************* Vector Duplicate *****************************/
 void test_VectorDuplicate_SmallVector(void)
 {
+   const size_t max_cap = 10;
    struct Vector * original = NULL;
-   VECTOR_NEW_KEEP_TRYIN(original, sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   VECTOR_NEW_KEEP_TRYIN(original, sizeof(int), 5, max_cap, 0, &DEFAULT_ALLOCATOR);
 
    int values[] = {42, 84, 126};
    for (size_t i = 0; i < 3; i++) {
@@ -1739,6 +1742,14 @@ void test_VectorDuplicate_SmallVector(void)
       TEST_ASSERT_EQUAL_INT(* original_element, *duplicate_element);
    }
 
+   // Catch incorrect capacity duplication by pushing many elements to the duplicate.
+   // If the capacity allocation was incorrect, and the internal implementation
+   // simply did the equivalent of dup->capacity = og->cap, we hopefully get an
+   // out-of-bounds sourced crash. This is more likely with the larger vector,
+   // but a strict system will catch the slightest out-of-bounds heap access.
+   for ( size_t i = 0; i < (max_cap - VectorLength(duplicate)); i++ )
+      VectorPush(duplicate, &(int){1});
+
    VectorFree(original);
    VectorFree(duplicate);
 }
@@ -1746,12 +1757,12 @@ void test_VectorDuplicate_SmallVector(void)
 void test_VectorDuplicate_ReallyLargeVector(void)
 {
    struct Vector * original = NULL;
-   const size_t OriginalVecLen = 10000000;
-   VECTOR_NEW_KEEP_TRYIN(original, sizeof(uint8_t), OriginalVecLen, OriginalVecLen, 0, &DEFAULT_ALLOCATOR);
+   const size_t og_len = 10000000;
+   const size_t og_cap = og_len * 10;
+   VECTOR_NEW_KEEP_TRYIN(original, sizeof(uint8_t), og_len, og_cap, 0, &DEFAULT_ALLOCATOR);
 
-   for (size_t i = 0; i < OriginalVecLen; i++) {
-      const uint8_t val = 5;
-      VectorPush(original, &val);
+   for (size_t i = 0; i < og_len; i++) {
+      VectorPush(original, &(uint8_t){4});
    }
 
    struct Vector * duplicate = VectorDuplicate(original);
@@ -1771,8 +1782,34 @@ void test_VectorDuplicate_ReallyLargeVector(void)
       TEST_ASSERT_EQUAL_UINT8(* original_element, *duplicate_element);
    }
 
+   // Catch incorrect capacity duplication by pushing many elements to the duplicate.
+   // If the capacity allocation was incorrect, and the internal implementation
+   // simply did the equivalent of dup->capacity = og->cap, we hopefully get an
+   // out-of-bounds sourced crash. This is more likely with the larger vector,
+   // but a strict system will catch the slightest out-of-bounds heap access.
+   for ( size_t i = 0; i < (og_cap - VectorLength(duplicate)); i++ )
+      VectorPush(duplicate, &(int){1});
+
    VectorFree(original);
    VectorFree(duplicate);
+}
+
+void test_VectorDuplicate_CatchBadCapDuplication(void)
+{
+   const size_t maxcap = 1000000;
+   struct Vector * og = VectorNew(sizeof(int), maxcap, maxcap, 10, NULL);
+   struct Vector * dup = VectorDuplicate(og);
+
+   // Catch incorrect capacity duplication by pushing many elements to the duplicate.
+   // If the capacity allocation was incorrect, and the internal implementation
+   // simply did the equivalent of dup->capacity = og->cap, we hopefully get an
+   // out-of-bounds sourced crash. This is more likely with the larger vector,
+   // but a strict system will catch the slightest out-of-bounds heap access.
+   for ( size_t i = 0; i < (maxcap - VectorLength(dup)); i++ )
+      VectorPush(dup, &(int){1});
+
+   VectorFree(dup);
+   VectorFree(og);
 }
 
 void test_VectorDuplicate_NullVector(void)
