@@ -1222,6 +1222,7 @@ STATIC void vec_pool_reclaim(const struct Vector * ptr)
    {
       if ( ptr == &VecPool.pool[i].vec )
       {
+         found = true;
          if ( !VecPool.pool[i].is_allocated )
          {
             // TODO: Raise exception for attempting to free an unallocated vec
