@@ -107,6 +107,9 @@ void test_VectorPush_UntilCapacity(void);
 void test_VectorPush_PastInitialCapacity(void);
 void test_VectorPush_PastMaxCapacity(void);
 void test_VectorPush_IntoVecWithZeroMaxCap(void);
+void test_VectorPush_InitialCapOfZero(void);
+void test_VectorPush_AfterResetting(void);
+void test_VectorPush_AfterHardResetting(void);
 
 void test_VectorInsertion_AtZeroWithVectorLessThanCapacity(void);
 void test_VectorInsertion_AtZeroWithVectorAtCapacity(void);
@@ -302,6 +305,9 @@ int main(void)
    RUN_TEST(test_VectorPush_PastInitialCapacity);
    RUN_TEST(test_VectorPush_PastMaxCapacity);
    RUN_TEST(test_VectorPush_IntoVecWithZeroMaxCap);
+   RUN_TEST(test_VectorPush_InitialCapOfZero);
+   RUN_TEST(test_VectorPush_AfterResetting);
+   RUN_TEST(test_VectorPush_AfterHardResetting);
 
    RUN_TEST(test_VectorInsertion_AtZeroWithVectorLessThanCapacity);
    RUN_TEST(test_VectorInsertion_AtZeroWithVectorAtCapacity);
@@ -533,8 +539,8 @@ void test_VectorNew_ValidInputCombo_3DPoints(void)
       {
          // Confirm correct initialization
          TEST_ASSERT_EQUAL_size_t( sizeof(struct MyData_S), VectorElementSize(vec) );
-         TEST_ASSERT_EQUAL_UINT32( InitialCaps[i], VectorCapacity(vec) );
-         TEST_ASSERT_EQUAL_UINT32( MaxCap, VectorMaxCapacity(vec) );
+         TEST_ASSERT_EQUAL_size_t( InitialCaps[i], VectorCapacity(vec) );
+         TEST_ASSERT_EQUAL_size_t( MaxCap, VectorMaxCapacity(vec) );
       }
 
       VectorFree(vec);
@@ -546,8 +552,8 @@ void test_VectorNew_CapacityLimit(void)
    struct Vector * vec = NULL;
    VECTOR_NEW_KEEP_TRYIN(vec, 1, UINT32_MAX, UINT32_MAX, 0, &DEFAULT_ALLOCATOR);
    TEST_ASSERT_EQUAL_size_t( 1, VectorElementSize(vec) );
-   TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorCapacity(vec) );
-   TEST_ASSERT_EQUAL_UINT32( UINT32_MAX, VectorMaxCapacity(vec) );
+   TEST_ASSERT_EQUAL_size_t( UINT32_MAX, VectorCapacity(vec) );
+   TEST_ASSERT_EQUAL_size_t( UINT32_MAX, VectorMaxCapacity(vec) );
    VectorFree(vec);
 }
 
@@ -557,8 +563,8 @@ void test_VectorNew_ElementSzLimit(void)
    struct Vector * vec = NULL;
    VECTOR_NEW_KEEP_TRYIN(vec, UINT32_MAX, 1, 1, 0, &DEFAULT_ALLOCATOR);
    TEST_ASSERT_EQUAL_size_t( UINT32_MAX, VectorElementSize(vec) );
-   TEST_ASSERT_EQUAL_UINT32( 1, VectorCapacity(vec) );
-   TEST_ASSERT_EQUAL_UINT32( 1, VectorMaxCapacity(vec) );
+   TEST_ASSERT_EQUAL_size_t( 1, VectorCapacity(vec) );
+   TEST_ASSERT_EQUAL_size_t( 1, VectorMaxCapacity(vec) );
    VectorFree(vec);
 }
 
@@ -567,8 +573,8 @@ void test_VectorNew_InitialLenLessThanInitialCap(void)
    struct Vector * vec = NULL;
    const size_t INIT_LEN = 5;
    VECTOR_NEW_KEEP_TRYIN(vec, 50, INIT_LEN * 2, INIT_LEN * 10, INIT_LEN, &DEFAULT_ALLOCATOR);
-   TEST_ASSERT_EQUAL_UINT32( INIT_LEN,     VectorLength(vec) );
-   TEST_ASSERT_EQUAL_UINT32( INIT_LEN * 2, VectorCapacity(vec) );
+   TEST_ASSERT_EQUAL_size_t( INIT_LEN,     VectorLength(vec) );
+   TEST_ASSERT_EQUAL_size_t( INIT_LEN * 2, VectorCapacity(vec) );
    // Verify initial elements have been zero'd out
    for ( size_t i = 0; i < INIT_LEN; i++ )
    {
@@ -586,8 +592,8 @@ void test_VectorNew_InitialLenSameAsInitialCap(void)
    struct Vector * vec = NULL;
    const size_t INIT_LEN = 10;
    VECTOR_NEW_KEEP_TRYIN(vec, 50, INIT_LEN, INIT_LEN * 10, INIT_LEN, &DEFAULT_ALLOCATOR);
-   TEST_ASSERT_EQUAL_UINT32( INIT_LEN, VectorLength(vec) );
-   TEST_ASSERT_EQUAL_UINT32( INIT_LEN, VectorCapacity(vec) );
+   TEST_ASSERT_EQUAL_size_t( INIT_LEN, VectorLength(vec) );
+   TEST_ASSERT_EQUAL_size_t( INIT_LEN, VectorCapacity(vec) );
    // Verify initial elements have been zero'd out
    for ( size_t i = 0; i < INIT_LEN; i++ )
    {
@@ -606,9 +612,9 @@ void test_VectorOpsOnNullVectors(void)
    // Call any API that takes in a pointer, and ensure appropriate behavior, or
    // that the application does not crash.
    VectorFree(NULL);
-   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(NULL));
-   TEST_ASSERT_EQUAL_UINT32(0, VectorCapacity(NULL));
-   TEST_ASSERT_EQUAL_UINT32(0, VectorMaxCapacity(NULL));
+   TEST_ASSERT_EQUAL_size_t(0, VectorLength(NULL));
+   TEST_ASSERT_EQUAL_size_t(0, VectorCapacity(NULL));
+   TEST_ASSERT_EQUAL_size_t(0, VectorMaxCapacity(NULL));
    TEST_ASSERT_EQUAL_size_t(0, VectorElementSize(NULL));
    TEST_ASSERT_TRUE(VectorIsEmpty(NULL));
    TEST_ASSERT_FALSE(VectorIsFull(NULL));
@@ -648,22 +654,22 @@ void test_VectorFree(void)
 
 void test_VectorLength(void) {
     struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-    TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+    TEST_ASSERT_EQUAL_size_t(0, VectorLength(vec));
     VectorPush(vec, &(int){42});
-    TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+    TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
     VectorFree(vec);
 }
 
 void test_VectorCapacity(void)
 {
     struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-    TEST_ASSERT_EQUAL_UINT32(10, VectorCapacity(vec));
+    TEST_ASSERT_EQUAL_size_t(10, VectorCapacity(vec));
     VectorFree(vec);
 }
 
 void test_VectorMaxCapacity(void) {
     struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
-    TEST_ASSERT_EQUAL_UINT32(100, VectorMaxCapacity(vec));
+    TEST_ASSERT_EQUAL_size_t(100, VectorMaxCapacity(vec));
     VectorFree(vec);
 }
 
@@ -723,12 +729,12 @@ void test_VectorPush_SimplePush(void)
    // is greater than 2.
    // Push the first value and verify
    TEST_ASSERT_TRUE(VectorPush(vec, &value1));
-   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(value1, *(int *)VectorGet(vec, 0));
 
    // Push the second value and verify
    TEST_ASSERT_TRUE(VectorPush(vec, &value2));
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(value2, *(int *)VectorGet(vec, 1));
 
    // Ensure the vector is not empty
@@ -772,12 +778,12 @@ void test_VectorPush_UntilCapacity(void)
          TEST_ASSERT_EQUAL_FLOAT( test_element.x, last_element->x );
          TEST_ASSERT_EQUAL_FLOAT( test_element.y, last_element->y );
          TEST_ASSERT_EQUAL_FLOAT( test_element.z, last_element->z );
-         TEST_ASSERT_EQUAL_UINT32( vec_len, VectorLength(vec) );
+         TEST_ASSERT_EQUAL_size_t( vec_len, VectorLength(vec) );
       }
    }
    // We should have hit the initial capacity but not any more than that
-   TEST_ASSERT_EQUAL_UINT32( INIT_CAP, VectorLength(vec) );
-   TEST_ASSERT_EQUAL_UINT32( INIT_CAP, VectorCapacity(vec) );
+   TEST_ASSERT_EQUAL_size_t( INIT_CAP, VectorLength(vec) );
+   TEST_ASSERT_EQUAL_size_t( INIT_CAP, VectorCapacity(vec) );
    // If every single push failed, something's off...
    TEST_ASSERT_FALSE( VectorIsEmpty(vec) );
 
@@ -797,7 +803,7 @@ void test_VectorPush_UntilCapacity(void)
          TEST_ASSERT_EQUAL_FLOAT( test_element.x, last_element->x );
          TEST_ASSERT_EQUAL_FLOAT( test_element.y, last_element->y );
          TEST_ASSERT_EQUAL_FLOAT( test_element.z, last_element->z );
-         TEST_ASSERT_EQUAL_UINT32( vec_len, VectorLength(vec) );
+         TEST_ASSERT_EQUAL_size_t( vec_len, VectorLength(vec) );
       }
    }
 
@@ -906,6 +912,37 @@ void test_VectorPush_IntoVecWithZeroMaxCap(void)
    vec = VectorNew( sizeof(struct MyData_S), 0, 0, 0 , &DEFAULT_ALLOCATOR);
    TEST_ASSERT_FALSE( VectorPush( vec, &test_element ) );
    TEST_ASSERT_TRUE( VectorIsEmpty(vec) );
+}
+
+void test_VectorPush_InitialCapOfZero(void)
+{
+   // FIXME: Assumes no mallocs fail
+   struct Vector * vec = VectorNew( sizeof(int), 0, 10, 0, NULL );
+   TEST_ASSERT_TRUE( VectorPush(vec, &(int){5}) );
+   TEST_ASSERT_EQUAL_INT( *((int *)VectorLastElement(vec)), 5 );
+   VectorFree(vec);
+}
+
+void test_VectorPush_AfterResetting(void)
+{
+   // FIXME: Assumes no mallocs fail
+   struct Vector * vec = VectorNew( sizeof(int), 5, 10, 0, NULL );
+   VectorPush(vec, &(int){5});
+   VectorReset(vec);
+   TEST_ASSERT_TRUE( VectorPush(vec, &(int){10}) );
+   TEST_ASSERT_EQUAL_INT( *((int *)VectorLastElement(vec)), 10 );
+   VectorFree(vec);
+}
+
+void test_VectorPush_AfterHardResetting(void)
+{
+   // FIXME: Assumes no mallocs fail
+   struct Vector * vec = VectorNew( sizeof(int), 5, 10, 0, NULL );
+   VectorPush(vec, &(int){5});
+   VectorHardReset(vec);
+   TEST_ASSERT_TRUE( VectorPush(vec, &(int){5}) );
+   TEST_ASSERT_EQUAL_INT( *((int *)VectorLastElement(vec)), 5 );
+   VectorFree(vec);
 }
 
 /****************************** Vector Insertion ******************************/
@@ -1281,7 +1318,7 @@ void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull(void)
    }
 
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, NULL));
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(values[2], *(int *)VectorGet(vec, 1));
 
@@ -1319,7 +1356,7 @@ void test_VectorRemoveElement_AtMiddle(void)
    }
 
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 1, NULL));
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(values[2], *(int *)VectorGet(vec, 1));
 
@@ -1335,7 +1372,7 @@ void test_VectorRemoveElement_AtLen(void)
    }
 
    TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, VectorLength(vec), NULL));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -1355,13 +1392,13 @@ void test_VectorRemoveElement_LastElement(void)
    }
 
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec1, 2, NULL));
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec1));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec1));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec1, 0));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec1, 1));
 
    // Should be the same result as VectorRemoveLastElement
    TEST_ASSERT_TRUE(VectorRemoveLastElement(vec2, NULL));
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec2));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec2));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec2, 0));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec2, 1));
 
@@ -1378,7 +1415,7 @@ void test_VectorRemoveElement_PastLen(void)
    }
 
    TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 5, NULL));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -1394,7 +1431,7 @@ void test_VectorRemoveElement_AtZeroWithVectorPartiallyFull_WithBuf(void)
    int buffer;
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 0, &buffer));
    TEST_ASSERT_EQUAL_INT(42, buffer);
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(values[2], *(int *)VectorGet(vec, 1));
 
@@ -1438,7 +1475,7 @@ void test_VectorRemoveElement_AtMiddle_WithBuf(void)
    int buffer;
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec, 1, &buffer));
    TEST_ASSERT_EQUAL_INT(84, buffer);
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(values[2], *(int *)VectorGet(vec, 1));
 
@@ -1456,7 +1493,7 @@ void test_VectorRemoveElement_AtLen_WithBuf(void)
    int buffer = 52;
    TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 3, &buffer));
    TEST_ASSERT_EQUAL_INT(52, buffer); // Confirm buffer is unchanged
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -1478,14 +1515,14 @@ void test_VectorRemoveElement_LastElement_WithBuf(void)
    int buffer;
    TEST_ASSERT_TRUE(VectorRemoveElementAt(vec1, 2, &buffer));
    TEST_ASSERT_EQUAL_INT(values[2], buffer);
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec1));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec1));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec1, 0));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec1, 1));
 
    // Should be the same result as VectorRemoveLastElement
    TEST_ASSERT_TRUE(VectorRemoveLastElement(vec2, &buffer));
    TEST_ASSERT_EQUAL_INT(values[2], buffer);
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec2));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec2));
    TEST_ASSERT_EQUAL_INT(values[0], *(int *)VectorGet(vec2, 0));
    TEST_ASSERT_EQUAL_INT(values[1], *(int *)VectorGet(vec2, 1));
 
@@ -1503,7 +1540,7 @@ void test_VectorRemoveElement_PastLen_WithBuf(void)
 
    int buffer;
    TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 5, &buffer));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -1574,7 +1611,7 @@ void test_VectorClearElements_Normal(void)
    VectorRangePush(vec, values, 5);
 
    TEST_ASSERT_TRUE(VectorClear(vec));
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
    for (size_t i = 0; i < 5; i++) {
       TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGet(vec, i));
    }
@@ -1658,7 +1695,8 @@ void test_VectorHardReset(void)
    TEST_ASSERT_TRUE(VectorHardReset(vec));
 
    // Verify the vector is empty
-   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(0, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(0, VectorCapacity(vec));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
 
    VectorFree(vec);
@@ -1679,9 +1717,9 @@ void test_VectorDuplicate_SmallVector(void)
    TEST_ASSERT_NOT_NULL(duplicate);
 
    // Verify the duplicate matches the original
-   TEST_ASSERT_EQUAL_UINT32(VectorLength(original), VectorLength(duplicate));
-   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(original), VectorCapacity(duplicate));
-   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(original), VectorMaxCapacity(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorLength(original), VectorLength(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorCapacity(original), VectorCapacity(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorMaxCapacity(original), VectorMaxCapacity(duplicate));
    TEST_ASSERT_EQUAL_size_t(VectorElementSize(original), VectorElementSize(duplicate));
 
    for (size_t i = 0; i < VectorLength(original); i++) {
@@ -1711,9 +1749,9 @@ void test_VectorDuplicate_ReallyLargeVector(void)
    TEST_ASSERT_NOT_NULL(duplicate);
 
    // Verify the duplicate matches the original
-   TEST_ASSERT_EQUAL_UINT32(VectorLength(original), VectorLength(duplicate));
-   TEST_ASSERT_EQUAL_UINT32(VectorCapacity(original), VectorCapacity(duplicate));
-   TEST_ASSERT_EQUAL_UINT32(VectorMaxCapacity(original), VectorMaxCapacity(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorLength(original), VectorLength(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorCapacity(original), VectorCapacity(duplicate));
+   TEST_ASSERT_EQUAL_size_t(VectorMaxCapacity(original), VectorMaxCapacity(duplicate));
    TEST_ASSERT_EQUAL_size_t(VectorElementSize(original), VectorElementSize(duplicate));
 
    for (size_t i = 0; i < VectorLength(original); i++) {
@@ -1929,12 +1967,12 @@ void test_VectorSplitAt_ValidIdx(void)
    TEST_ASSERT_NOT_NULL(split_vec);
 
    // Verify original vector
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(vec, 1));
 
    // Verify split vector
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(split_vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(split_vec));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(split_vec, 0));
    TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGet(split_vec, 1));
    TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(split_vec, 2));
@@ -1955,7 +1993,7 @@ void test_VectorSplitAt_IdxZero(void)
    TEST_ASSERT_NULL(split_vec);
 
    // Verify original vector remains unchanged
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
    for (size_t i = 0; i < 5; i++) {
       TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGet(vec, i));
    }
@@ -1975,7 +2013,7 @@ void test_VectorSplitAt_IdxPastLen(void)
    TEST_ASSERT_NULL(split_vec);
 
    // Verify original vector remains unchanged
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
    for (size_t i = 0; i < 5; i++) {
       TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGet(vec, i));
    }
@@ -2028,12 +2066,12 @@ void test_VectorSplitAt_ValidIdx_StructData(void)
    TEST_ASSERT_NOT_NULL(split_vec);
 
    // Verify original vector
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    TEST_ASSERT_EQUAL_FLOAT(1.0f, ((struct MyData_S *)VectorGet(vec, 0))->x);
    TEST_ASSERT_EQUAL_FLOAT(4.0f, ((struct MyData_S *)VectorGet(vec, 1))->x);
 
    // Verify split vector
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(split_vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(split_vec));
    TEST_ASSERT_EQUAL_FLOAT(7.0f, ((struct MyData_S *)VectorGet(split_vec, 0))->x);
    TEST_ASSERT_EQUAL_FLOAT(10.0f, ((struct MyData_S *)VectorGet(split_vec, 1))->x);
    TEST_ASSERT_EQUAL_FLOAT(13.0f, ((struct MyData_S *)VectorGet(split_vec, 2))->x);
@@ -2055,7 +2093,7 @@ void test_VectorSlice_ValidIndices_IntData(void)
    // Slice from index 1 to 4 (exclusive, so elements 1,2,3)
    struct Vector * slice = VectorSlice(vec, 1, 4);
    TEST_ASSERT_NOT_NULL(slice);
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(slice, 0));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(slice, 1));
    TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGet(slice, 2));
@@ -2089,7 +2127,7 @@ void test_VectorSlice_ValidIndices_StructData(void)
    // Slice from index 2 to 5 (exclusive, so elements 2,3,4)
    struct Vector * slice = VectorSlice(vec, 2, 5);
    TEST_ASSERT_NOT_NULL(slice);
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(slice));
    struct MyData_S * elm = (struct MyData_S *)VectorGet(slice, 0);
    TEST_ASSERT_EQUAL_FLOAT(7.0f, elm->x);
    TEST_ASSERT_EQUAL_FLOAT(8.0f, elm->y);
@@ -2118,7 +2156,7 @@ void test_VectorSlice_IdxStartEqualsIdxEnd(void)
    // Slice a single element (from 3 to 4, exclusive)
    struct Vector * slice = VectorSlice(vec, 3, 4);
    TEST_ASSERT_NOT_NULL(slice);
-   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(slice));
+   TEST_ASSERT_EQUAL_size_t(1, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGet(slice, 0));
 
    VectorFree(vec);
@@ -2136,7 +2174,7 @@ void test_VectorSlice_IdxStartZero(void)
    // Slice from start to index 3 (exclusive, so elements 0,1,2)
    struct Vector * slice = VectorSlice(vec, 0, 3);
    TEST_ASSERT_NOT_NULL(slice);
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(slice, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(slice, 1));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(slice, 2));
@@ -2160,7 +2198,7 @@ void test_VectorSlice_FullVector(void)
    struct Vector * dup = VectorDuplicate(vec);
 
    TEST_ASSERT_NOT_NULL(slice);
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(slice));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(slice, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(slice, 1));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(slice, 2));
@@ -2168,7 +2206,7 @@ void test_VectorSlice_FullVector(void)
    TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(slice, 4));
 
    TEST_ASSERT_NOT_NULL(dup);
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(dup));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(dup));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(dup, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(dup, 1));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(dup, 2));
@@ -2191,7 +2229,7 @@ void test_VectorSlice_IdxEndAtLastElement(void)
    // Slice from index 2 to 5 (exclusive, so elements 2,3,4)
    struct Vector * slice = VectorSlice(vec, 2, 5);
    TEST_ASSERT_NOT_NULL(slice);
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(slice));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(slice));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(slice, 0));
    TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGet(slice, 1));
    TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(slice, 2));
@@ -2259,9 +2297,9 @@ void test_VectorConcatenate_BasicUse(void)
    struct Vector * cat = VectorConcatenate(v1, v2);
 
    TEST_ASSERT_NOT_NULL(cat);
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(cat));
-   TEST_ASSERT_EQUAL_UINT32(10, VectorCapacity(cat));
-   TEST_ASSERT_EQUAL_UINT32(20, VectorMaxCapacity(cat));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(cat));
+   TEST_ASSERT_EQUAL_size_t(10, VectorCapacity(cat));
+   TEST_ASSERT_EQUAL_size_t(20, VectorMaxCapacity(cat));
    for (size_t i = 0; i < 3; i++)
    {
       TEST_ASSERT_EQUAL_INT(vals1[i], *(int*)VectorGet(cat, i));
@@ -2321,7 +2359,7 @@ void test_VectorConcatenate_OneVecIsEmpty(void)
    struct Vector * cat = VectorConcatenate(v1, v2);
 
    TEST_ASSERT_NOT_NULL(cat);
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(cat));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(cat));
    for (size_t i = 0; i < 3; i++)
    {
       TEST_ASSERT_EQUAL_INT(vals1[i], *(int*)VectorGet(cat, i));
@@ -2440,7 +2478,7 @@ void test_VectorRangePush_ValidInts(void)
    int data[] = {1, 2, 3};
 
    TEST_ASSERT_TRUE(VectorRangePush(vec, data, 3));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
    for (size_t i = 0; i < 3; i++)
    {
       TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGet(vec, i));
@@ -2462,7 +2500,7 @@ void test_VectorRangePush_ValidStructs(void)
    };
 
    TEST_ASSERT_TRUE(VectorRangePush(vec, data, 2));
-   TEST_ASSERT_EQUAL_UINT32(2, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(2, VectorLength(vec));
    struct MyData_S * elm = (struct MyData_S *)VectorGet(vec, 0);
    TEST_ASSERT_EQUAL_FLOAT(1.0f, elm->x);
    TEST_ASSERT_EQUAL_FLOAT(2.0f, elm->y);
@@ -2481,7 +2519,7 @@ void test_VectorRangePush_ExpandCapacity(void)
    int data[] = {1, 2, 3, 4};
 
    TEST_ASSERT_TRUE(VectorRangePush(vec, data, 4));
-   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(4, VectorLength(vec));
    for (size_t i = 0; i < 4; i++)
    {
       TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGet(vec, i));
@@ -2496,7 +2534,7 @@ void test_VectorRangePush_ZeroLen(void)
    int data[] = {1, 2, 3};
 
    TEST_ASSERT_FALSE(VectorRangePush(vec, data, 0));
-   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(0, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -2520,7 +2558,7 @@ void test_VectorRangePush_ExceedsMaxCapacity(void)
    int data[] = {1, 2, 3, 4, 5};
 
    TEST_ASSERT_FALSE(VectorRangePush(vec, data, 5));
-   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(0, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -2531,8 +2569,8 @@ void test_VectorRangePush_ExactlyMaxCapacity(void)
    int data[] = {1, 2, 3, 4};
 
    TEST_ASSERT_TRUE(VectorRangePush(vec, data, 4));
-   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
-   TEST_ASSERT_EQUAL_UINT32(4, VectorCapacity(vec));
+   TEST_ASSERT_EQUAL_size_t(4, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(4, VectorCapacity(vec));
    for (size_t i = 0; i < 4; i++)
    {
       TEST_ASSERT_EQUAL_INT(data[i], *(int *)VectorGet(vec, i));
@@ -2556,7 +2594,7 @@ void test_VectorRangeInsertAt_ValidInts(void)
    int insert[] = {3, 4};
    // Insert at index 2 (before 5)
    TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 2, insert, 2));
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(2, *(int *)VectorGet(vec, 1));
    TEST_ASSERT_EQUAL_INT(3, *(int *)VectorGet(vec, 2));
@@ -2578,7 +2616,7 @@ void test_VectorRangeInsertAt_ValidStructs(void)
    // Insert at index 1
    TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 1, insert, 2));
 
-   TEST_ASSERT_EQUAL_UINT32(4, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(4, VectorLength(vec));
 
    struct MyData_S * elm = (struct MyData_S *)VectorGet(vec, 1);
    TEST_ASSERT_EQUAL_FLOAT(7, elm->x);
@@ -2607,7 +2645,7 @@ void test_VectorRangeInsertAt_ExpandCapacity(void)
    // Insert at index 1, should expand capacity
    TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 1, insert, 3));
 
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
 
    TEST_ASSERT_EQUAL_INT(1, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(3, *(int *)VectorGet(vec, 1));
@@ -2626,7 +2664,7 @@ void test_VectorRangeInsertAt_ZeroLen(void)
    VectorPush(vec, &data[0]);
 
    TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 0, data, 0));
-   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -2655,7 +2693,7 @@ void test_VectorRangeInsertAt_ExceedsMaxCapacity(void)
 
    // Would exceed max capacity (1+5 > 4)
    TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 0, data, 5));
-   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -2672,8 +2710,8 @@ void test_VectorRangeInsertAt_ExactlyMaxCapacity(void)
 
    TEST_ASSERT_TRUE(VectorRangeInsertAt(vec, 1, data, 3));
    
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
-   TEST_ASSERT_EQUAL_UINT32(5, VectorCapacity(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorCapacity(vec));
    TEST_ASSERT_TRUE(VectorIsFull(vec));
 
    TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGet(vec, 0));
@@ -2718,7 +2756,7 @@ void test_VectorRangeInsertAt_InvalidIdx(void)
    TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 4, &data[1], 2));
    TEST_ASSERT_FALSE(VectorRangeInsertAt(vec, 1000, &data[1], 2));
    
-   TEST_ASSERT_EQUAL_UINT32(1, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(1, VectorLength(vec));
 
    VectorFree(vec);
 }
@@ -3229,7 +3267,7 @@ void test_VectorRange_RemoveElementsInRng_Normal(void)
 
    // Remove indices 2, 3, 4 (exclusive end at 5)
    TEST_ASSERT_TRUE(VectorRangeRemove(vec, 2, 5, NULL));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(vec, 1));
    TEST_ASSERT_EQUAL_INT(60, *(int *)VectorGet(vec, 2));
@@ -3249,7 +3287,7 @@ void test_VectorRange_RemoveElementsInRng_NormalWithBuf(void)
    TEST_ASSERT_EQUAL_INT(30, buf[0]);
    TEST_ASSERT_EQUAL_INT(40, buf[1]);
    TEST_ASSERT_EQUAL_INT(50, buf[2]);
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(vec, 1));
    TEST_ASSERT_EQUAL_INT(60, *(int *)VectorGet(vec, 2));
@@ -3270,7 +3308,7 @@ void test_VectorRange_RemoveElementsInRng_AllElements(void)
    TEST_ASSERT_EQUAL_INT(10, buf[0]);
    TEST_ASSERT_EQUAL_INT(20, buf[1]);
    TEST_ASSERT_EQUAL_INT(30, buf[2]);
-   TEST_ASSERT_EQUAL_UINT32(0, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(0, VectorLength(vec));
    TEST_ASSERT_TRUE(VectorIsEmpty(vec));
    VectorReset(vec_dup);
    TEST_ASSERT_TRUE(VectorsAreEqual(vec, vec_dup));
@@ -3297,7 +3335,7 @@ void test_VectorRange_RemoveElementsInRng_AtBeginning(void)
 
    // Remove first two elements (indices 0, 1; exclusive end at 2)
    TEST_ASSERT_TRUE(VectorRangeRemove(vec, 0, 2, NULL));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGet(vec, 1));
    TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(vec, 2));
@@ -3313,7 +3351,7 @@ void test_VectorRange_RemoveElementsInRng_AtEnd(void)
 
    // Remove last two elements (indices 3, 4; exclusive end at 5)
    TEST_ASSERT_TRUE(VectorRangeRemove(vec, 3, 5, NULL));
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(vec, 1));
    TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(vec, 2));
@@ -3365,7 +3403,7 @@ void test_VectorRange_RoundTrip_InsertAndRemove(void)
    TEST_ASSERT_EQUAL_INT(11, buf[1]);
    TEST_ASSERT_EQUAL_INT(12, buf[2]);
    // Vector should be back to original
-   TEST_ASSERT_EQUAL_UINT32(5, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(5, VectorLength(vec));
    TEST_ASSERT_TRUE( VectorsAreEqual(vec_dup, vec) );
 
    VectorFree(vec);
@@ -3382,7 +3420,7 @@ void test_VectorRange_ClearElementsInRng_Normal(void)
 
    // Clear elements at indices 2, 3, 4 (exclusive end at 5)
    TEST_ASSERT_TRUE(VectorRangeClear(vec, 2, 5));
-   TEST_ASSERT_EQUAL_UINT32(6, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(6, VectorLength(vec));
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(vec, 1));
    TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGet(vec, 2));
@@ -3404,7 +3442,7 @@ void test_VectorRange_ClearElementsInRng_AllElements(void)
    for (size_t i = 0; i < 3; i++) {
       TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGet(vec, i));
    }
-   TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
+   TEST_ASSERT_EQUAL_size_t(3, VectorLength(vec));
 
    VectorFree(vec);
 }
