@@ -144,6 +144,7 @@ void test_VectorRemoveElement_AtMiddle_WithBuf(void);
 void test_VectorRemoveElement_AtLen_WithBuf(void);
 void test_VectorRemoveElement_LastElement_WithBuf(void);
 void test_VectorRemoveElement_PastLen_WithBuf(void);
+void test_VectorRemoveLastElement_EmptyVec(void);
 
 void test_VectorClearElementAt_Normal(void);
 void test_VectorClearElementAt_InvalidIdx(void);
@@ -338,6 +339,7 @@ int main(void)
    RUN_TEST(test_VectorRemoveElement_AtLen_WithBuf);
    RUN_TEST(test_VectorRemoveElement_LastElement_WithBuf);
    RUN_TEST(test_VectorRemoveElement_PastLen_WithBuf);
+   RUN_TEST(test_VectorRemoveLastElement_EmptyVec);
 
    RUN_TEST(test_VectorClearElementAt_Normal);
    RUN_TEST(test_VectorClearElementAt_InvalidIdx);
@@ -628,6 +630,7 @@ void test_VectorOpsOnNullVectors(void)
    TEST_ASSERT_FALSE(VectorsAreEqual(NULL, NULL));
    TEST_ASSERT_FALSE(VectorsAreEqual(NULL, (struct Vector *)1));
    TEST_ASSERT_FALSE(VectorsAreEqual((struct Vector *)1, NULL));
+   TEST_ASSERT_FALSE(VectorRemoveLastElement(NULL, NULL));
 }
 
 /***************************** Simple Vector Ops ******************************/
@@ -1500,6 +1503,13 @@ void test_VectorRemoveElement_PastLen_WithBuf(void)
    TEST_ASSERT_FALSE(VectorRemoveElementAt(vec, 5, &buffer));
    TEST_ASSERT_EQUAL_UINT32(3, VectorLength(vec));
 
+   VectorFree(vec);
+}
+
+void test_VectorRemoveLastElement_EmptyVec(void)
+{
+   struct Vector * vec = VectorNew(sizeof(char), 0, 10, 0, NULL);
+   TEST_ASSERT_FALSE(VectorRemoveLastElement(vec, NULL));
    VectorFree(vec);
 }
 

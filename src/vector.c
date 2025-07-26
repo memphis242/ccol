@@ -301,7 +301,7 @@ bool VectorsAreEqual( const struct Vector * a, const struct Vector * b )
 
 /******************************************************************************/
 struct Vector * VectorConcatenate( const struct Vector * v1,
-                                     const struct Vector * v2 )
+                                   const struct Vector * v2 )
 {
    if ( (NULL == v1) || (NULL == v2) ||
         (v1->element_size != v2->element_size) ||
@@ -634,6 +634,7 @@ bool VectorRemoveElementAt( struct Vector * self, size_t idx, void * data )
 /******************************************************************************/
 bool VectorRemoveLastElement( struct Vector * self, void * data )
 {
+   if ( VectorLength(self) == 0 ) return false;
    return VectorRemoveElementAt( self, VectorLength(self) - 1, data );
 }
 
