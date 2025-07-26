@@ -694,6 +694,8 @@ bool VectorHardReset( struct Vector * self )
    self->mem_mgr.reclaim( self->arr, self->capacity * self->element_size, self->mem_mgr.arena );
    self->arr = NULL; // After freeing memory, clear out stale pointers!
    self->len = 0;
+   self->capacity = 0;
+
    return true;
 }
 
