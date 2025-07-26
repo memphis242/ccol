@@ -13,7 +13,9 @@
 #include <stdlib.h>
 #include <float.h>
 #include <time.h>
-#include "unity.h"
+#include <unity/unity.h>
+#include <unity/unity_memory.h>
+
 #include "vector.h"
 
 /* Local Macro Definitions */
@@ -471,12 +473,12 @@ int main(void)
 
 void setUp(void)
 {
-   // Do nothing
+   UnityMalloc_StartTest();
 }
 
 void tearDown(void)
 {
-   // Do nothing
+   UnityMalloc_EndTest();
 }
 
 /************************ Vector Initialization Tests *************************/

@@ -7,6 +7,13 @@ TODO
 ## Usage
 TODO
 
+## Building
+### Dependencies
+#### Library File(s)
+No dependencies. :slightly_smiling_face:
+#### Testing
+[Unity](https://github.com/ThrowTheSwitch/Unity/) is used. The [Makefile](./Makefile) assumes that the Unity headers and `libunity` static library are on the include/library paths searched for by `gcc`.
+
 ### Notes on Link-Time Optimization
 One may ask,
 

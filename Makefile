@@ -87,6 +87,7 @@ COLORIZE_UNITY_SCRIPT = $(PATH_SCRIPTS)colorize_unity.py
 UNITY_SRC_FILES = $(wildcard $(PATH_UNITY)*.c)
 UNITY_HDR_FILES = $(wildcard $(PATH_UNITY)*.h)
 UNITY_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(UNITY_SRC_FILES)))
+UNITY_LIB = unity
 
 COLLECTION_LIB_NAME = ccol
 
@@ -249,12 +250,12 @@ $(PATH_RESULTS)%.txt: $(PATH_BUILD)%.$(TARGET_EXTENSION) $(COLORIZE_UNITY_SCRIPT
 	@echo
 	-./$< 2>&1 | tee $@ | python $(COLORIZE_UNITY_SCRIPT)
 
-$(PATH_BUILD)%.$(TARGET_EXTENSION): $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) $(LIB_FILE)
+$(PATH_BUILD)%.$(TARGET_EXTENSION): $(TEST_OBJ_FILES) $(LIB_FILE)
 	@echo
 	@echo "----------------------------------------"
-	@echo -e "\033[32mLinking\033[0m $(TEST_OBJ_FILES), $(UNITY_OBJ_FILES), and the collection static lib $(LIB_FILE) into an executable..."
+	@echo -e "\033[32mLinking\033[0m $(TEST_OBJ_FILES), $(UNITY_LIB), and the collection static lib $(LIB_FILE) into an executable..."
 	@echo
-	$(CC) $(LDFLAGS) $(TEST_OBJ_FILES) $(UNITY_OBJ_FILES) -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE))) -o $@
+	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJ_FILES) -l$(UNITY_LIB) -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE)))
 
 $(PATH_OBJECT_FILES)%.o: $(PATH_TEST_FILES)%.c $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo
