@@ -249,7 +249,7 @@ bool VectorMove( struct Vector * dest, struct Vector * src )
    }
 
    // Free resources of existing destination vector, if applicable
-   dest->mem_mgr.reclaim(dest->arr, dest->element_size * dest->capacity, NULL);
+   dest->mem_mgr.reclaim(dest->arr, dest->element_size * dest->capacity, dest->mem_mgr.arena);
 
    // Move resources over
    dest->capacity = src->capacity;
