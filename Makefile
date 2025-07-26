@@ -226,7 +226,8 @@ endif
 GCOV_CONSOLE_OUT_FILE = gcov_console_out.txt
 
 # gcovr Flags
-GCOVR_FLAGS = --html-details $(PATH_RESULTS)coverage.html
+GCOVR_FLAGS = --html-details $(PATH_RESULTS)coverage.html \
+             --exclude-lines-by-pattern 'assert'
 
 ############################# The Rules & Recipes ##############################
 
