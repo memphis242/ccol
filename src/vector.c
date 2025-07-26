@@ -926,12 +926,12 @@ bool VectorRangeCpyToEnd( const struct Vector * self,
 /******************************************************************************/
 /******************************************************************************/
 
-bool VectorRangeSet( struct Vector * self,
+bool VectorRangeSetWithArr( struct Vector * self,
                      size_t idx_start,
                      size_t idx_end,
-                     const void * data )
+                     const void * arr )
 {
-   if ( (NULL == self) || (NULL == data) ||
+   if ( (NULL == self) || (NULL == arr) ||
         (idx_start >= self->len) || (idx_end > self->len) ||
         (idx_start >= idx_end) ) 
    {
@@ -944,7 +944,29 @@ bool VectorRangeSet( struct Vector * self,
 
    uint8_t * ptr_to_start = PTR_TO_IDX(self, idx_start);
    size_t idx_diff = idx_end - idx_start;
-   memcpy( ptr_to_start, data, (idx_diff * self->element_size) );
+   memcpy( ptr_to_start, arr, (idx_diff * self->element_size) );
+
+   return true;
+}
+
+/******************************************************************************/
+
+bool VectorRangeSetToVal( struct Vector * self, size_t idx_start, size_t idx_end, const void * val )
+{
+   if ( (NULL == self) || (NULL == val) ||
+        (idx_start >= self->len) || (idx_end > self->len) ||
+        (idx_start >= idx_end) ) 
+   {
+      return false;
+   }
+
+   assert(self->len > 0);
+   assert(self->arr != NULL);
+   assert(self->element_size > 0);
+
+   uint8_t * ptr = PTR_TO_IDX(self, idx_start);
+   for ( size_t i = 0; i < (idx_end - idx_start); i++, ptr++ )
+      memcpy( ptr, val, self->element_size );
 
    return true;
 }
@@ -1264,6 +1286,7 @@ STATIC void vec_pool_reclaim(const struct Vector * ptr)
             // TODO: Raise exception for attempting to free an unallocated vec
          }
          VecPool.pool[i].is_allocated = false;
+         break;
       }
    }
 

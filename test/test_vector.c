@@ -249,16 +249,31 @@ void test_VectorRangeCpyToEnd_InvalidIdx(void);
 void test_VectorRangeCpyToEnd_InvalidVec(void);
 void test_VectorRangeCpyToEnd_EndIdx(void);
 
-void test_VectorRangeSet_ValidIdices_IntData(void);
-void test_VectorRangeSet_DoesNotMutate(void);
-void test_VectorRangeSet_ValidIndices_StructData(void);
-void test_VectorRangeSet_FullVector(void);
-void test_VectorRangeSet_FullVector_IncorrectEndIdx(void);
-void test_VectorRangeSet_EmptyVec(void);
-void test_VectorRangeSet_InvalidIdx(void);
-void test_VectorRangeSet_InvalidVec(void);
-void test_VectorRangeSet_SameIdices(void);
+void test_VectorRangeSetWithArr_ValidIdices_IntData(void);
+void test_VectorRangeSetWithArr_DoesNotMutate(void);
+void test_VectorRangeSetWithArr_ValidIndices_StructData(void);
+void test_VectorRangeSetWithArr_FullVector(void);
+void test_VectorRangeSetWithArr_FullVector_IncorrectEndIdx(void);
+void test_VectorRangeSetWithArr_EmptyVec(void);
+void test_VectorRangeSetWithArr_InvalidIdx(void);
+void test_VectorRangeSetWithArr_InvalidVec(void);
+void test_VectorRangeSetWithArr_SameIdices(void);
 void test_VectorRange_RoundTrip_CpyElementsToSetElementsInRng(void);
+
+void test_VectorRangeSetToVal_ValidIdices_IntData(void);
+void test_VectorRangeSetToVal_ValidIndices_StructData(void);
+void test_VectorRangeSetToVal_FullVector(void);
+void test_VectorRangeSetToVal_FullVector_IncorrectEndIdx(void);
+void test_VectorRangeSetToVal_EmptyVec(void);
+void test_VectorRangeSetToVal_InvalidIdx(void);
+void test_VectorRangeSetToVal_InvalidVec(void);
+void test_VectorRangeSetToVal_SameIdices(void);
+void test_VectorRangeSetToVal_NullValue(void);
+void test_VectorRangeSetToVal_SingleElement(void);
+void test_VectorRangeSetToVal_AtBeginning(void);
+void test_VectorRangeSetToVal_AtEnd(void);
+void test_VectorRangeSetToVal_ZeroValue(void);
+void test_VectorRangeSetToVal_EquivalenceWithRangeClear(void);
 
 void test_VectorRange_RemoveElementsInRng_Normal(void);
 void test_VectorRange_RemoveElementsInRng_NormalWithBuf(void);
@@ -452,16 +467,31 @@ int main(void)
    RUN_TEST(test_VectorRangeCpyToEnd_InvalidVec);
    RUN_TEST(test_VectorRangeCpyToEnd_EndIdx);
 
-   RUN_TEST(test_VectorRangeSet_ValidIdices_IntData);
-   RUN_TEST(test_VectorRangeSet_DoesNotMutate);
-   RUN_TEST(test_VectorRangeSet_ValidIndices_StructData);
-   RUN_TEST(test_VectorRangeSet_FullVector);
-   RUN_TEST(test_VectorRangeSet_FullVector_IncorrectEndIdx);
-   RUN_TEST(test_VectorRangeSet_EmptyVec);
-   RUN_TEST(test_VectorRangeSet_InvalidIdx);
-   RUN_TEST(test_VectorRangeSet_InvalidVec);
-   RUN_TEST(test_VectorRangeSet_SameIdices);
+   RUN_TEST(test_VectorRangeSetWithArr_ValidIdices_IntData);
+   RUN_TEST(test_VectorRangeSetWithArr_DoesNotMutate);
+   RUN_TEST(test_VectorRangeSetWithArr_ValidIndices_StructData);
+   RUN_TEST(test_VectorRangeSetWithArr_FullVector);
+   RUN_TEST(test_VectorRangeSetWithArr_FullVector_IncorrectEndIdx);
+   RUN_TEST(test_VectorRangeSetWithArr_EmptyVec);
+   RUN_TEST(test_VectorRangeSetWithArr_InvalidIdx);
+   RUN_TEST(test_VectorRangeSetWithArr_InvalidVec);
+   RUN_TEST(test_VectorRangeSetWithArr_SameIdices);
    RUN_TEST(test_VectorRange_RoundTrip_CpyElementsToSetElementsInRng);
+
+   RUN_TEST(test_VectorRangeSetToVal_ValidIdices_IntData);
+   RUN_TEST(test_VectorRangeSetToVal_ValidIndices_StructData);
+   RUN_TEST(test_VectorRangeSetToVal_FullVector);
+   RUN_TEST(test_VectorRangeSetToVal_FullVector_IncorrectEndIdx);
+   RUN_TEST(test_VectorRangeSetToVal_EmptyVec);
+   RUN_TEST(test_VectorRangeSetToVal_InvalidIdx);
+   RUN_TEST(test_VectorRangeSetToVal_InvalidVec);
+   RUN_TEST(test_VectorRangeSetToVal_SameIdices);
+   RUN_TEST(test_VectorRangeSetToVal_NullValue);
+   RUN_TEST(test_VectorRangeSetToVal_SingleElement);
+   RUN_TEST(test_VectorRangeSetToVal_AtBeginning);
+   RUN_TEST(test_VectorRangeSetToVal_AtEnd);
+   RUN_TEST(test_VectorRangeSetToVal_ZeroValue);
+   RUN_TEST(test_VectorRangeSetToVal_EquivalenceWithRangeClear);
 
    RUN_TEST(test_VectorRange_RemoveElementsInRng_Normal);
    RUN_TEST(test_VectorRange_RemoveElementsInRng_NormalWithBuf);
@@ -3144,7 +3174,7 @@ void test_VectorRangeCpyToEnd_EndIdx(void)
 
 /****************** Vector Range: Set Elements In Range ********************/
 
-void test_VectorRangeSet_ValidIdices_IntData(void)
+void test_VectorRangeSetWithArr_ValidIdices_IntData(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int values[] = {10, 20, 30, 40, 50};
@@ -3154,7 +3184,7 @@ void test_VectorRangeSet_ValidIdices_IntData(void)
 
    int new_values[] = {100, 200, 300};
    // Set indices 1, 2, 3 (exclusive end at 4)
-   TEST_ASSERT_TRUE(VectorRangeSet(vec, 1, 4, new_values));
+   TEST_ASSERT_TRUE(VectorRangeSetWithArr(vec, 1, 4, new_values));
 
    TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(100, *(int *)VectorGet(vec, 1));
@@ -3165,7 +3195,7 @@ void test_VectorRangeSet_ValidIdices_IntData(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeSet_DoesNotMutate(void)
+void test_VectorRangeSetWithArr_DoesNotMutate(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int values[] = {10, 20, 30, 40, 50};
@@ -3175,7 +3205,7 @@ void test_VectorRangeSet_DoesNotMutate(void)
 
    int new_values[] = {100, 200, 300};
    // Set indices 1, 2, 3 (exclusive end at 4)
-   TEST_ASSERT_TRUE(VectorRangeSet(vec, 1, 4, new_values));
+   TEST_ASSERT_TRUE(VectorRangeSetWithArr(vec, 1, 4, new_values));
 
    new_values[0] = 999;
    new_values[1] = 999;
@@ -3188,7 +3218,7 @@ void test_VectorRangeSet_DoesNotMutate(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeSet_ValidIndices_StructData(void)
+void test_VectorRangeSetWithArr_ValidIndices_StructData(void)
 {
    struct MyData_S
    {
@@ -3216,7 +3246,7 @@ void test_VectorRangeSet_ValidIndices_StructData(void)
       { .x = 400.0f, .y = 500.0f, .z = 600.0f }
    };
    // Set indices 2, 3 (exclusive end at 4)
-   TEST_ASSERT_TRUE(VectorRangeSet(vec, 2, 4, new_values));
+   TEST_ASSERT_TRUE(VectorRangeSetWithArr(vec, 2, 4, new_values));
 
    struct MyData_S * element = (struct MyData_S *)VectorGet(vec, 2);
    TEST_ASSERT_EQUAL_FLOAT(100.0f, element->x);
@@ -3231,7 +3261,7 @@ void test_VectorRangeSet_ValidIndices_StructData(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeSet_FullVector(void)
+void test_VectorRangeSetWithArr_FullVector(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int values[] = {10, 20, 30, 40, 50};
@@ -3241,7 +3271,7 @@ void test_VectorRangeSet_FullVector(void)
 
    int new_values[] = {100, 200, 300, 400, 500};
    // Set indices 0,1,2,3,4 (exclusive end at 5)
-   TEST_ASSERT_TRUE(VectorRangeSet(vec, 0, 5, new_values));
+   TEST_ASSERT_TRUE(VectorRangeSetWithArr(vec, 0, 5, new_values));
 
    for (size_t i = 0; i < 5; i++) {
       TEST_ASSERT_EQUAL_INT(new_values[i], *(int *)VectorGet(vec, i));
@@ -3250,7 +3280,7 @@ void test_VectorRangeSet_FullVector(void)
    VectorFree(vec);
 }
 
-void test_VectorRangeSet_FullVector_IncorrectEndIdx(void)
+void test_VectorRangeSetWithArr_FullVector_IncorrectEndIdx(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int values[] = {10, 20, 30, 40, 50};
@@ -3260,23 +3290,23 @@ void test_VectorRangeSet_FullVector_IncorrectEndIdx(void)
 
    int new_values[] = {100, 200, 300, 400, 500};
    // End index out of range (exclusive end at 6, but length is 5)
-   TEST_ASSERT_FALSE(VectorRangeSet(vec, 0, 6, new_values));
+   TEST_ASSERT_FALSE(VectorRangeSetWithArr(vec, 0, 6, new_values));
 
    VectorFree(vec);
 }
 
-void test_VectorRangeSet_EmptyVec(void)
+void test_VectorRangeSetWithArr_EmptyVec(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
    int new_values[] = {100, 200, 300};
    // No elements to set
-   TEST_ASSERT_FALSE(VectorRangeSet(vec, 0, 3, new_values));
+   TEST_ASSERT_FALSE(VectorRangeSetWithArr(vec, 0, 3, new_values));
 
    VectorFree(vec);
 }
 
-void test_VectorRangeSet_InvalidIdx(void)
+void test_VectorRangeSetWithArr_InvalidIdx(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int values[] = {10, 20, 30};
@@ -3286,21 +3316,21 @@ void test_VectorRangeSet_InvalidIdx(void)
 
    int new_values[] = {100, 200};
    // End index out of range (exclusive end at 5, but length is 3)
-   TEST_ASSERT_FALSE(VectorRangeSet(vec, 2, 5, new_values));
+   TEST_ASSERT_FALSE(VectorRangeSetWithArr(vec, 2, 5, new_values));
    // Start index out of range (start at 5, length is 3)
-   TEST_ASSERT_FALSE(VectorRangeSet(vec, 5, 6, new_values));
+   TEST_ASSERT_FALSE(VectorRangeSetWithArr(vec, 5, 6, new_values));
    // Start index > end index
-   TEST_ASSERT_FALSE(VectorRangeSet(vec, 2, 1, new_values));
+   TEST_ASSERT_FALSE(VectorRangeSetWithArr(vec, 2, 1, new_values));
 
    VectorFree(vec);
 }
 
-void test_VectorRangeSet_InvalidVec(void)
+void test_VectorRangeSetWithArr_InvalidVec(void)
 {
-   TEST_ASSERT_FALSE(VectorRangeSet(NULL, 0, 3, (int[]){ 100, 200, 300 } ));
+   TEST_ASSERT_FALSE(VectorRangeSetWithArr(NULL, 0, 3, (int[]){ 100, 200, 300 } ));
 }
 
-void test_VectorRangeSet_SameIdices(void)
+void test_VectorRangeSetWithArr_SameIdices(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int values[] = {10, 20, 30};
@@ -3309,7 +3339,7 @@ void test_VectorRangeSet_SameIdices(void)
    }
 
    int new_value = 100;
-   TEST_ASSERT_FALSE(VectorRangeSet(vec, 2, 2, &new_value));
+   TEST_ASSERT_FALSE(VectorRangeSetWithArr(vec, 2, 2, &new_value));
 
    VectorFree(vec);
 }
@@ -3329,7 +3359,7 @@ void test_VectorRange_RoundTrip_CpyElementsToSetElementsInRng(void)
    buffer[1] = 200;
    buffer[2] = 300;
    // Set indices 1,2,3 (exclusive end at 4)
-   VectorRangeSet(vec, 1, 4, buffer);
+   VectorRangeSetWithArr(vec, 1, 4, buffer);
 
    TEST_ASSERT_EQUAL_INT(10,  *(int *)VectorGet(vec, 0));
    TEST_ASSERT_EQUAL_INT(100, *(int *)VectorGet(vec, 1));
@@ -3338,6 +3368,301 @@ void test_VectorRange_RoundTrip_CpyElementsToSetElementsInRng(void)
    TEST_ASSERT_EQUAL_INT(50,  *(int *)VectorGet(vec, 4));
 
    VectorFree(vec);
+}
+
+/* Set to Val */
+
+void test_VectorRangeSetToVal_ValidIdices_IntData(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 999;
+   // Set indices 1, 2, 3 (exclusive end at 4)
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 1, 4, &new_value));
+
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
+   TEST_ASSERT_EQUAL_INT(999, *(int *)VectorGet(vec, 1));
+   TEST_ASSERT_EQUAL_INT(999, *(int *)VectorGet(vec, 2));
+   TEST_ASSERT_EQUAL_INT(999, *(int *)VectorGet(vec, 3));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(vec, 4));
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_ValidIndices_StructData(void)
+{
+   struct MyData_S
+   {
+      float x;
+      float y;
+      float z;
+   };
+   struct Vector * vec = VectorNew(sizeof(struct MyData_S), 10, 100, 0, &DEFAULT_ALLOCATOR);
+
+   struct MyData_S values[5] =
+   {
+      { .x = 1.0f, .y = 2.0f, .z = 3.0f },
+      { .x = 4.0f, .y = 5.0f, .z = 6.0f },
+      { .x = 7.0f, .y = 8.0f, .z = 9.0f },
+      { .x = 10.0f, .y = 11.0f, .z = 12.0f },
+      { .x = 13.0f, .y = 14.0f, .z = 15.0f }
+   };
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   struct MyData_S new_value = { .x = 100.0f, .y = 200.0f, .z = 300.0f };
+   // Set indices 2, 3 (exclusive end at 4)
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 2, 4, &new_value));
+
+   struct MyData_S * element = (struct MyData_S *)VectorGet(vec, 2);
+   TEST_ASSERT_EQUAL_FLOAT(100.0f, element->x);
+   TEST_ASSERT_EQUAL_FLOAT(200.0f, element->y);
+   TEST_ASSERT_EQUAL_FLOAT(300.0f, element->z);
+
+   element = (struct MyData_S *)VectorGet(vec, 3);
+   TEST_ASSERT_EQUAL_FLOAT(100.0f, element->x);
+   TEST_ASSERT_EQUAL_FLOAT(200.0f, element->y);
+   TEST_ASSERT_EQUAL_FLOAT(300.0f, element->z);
+
+   // Verify other elements unchanged
+   element = (struct MyData_S *)VectorGet(vec, 1);
+   TEST_ASSERT_EQUAL_FLOAT(4.0f, element->x);
+   TEST_ASSERT_EQUAL_FLOAT(5.0f, element->y);
+   TEST_ASSERT_EQUAL_FLOAT(6.0f, element->z);
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_FullVector(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 777;
+   // Set all elements (exclusive end at 5)
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 0, 5, &new_value));
+
+   for (size_t i = 0; i < 5; i++) {
+      TEST_ASSERT_EQUAL_INT(777, *(int *)VectorGet(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_FullVector_IncorrectEndIdx(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 777;
+   // End index out of range (exclusive end at 6, but length is 5)
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(vec, 0, 6, &new_value));
+
+   // Verify vector unchanged
+   for (size_t i = 0; i < 5; i++) {
+      TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGet(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_EmptyVec(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+
+   int new_value = 777;
+   // No elements to set
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(vec, 0, 3, &new_value));
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_InvalidIdx(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 777;
+   // End index out of range (exclusive end at 5, but length is 3)
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(vec, 2, 5, &new_value));
+   // Start index out of range (start at 5, length is 3)
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(vec, 5, 6, &new_value));
+   // Start index > end index
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(vec, 2, 1, &new_value));
+
+   // Verify vector unchanged
+   for (size_t i = 0; i < 3; i++) {
+      TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGet(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_InvalidVec(void)
+{
+   int new_value = 777;
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(NULL, 0, 3, &new_value));
+}
+
+void test_VectorRangeSetToVal_SameIdices(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 777;
+   // Same start and end indices (no range)
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(vec, 2, 2, &new_value));
+
+   // Verify vector unchanged
+   for (size_t i = 0; i < 3; i++) {
+      TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGet(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_NullValue(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30};
+   for (size_t i = 0; i < 3; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   // NULL value pointer should fail
+   TEST_ASSERT_FALSE(VectorRangeSetToVal(vec, 0, 2, NULL));
+
+   // Verify vector unchanged
+   for (size_t i = 0; i < 3; i++) {
+      TEST_ASSERT_EQUAL_INT(values[i], *(int *)VectorGet(vec, i));
+   }
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_SingleElement(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 888;
+   // Set single element (exclusive end at 3, so only index 2)
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 2, 3, &new_value));
+
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(vec, 1));
+   TEST_ASSERT_EQUAL_INT(888, *(int *)VectorGet(vec, 2));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGet(vec, 3));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(vec, 4));
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_AtBeginning(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 111;
+   // Set first two elements (indices 0, 1; exclusive end at 2)
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 0, 2, &new_value));
+
+   TEST_ASSERT_EQUAL_INT(111, *(int *)VectorGet(vec, 0));
+   TEST_ASSERT_EQUAL_INT(111, *(int *)VectorGet(vec, 1));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(vec, 2));
+   TEST_ASSERT_EQUAL_INT(40, *(int *)VectorGet(vec, 3));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(vec, 4));
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_AtEnd(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int new_value = 222;
+   // Set last two elements (indices 3, 4; exclusive end at 5)
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 3, 5, &new_value));
+
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
+   TEST_ASSERT_EQUAL_INT(20, *(int *)VectorGet(vec, 1));
+   TEST_ASSERT_EQUAL_INT(30, *(int *)VectorGet(vec, 2));
+   TEST_ASSERT_EQUAL_INT(222, *(int *)VectorGet(vec, 3));
+   TEST_ASSERT_EQUAL_INT(222, *(int *)VectorGet(vec, 4));
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_ZeroValue(void)
+{
+   struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec, &values[i]);
+   }
+
+   int zero_value = 0;
+   // Set middle elements to zero (indices 1, 2, 3; exclusive end at 4)
+   TEST_ASSERT_TRUE(VectorRangeSetToVal(vec, 1, 4, &zero_value));
+
+   TEST_ASSERT_EQUAL_INT(10, *(int *)VectorGet(vec, 0));
+   TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGet(vec, 1));
+   TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGet(vec, 2));
+   TEST_ASSERT_EQUAL_INT(0, *(int *)VectorGet(vec, 3));
+   TEST_ASSERT_EQUAL_INT(50, *(int *)VectorGet(vec, 4));
+
+   VectorFree(vec);
+}
+
+void test_VectorRangeSetToVal_EquivalenceWithRangeClear(void)
+{
+   struct Vector * vec1 = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   struct Vector * vec2 = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
+   int values[] = {10, 20, 30, 40, 50};
+   
+   for (size_t i = 0; i < 5; i++) {
+      VectorPush(vec1, &values[i]);
+      VectorPush(vec2, &values[i]);
+   }
+
+   int zero_value = 0;
+   // Set range to zero using VectorRangeSetToVal
+   VectorRangeSetToVal(vec1, 1, 4, &zero_value);
+   // Clear same range using VectorRangeClear
+   VectorRangeClear(vec2, 1, 4);
+
+   // Both vectors should be identical
+   TEST_ASSERT_TRUE(VectorsAreEqual(vec1, vec2));
+
+   VectorFree(vec1);
+   VectorFree(vec2);
 }
 
 /*************** Vector Range: Remove Elements in Range ********************/

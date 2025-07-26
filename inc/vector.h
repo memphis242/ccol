@@ -237,7 +237,7 @@ bool VectorReset( struct Vector * self );
  */
 bool VectorHardReset( struct Vector * self );
 
-/*************************** Range Vector Ops *****************************/
+/*************************** Vector Range Ops *****************************/
 
 /**
  * @brief Splits a vector at the specified index into two, returning the second
@@ -300,14 +300,46 @@ bool VectorRangeCpy( const struct Vector * self, size_t idx_start, size_t idx_en
 bool VectorRangeCpyToEnd( const struct Vector * self, size_t idx, void * buffer );
 
 /**
- * @brief Sets the elements of a vector within a specified range to the given data.
+ * @brief Sets the data in a sub-range of the vector to the data array provided.
  * @param self Vector handle (if NULL, nothing happens)
  * @param idx_start The starting index of the range (inclusive).
  * @param idx_end The ending index of the range (exclusive).
- * @param data Pointer to the data to set for the specified range.
+ * @param arr Pointer to the data array that contains the new values for the subrange.
+ * @note Of course, arr should be sized at least (idx_end - idx_start).
+ * @note This is not to set the vector sub-range to a single value. Use VectorRangeSetToVal for that.
+ * @example
+ *          Assume vec is a vector of int's with 20 elements like so:
+ *          vec: { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ... (20 0's in total) }
+ * 
+ *          int arr[5] = { 1, 2, 3, 4, 5 };
+ *          VectorRangeSetWithArr(vec, 4, 9, arr );
+ * 
+ *          Results in:
+ *          vec: { 0, 0, 0, 0, 1, 2, 3, 4, 5, 0, ... }
+ * 
+ *          VectorRangeSetWithArr(vec, 4, 9, &(int){5}); <-- INVALID!
+ *
  * @return true if the operation is successful, false otherwise
  */
-bool VectorRangeSet( struct Vector * self, size_t idx_start, size_t idx_end, const void * data );
+bool VectorRangeSetWithArr( struct Vector * self, size_t idx_start, size_t idx_end, const void * arr );
+
+/**
+ * @brief Sets a sub-range of the vector to the single value provided.
+ * @param self Vector handle (if NULL, nothing happens)
+ * @param idx_start The starting index of the range (inclusive).
+ * @param idx_end The ending index of the range (exclusive).
+ * @param val Pointer to the value to set each element in the subrange to.
+ * @example Assume vec is a vector of int's with 20 elements like so:
+ *          vec: { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ... (20 0's in total) }
+ * 
+ *          VectorRangeSetToVal(vec, 4, 9, &(int){5} );
+ * 
+ *          Results in:
+ *          vec: { 0, 0, 0, 0, 5, 5, 5, 5, 5, 0, ... }
+ *
+ * @return true if the operation is successful, false otherwise
+ */
+bool VectorRangeSetToVal( struct Vector * self, size_t idx_start, size_t idx_end, const void * val );
 
 /**
  * @brief Removes elements from the vector within the specified range.
