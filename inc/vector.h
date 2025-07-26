@@ -78,6 +78,7 @@ bool VectorsAreEqual( const struct Vector * a, const struct Vector * b );
  * @note Sum of lens must be less than the max len of any single vector
  * @note The resultant vector shall have a length, capacity, and max capacity
  *       that is a sum of the argument vectors.
+ * @note v1's allocator will be used, not v2's.
  * @param v1 The first vector (elements will appear first in the result).
  * @param v2 The second vector (elements will appear after v1's elements).
  * @return Pointer to the newly allocated vector, or NULL on failure.
