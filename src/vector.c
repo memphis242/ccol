@@ -686,6 +686,14 @@ bool VectorHardReset( struct Vector * self )
       return false;
    }
 
+   assert( (self->arr == NULL && self->capacity == 0) ||
+           (self->arr != NULL && self->capacity >  0) );
+   if ( NULL == self->arr)
+   {
+      // Already in a reset state
+      return true;
+   }
+
    assert(self->arr != NULL);
    assert(self->element_size > 0);
    assert(self->mem_mgr.reclaim != NULL);
