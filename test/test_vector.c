@@ -154,9 +154,9 @@ void test_VectorRemoveLastElement_EmptyVec(void);
 void test_VectorClearElementAt_Normal(void);
 void test_VectorClearElementAt_InvalidIdx(void);
 
-void test_VectorClearElements_Normal(void);
-void test_VectorClearElements_EmptyVec(void);
-void test_VectorClearElements_InvalidVec(void);
+void test_VectorClear_Normal(void);
+void test_VectorClear_EmptyVec(void);
+void test_VectorClear_InvalidVec(void);
 
 void test_VectorReset_EmptyVec(void);
 void test_VectorReset(void);
@@ -372,9 +372,9 @@ int main(void)
    RUN_TEST(test_VectorClearElementAt_Normal);
    RUN_TEST(test_VectorClearElementAt_InvalidIdx);
 
-   RUN_TEST(test_VectorClearElements_Normal);
-   RUN_TEST(test_VectorClearElements_EmptyVec);
-   RUN_TEST(test_VectorClearElements_InvalidVec);
+   RUN_TEST(test_VectorClear_Normal);
+   RUN_TEST(test_VectorClear_EmptyVec);
+   RUN_TEST(test_VectorClear_InvalidVec);
 
    RUN_TEST(test_VectorReset_EmptyVec);
    RUN_TEST(test_VectorReset);
@@ -1649,9 +1649,9 @@ void test_VectorClearElementAt_InvalidIdx(void)
    VectorFree(vec);
 }
 
-/********** Vector Range: Clear Elements From Start To Idx *****************/
+/********** Vector Range: Clear Elements *****************/
 
-void test_VectorClearElements_Normal(void)
+void test_VectorClear_Normal(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
    int values[] = {10, 20, 30, 40, 50};
@@ -1666,16 +1666,16 @@ void test_VectorClearElements_Normal(void)
    VectorFree(vec);
 }
 
-void test_VectorClearElements_EmptyVec(void)
+void test_VectorClear_EmptyVec(void)
 {
    struct Vector * vec = VectorNew(sizeof(int), 10, 100, 0, &DEFAULT_ALLOCATOR);
 
-   TEST_ASSERT_FALSE(VectorClear(vec));
+   TEST_ASSERT_TRUE(VectorClear(vec));
 
    VectorFree(vec);
 }
 
-void test_VectorClearElements_InvalidVec(void)
+void test_VectorClear_InvalidVec(void)
 {
    TEST_ASSERT_FALSE(VectorClear(NULL));
 }

@@ -665,7 +665,8 @@ bool VectorClearElementAt( struct Vector * self, size_t idx )
 
 bool VectorClear( struct Vector * self )
 {
-   if ( (NULL == self) || (0 == self->len) ) return false;
+   if ( self != NULL && self->len == 0 ) return true; // trivial clear
+   else if ( self == NULL ) return false;
    return VectorRangeClear(self, 0, self->len);
 }
 
@@ -1023,11 +1024,20 @@ bool VectorRangeClear( struct Vector * self,
                        size_t idx_start,
                        size_t idx_end )
 {
-   if ( (NULL == self) || (NULL == self->arr) ||
-        (idx_start >= self->len) || (idx_end > self->len) ||
-        (idx_start >= idx_end) ) 
+   assert( (self == NULL) ||
+           (self != NULL &&
+            ( (self->capacity == 0 && self->arr == NULL) ||
+              (self->capacity >  0 && self->arr != NULL) ) ) );
+
+   if ( self == NULL ||
+        idx_start >= self->len || idx_end > self->len ||
+        idx_start >= idx_end )
    {
       return false;
+   }
+   else if ( NULL == self->arr || 0 == self->len )
+   {
+      return true; // Trivial clear
    }
 
    memset(
