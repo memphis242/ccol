@@ -115,6 +115,9 @@ TEST_LIST_FILE = $(patsubst %.$(TARGET_EXTENSION), $(PATH_BUILD)%.lst, $(notdir 
 TEST_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_TEST_FILES)))
 RESULTS = $(patsubst %.c, $(PATH_RESULTS)%.txt, $(notdir $(SRC_TEST_FILES)))
 
+# List of all gcov coverage files I'm expecting
+GCOV_FILES = $(SRC_FILES:.c=.c.gcov)
+
 ifeq ($(BUILD_TYPE), TEST)
   BUILD_DIRS += $(PATH_RESULTS)
 else ifeq ($(BUILD_TYPE), PROFILE)
@@ -202,6 +205,11 @@ else ifeq ($(BUILD_TYPE), PROFILE)
 CFLAGS += -DNDEBUG $(COMPILER_OPTIMIZATION_LEVEL_DEBUG) -pg
 LDFLAGS += -pg
 
+else ifeq ($(BUILD_TYPE), TEST)
+CFLAGS += $(COMPILER_OPTIMIZATION_LEVEL_DEBUG) \
+          -fcondition-coverage -fprofile-arcs -ftest-coverage
+LDFLAGS += -lgcov --coverage
+
 else
 CFLAGS += $(COMPILER_SANITIZERS) $(COMPILER_OPTIMIZATION_LEVEL_DEBUG)
 endif
@@ -209,6 +217,16 @@ endif
 # Compile up linker flags
 LDFLAGS += $(DIAGNOSTIC_FLAGS)
 
+# gcov Flags
+GCOV = gcov
+GCOV_FLAGS = --conditions --function-summaries --branch-probabilities --branch-counts
+ifeq ($(GCOV_CON), 1)
+GCOV_FLAGS += --use-colors --stdout
+endif
+GCOV_CONSOLE_OUT_FILE = gcov_console_out.txt
+
+# gcovr Flags
+GCOVR_FLAGS = --html-details $(PATH_RESULTS)coverage.html
 
 ############################# The Rules & Recipes ##############################
 
@@ -237,7 +255,7 @@ $(LIB_FILE): $(OBJ_FILES) $(BUILD_DIRS)
 	ar rcs $@ $(OBJ_FILES)
 
 ######################## Test Rules ########################
-_test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS)
+_test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS) $(GCOV_FILES)
 	@echo
 	@echo -e "\033[36mAll tests completed!\033[0m"
 	@echo
@@ -335,6 +353,28 @@ $(PATH_BUILD)%.lst: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 	@echo
 	objdump -D $< > $@
 
+# NOTE:
+# gcov seems very picky about how the directory to look for .gcno and .gcda
+# files is specified. The string for the directory must utilize forward slashes
+# '/', not back slashes '\', and must not end with a forward slash. Otherwise,
+# gcov exists with a cryptic
+# 		<obj_dir>/.gcno:cannot open notes file
+# kind of error. Hence, I use $(<path>:%/=%) /w PATH_OBJECT_FILES.
+#
+# Also, I've redirected gcov's output because I want to prioritize viewing the
+# unit test results. Coverage results are meant to be inspected manually rather
+# than fed back immediately to the developer.
+
+$(PATH_SRC)%.c.gcov: $(PATH_SRC)%.c
+	@echo
+	@echo "----------------------------------------"
+	@echo -e "\033[36mAnalyzing coverage\033[0m for $<..."
+	$(GCOV) $(GCOV_FLAGS) --object-directory $(PATH_OBJECT_FILES:%/=%) $< > $(PATH_RESULTS)$(GCOV_CONSOLE_OUT_FILE)
+	mv *.gcov $(PATH_RESULTS)
+	gcovr $(GCOVR_FLAGS)
+	@echo
+
+
 # Make the directories if they don't already exist
 $(PATH_RESULTS):
 	$(MKDIR) $@
@@ -358,9 +398,12 @@ clean:
 	$(CLEANUP) $(PATH_BUILD)*.lst
 	$(CLEANUP) $(PATH_BUILD)*.log
 	$(CLEANUP) $(PATH_BUILD)*.$(STATIC_LIB_EXTENSION)
+	$(CLEANUP) $(PATH_RESULTS)*.gcov
+	$(CLEANUP) *.gcov
 	@echo
 
 .PRECIOUS: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 .PRECIOUS: $(PATH_BUILD)Test%.o
 .PRECIOUS: $(PATH_RESULTS)%.txt
 .PRECIOUS: $(PATH_RESULTS)%.lst
+.PRECIOUS: *.gcov
