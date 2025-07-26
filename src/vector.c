@@ -238,6 +238,7 @@ struct Vector * VectorDuplicate( const struct Vector * self )
 /******************************************************************************/
 bool VectorMove( struct Vector * dest, struct Vector * src )
 {
+   assert( dest == NULL || (dest != NULL && dest->mem_mgr.reclaim != NULL) );
    if ( (NULL == src) || (NULL == dest) ||
         (dest->element_size != src->element_size) ||
         (dest->mem_mgr.alloc   != src->mem_mgr.alloc) ||
