@@ -129,7 +129,7 @@ bool VectorIsFull( const struct Vector * self );
 
 /**
  * @brief Inserts an element at the _end_ of the vector.
- * @param self Vector handle (if NULL, nothing happens
+ * @param self Vector handle (if NULL, nothing happens)
  * @param element A pointer to the element to be inserted
  * @return `true` if the insertion is successful, `false` otherwise.
  */
@@ -231,7 +231,7 @@ bool VectorClear( struct Vector * self );
 bool VectorReset( struct Vector * self );
 
 /**
- * @brief Zeros elements first, then frees, then resets the vector length to zero.
+ * @brief Zeros elements first, then frees, then resets the vector length and capacity to zero.
  * @param self Vector handle (if NULL, nothing happens)
  */
 bool VectorHardReset( struct Vector * self );
