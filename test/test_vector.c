@@ -227,6 +227,7 @@ void test_VectorRangeInsert_ExactlyMaxCapacity(void);
 void test_VectorRangeInsert_Push_Equivalence(void);
 void test_VectorRangeInsert_InvalidIdx(void);
 void test_VectorRangeInsert_OneElm(void);
+void test_VectorRangeInsert_AfterHardResetting(void);
 
 void test_VectorRangeCpy_ValidIdices_IntData(void);
 void test_VectorRangeCpy_DoesNotMutate(void);
@@ -428,6 +429,7 @@ int main(void)
    RUN_TEST(test_VectorRangeInsert_Push_Equivalence);
    RUN_TEST(test_VectorRangeInsert_InvalidIdx);
    RUN_TEST(test_VectorRangeInsert_OneElm);
+   RUN_TEST(test_VectorRangeInsert_AfterHardResetting);
 
    RUN_TEST(test_VectorRangeCpy_ValidIdices_IntData);
    RUN_TEST(test_VectorRangeCpy_DoesNotMutate);
@@ -944,11 +946,17 @@ void test_VectorPush_AfterResetting(void)
 void test_VectorPush_AfterHardResetting(void)
 {
    // FIXME: Assumes no mallocs fail
-   struct Vector * vec = VectorNew( sizeof(int), 5, 10, 0, NULL );
+   struct Vector * vec = VectorNew( sizeof(int), 5, 10000, 0, NULL );
    VectorPush(vec, &(int){5});
    VectorHardReset(vec);
    TEST_ASSERT_TRUE( VectorPush(vec, &(int){5}) );
    TEST_ASSERT_EQUAL_INT( *((int *)VectorLastElement(vec)), 5 );
+   // Check that expansion was done correctly after 0 capacity by pushing
+   // many elements. If memory was not allocated properly, should crash.
+   for ( size_t i = 0; i < 10000; i++ )
+   {
+      VectorPush(vec, &(int){5});
+   }
    VectorFree(vec);
 }
 
@@ -2783,6 +2791,19 @@ void test_VectorRangeInsert_OneElm(void)
    (void)VectorRangeInsert(v, 0, (int[]){1}, 1);
    int val_insrng; (void)VectorCpyElementAt(v, 0, &val_insrng);
    TEST_ASSERT_EQUAL_INT(val_ins, val_insrng);
+   VectorFree(v);
+}
+
+void test_VectorRangeInsert_AfterHardResetting(void)
+{
+   const size_t LargeVecMaxCap = 10000;
+   struct Vector * v = VectorNew(sizeof(int), 5, LargeVecMaxCap, 0, NULL);
+   VectorPush(v, &(int){5});
+   VectorHardReset(v);
+   TEST_ASSERT_TRUE(VectorIsEmpty(v));
+   TEST_ASSERT_EQUAL_size_t(VectorCapacity(v), 0);
+   int arr[LargeVecMaxCap];
+   TEST_ASSERT_TRUE(VectorRangeInsert(v, 0, arr, LargeVecMaxCap));
    VectorFree(v);
 }
 
