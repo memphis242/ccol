@@ -59,6 +59,7 @@
 #define PTR_TO_IDX(vec, idx) ( (uint8_t *)((vec)->arr) + ((vec)->element_size * (idx)) )
 
 /* Local Datatypes */
+
 struct Vector
 {
    void * arr;
@@ -67,6 +68,14 @@ struct Vector
    size_t capacity;
    size_t max_capacity;
    struct Allocator mem_mgr;
+};
+
+struct VIterator =
+{
+   struct Vector * vec;
+   void * data;
+   void * next;
+   void * end;
 };
 
 enum ShiftDir

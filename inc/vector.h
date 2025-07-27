@@ -18,10 +18,31 @@
 
 /* Public Macro Definitions */
 
+#define FOREACH_VEC(v, body) \
+   struct VIterator * it = VIteratorInit(v, 0, VectorLength(v)); \
+   if ( it != NULL ) \
+   { \
+      for ( ; VIteratorNext(it) != VIteratorEnd(it); VIteratorNudge(it) ) \
+      { \
+         body \
+      } \
+   }
+
+#define FOREACH_VEC_RNG(v, startidx, endidx, body) \
+   struct VIterator * it = VIteratorInit(v, startidx, endidx); \
+   if ( it != NULL ) \
+   { \
+      for ( ; VIteratorNext(it) != VIteratorEnd(it); VIteratorNudge(it) ) \
+      { \
+         body \
+      } \
+   }
+
 /* Public Datatypes */
 
 // Opaque type declaration to act as a handle for the user to pass into the API
 struct Vector;
+struct VIterator;
 
 /* Public API */
 
@@ -368,3 +389,10 @@ bool VectorRangeRemove( struct Vector * self, size_t idx_start, size_t idx_end, 
  * @return true if the operation was successful, false otherwise
  */
 bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
+
+/***************************** Vector Iterator API ****************************/
+
+struct VIterator * VIteratorInit( struct Vector * vec, size_t idx_start, size_t idx_end );
+void * VIteratorNext( struct VIterator * it );
+void * VIteratorEnd( struct VIterator * it );
+void VIteratorNudge( struct VIterator * it );
