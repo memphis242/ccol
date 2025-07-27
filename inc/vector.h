@@ -53,7 +53,7 @@ struct VIterator; // see note below
 //       should work:
 //          struct Vector * vec = VectorNew(sizeof(int), 15, 100, (int[]){1, 2, 3}, 3, NULL);
 //          struct VIterator * it = VIteratorInit(vec, 0, 10);
-//          int first_val = *(int *)(it); // should get 1
+//          int first_val = **(int *)(it); // should get 1
 
 /* Public API */
 
