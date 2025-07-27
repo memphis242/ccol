@@ -32,14 +32,22 @@ struct Vector;
  * @param element_size     The size of each element in the vector (in bytes)
  * @param initial_capacity The initial number of elements the vector can hold
  * @param max_capacity     Maximum number of elements the vector can hold ever
- * @param initial_len      Number of initial (zero) elements
+ * @param init_data        Data to initialize the array if desired; NULL otherwise
+ * @param init_dlen        Length of initialization data, if applicable; 0 otherwise
  * @param mem_mgr          Allocator that the user provides; if NULL, defaults to stdlib
  * @return A pointer to the initialized vector, or NULL if allocation fails.
+ * @example
+ *    struct Vector * v1 = VectorNew(sizeof(int), 10, 100, NULL, 0, NULL);
+ *    struct Vector * v2 = VectorNew(sizeof(int), 10, 100, (int[]){1, 2, 3}, 3, NULL);
+ *    struct Allocator my_allocator = { .alloc = myalloc; ... };
+ *    struct MyData { ... some struct definition ... };
+ *    struct Vector * v3 = VectorNew(sizeof(struct MyData), 10, 100, (struct MyData[]){...}, 3, &my_allocator);
  */
 struct Vector * VectorNew( size_t element_size,
                            size_t initial_capacity,
                            size_t max_capacity,
-                           size_t initial_len,
+                           void * init_data,
+                           size_t init_dlen,
                            const struct Allocator * mem_mgr );
 
 /**
