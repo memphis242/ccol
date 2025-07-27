@@ -72,10 +72,8 @@ struct Vector
 
 struct VIterator =
 {
-   struct Vector * vec;
    void * data;
-   void * next;
-   void * end;
+   struct Vector * vec;
 };
 
 enum ShiftDir

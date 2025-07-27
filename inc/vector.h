@@ -42,7 +42,18 @@
 
 // Opaque type declaration to act as a handle for the user to pass into the API
 struct Vector;
-struct VIterator;
+struct VIterator; // see note below
+// NOTE: For VIterator, the underlying implementation will always have a
+//       pointer to the data currently pointed to by the iterator as the first
+//       member. An example definition of struct VIterator might be:
+//          struct VIterator = { void * data; struct Vector * vec; ... };
+//       Because of this, the user can take advantage of type punning by type
+//       casting a pointer to struct VIterator to a pointer to the underlying
+//       data, given the user knows what data is pointed to. So, the below
+//       should work:
+//          struct Vector * vec = VectorNew(sizeof(int), 15, 100, (int[]){1, 2, 3}, 3, NULL);
+//          struct VIterator * it = VIteratorInit(vec, 0, 10);
+//          int first_val = *(int *)(it); // should get 1
 
 /* Public API */
 
