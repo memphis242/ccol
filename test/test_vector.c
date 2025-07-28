@@ -45,29 +45,6 @@ void * test_nil_alloc(size_t req_sz, void * ctx);
 void * test_nil_realloc(void * old_ptr, size_t new_sz, size_t old_sz, void * ctx);
 void test_nil_reclaim(void * old_ptr, size_t old_sz, void * ctx);
 
-void * test_nil_alloc(size_t req_sz, void * ctx)
-{
-   (void)req_sz;
-   (void)ctx;
-   return NULL;
-}
-
-void * test_nil_realloc(void * old_ptr, size_t new_sz, size_t old_sz, void * ctx)
-{
-   (void)old_ptr;
-   (void)new_sz;
-   (void)old_sz;
-   (void)ctx;
-   return NULL;
-}
-
-void test_nil_reclaim(void * old_ptr, size_t old_sz, void * ctx)
-{
-   (void)old_ptr;
-   (void)old_sz;
-   (void)ctx;
-}
-
 static const struct Allocator TestNilMemMgr =
 {
    .alloc = test_nil_alloc,
@@ -3939,3 +3916,29 @@ void test_VectorRange_ClearElementsInRng_InvalidVec(void)
 {
    TEST_ASSERT_FALSE(VectorRangeClear(NULL, 0, 1));
 }
+
+/************************* Local Function Definitions *************************/
+
+void * test_nil_alloc(size_t req_sz, void * ctx)
+{
+   (void)req_sz;
+   (void)ctx;
+   return NULL;
+}
+
+void * test_nil_realloc(void * old_ptr, size_t new_sz, size_t old_sz, void * ctx)
+{
+   (void)old_ptr;
+   (void)new_sz;
+   (void)old_sz;
+   (void)ctx;
+   return NULL;
+}
+
+void test_nil_reclaim(void * old_ptr, size_t old_sz, void * ctx)
+{
+   (void)old_ptr;
+   (void)old_sz;
+   (void)ctx;
+}
+
