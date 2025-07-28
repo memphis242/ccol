@@ -18,26 +18,6 @@
 
 /* Public Macro Definitions */
 
-#define FOREACH_VEC(v, body) \
-   struct VIterator * it = VIteratorInit(v, 0, VectorLength(v)); \
-   if ( it != NULL ) \
-   { \
-      for ( ; VIteratorNext(it) != VIteratorEnd(it); VIteratorNudge(it) ) \
-      { \
-         body \
-      } \
-   }
-
-#define FOREACH_VEC_RNG(v, startidx, endidx, body) \
-   struct VIterator * it = VIteratorInit(v, startidx, endidx); \
-   if ( it != NULL ) \
-   { \
-      for ( ; VIteratorNext(it) != VIteratorEnd(it); VIteratorNudge(it) ) \
-      { \
-         body \
-      } \
-   }
-
 /* Public Datatypes */
 
 // Opaque type declaration to act as a handle for the user to pass into the API
@@ -47,10 +27,13 @@ struct VIterator; // see note below
 //       pointer to the data currently pointed to by the iterator as the first
 //       member. An example definition of struct VIterator might be:
 //          struct VIterator = { void * data; struct Vector * vec; ... };
-//       Because of this, the user can take advantage of type punning by type
-//       casting a pointer to struct VIterator to a pointer to the underlying
-//       data, given the user knows what data is pointed to. So, the below
-//       should work:
+//       Because of this, the user can take advantage of the standard guaranteeing
+//       that the first member of a struct is at offset 0 by type casting a
+//       (pointer to struct VIterator) to a (pointer to the underlying data),
+//       bypassing the API and saving an function call - AKA, type punning.
+//       That said, type punning in general isn't guaranteed to work as expected
+//       by the standard, but a lot of compilers will do what you want here.
+//       So, the below code _should_ work (always confirm):
 //          struct Vector * vec = VectorNew(sizeof(int), 15, 100, (int[]){1, 2, 3}, 3, NULL);
 //          struct VIterator * it = VIteratorInit(vec, 0, 10);
 //          int first_val = **(int **)(it); // should get 1
@@ -76,7 +59,7 @@ struct VIterator; // see note below
  *    struct Vector * v3 = VectorNew(sizeof(struct MyData), 10, 100, (struct MyData[]){...}, 3, &my_allocator);
  */
 struct Vector * VectorNew( size_t element_size,
-                           size_t initial_capacity,
+                           size_t init_capacity,
                            size_t max_capacity,
                            void * init_data,
                            size_t init_dlen,
@@ -407,3 +390,29 @@ struct VIterator * VIteratorInit( struct Vector * vec, size_t idx_start, size_t 
 void * VIteratorNext( struct VIterator * it );
 void * VIteratorEnd( struct VIterator * it );
 void VIteratorNudge( struct VIterator * it );
+
+#define FOREACH_VEC(type, var_ref, vec, body) \
+   { \
+      type * var_ref; \
+      struct VIterator * it_zKIlbpzi6gGEwzkt = VIteratorInit(vec, 0, VectorLength(v)); \
+      if ( it_zKIlbpzi6gGEwzkt != NULL ) \
+      { \
+         for ( ; VIteratorNext(it_zKIlbpzi6gGEwzkt) != VIteratorEnd(it_zKIlbpzi6gGEwzkt); VIteratorNudge(it_zKIlbpzi6gGEwzkt), var_ref = (type *)VIteratorVal(it_zKIlbpzi6gGEwzkt) ) \
+         { \
+            body \
+         } \
+      } \
+   }
+
+#define FOREACH_VEC_RNG(type, var_ref, vec, idx_start, idx_end, body) \
+   { \
+      type * var_ref; \
+      struct VIterator * it_zKIlbpzi6gGEwzkt = VIteratorInit(vec, idx_start, idx_end); \
+      if ( it_zKIlbpzi6gGEwzkt != NULL ) \
+      { \
+         for ( ; VIteratorNext(it_zKIlbpzi6gGEwzkt) != VIteratorEnd(it_zKIlbpzi6gGEwzkt); VIteratorNudge(it_zKIlbpzi6gGEwzkt), var_ref = (type *)VIteratorVal(it_zKIlbpzi6gGEwzkt) ) \
+         { \
+            body \
+         } \
+      } \
+   }

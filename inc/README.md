@@ -17,7 +17,7 @@ struct Allocator
 ```c
 /*** Constructor/Destructor ***/
 
-struct Vector * VectorNew( size_t element_size, size_t initial_capacity, size_t max_capacity, size_t initial_len, const struct Allocator * mem_mgr );
+struct Vector * VectorNew( size_t element_size, size_t init_capacity, size_t max_capacity, void * init_data, size_t init_dlen, const struct Allocator * mem_mgr );
 void VectorFree( struct Vector * self );
 
 /*** Vector-Vector Operations (Copy/Move) ***/
