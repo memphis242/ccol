@@ -1071,26 +1071,26 @@ bool VectorRangeClear( struct Vector * self,
 bool VIteratorNudge( struct VIterator * it )
 {
    if ( NULL == it || NULL == it->vec || NULL == it->vec->arr ||
-        it->curr_idx >= it->vec->len || it->end_idx >= it->vec->len ||
-        viter_span(it) > it->vec->len || viter_span(it) <= 0 ||
+        it->curr_idx >= (ptrdiff_t)it->vec->len || it->end_idx >= (ptrdiff_t)it->vec->len ||
+        viter_span(it) > (ptrdiff_t)it->vec->len || viter_span(it) <= 0 ||
         it->curr_idx == it->end_idx || it->dir >= NumOfIterDirs )
       return false;
 
    if ( it->dir == IterDir_Right )
    {
-      size_t new_idx = it->curr_idx + 1;
-      if ( new_idx >= it->vec->len ) new_idx = 0;
+      ptrdiff_t new_idx = it->curr_idx + 1;
+      if ( new_idx >= (ptrdiff_t)it->vec->len ) new_idx = 0;
       it->curr_idx = new_idx;
    }
    else if ( it->curr_idx == 0 )
    {
-      it->curr_idx = it->vec->len - 1;
+      it->curr_idx = (ptrdiff_t)it->vec->len - 1;
    }
    else
    {
       it->curr_idx -= 1;
    }
-   it->data_element = (void *)PTR_TO_IDX(it->vec, it->curr_idx);
+   it->data_element = (void *)PTR_TO_IDX(it->vec, (size_t)it->curr_idx);
 
    return true;
 }
@@ -1284,13 +1284,13 @@ ptrdiff_t viter_span(struct VIterator * it)
    {
       span = ( it->init_idx <= it->end_idx ) ?
          it->end_idx - it->init_idx :
-         it->end_idx + (it->vec->len - it->init_idx);
+         it->end_idx + ((ptrdiff_t)it->vec->len - it->init_idx);
    }
    else
    {
       span = ( it->init_idx >= it->end_idx ) ?
          it->init_idx - it->end_idx :
-         it->init_idx + (it->vec->len - it->end_idx);
+         it->init_idx + ((ptrdiff_t)it->vec->len - it->end_idx);
    }
 
    return span;

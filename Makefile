@@ -141,7 +141,7 @@ COMPILER_WARNING_FLAGS = \
     -Wdeprecated-declarations -Wmissing-prototypes -Wparentheses \
     -Wreturn-type -Wlogical-op -Wstrict-aliasing \
     -Wuninitialized -Wmaybe-uninitialized -Wshadow \
-    -Wduplicated-cond -Wduplicated-branches \
+    -Wduplicated-cond \
     -Walloc-zero -Walloc-size
 
 # Includes some -Wno-... flags for warnings that I'd normally want for my lib

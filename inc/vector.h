@@ -39,9 +39,9 @@ struct VIterator
 {
    void * data_element; // Updated via VIteratorNudge()
    struct Vector * vec;
-   const size_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
-   size_t curr_idx;
-   size_t end_idx;
+   const ptrdiff_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
+   ptrdiff_t curr_idx;
+   ptrdiff_t end_idx;
    enum IterDirection dir; // Library supports wrapping around to reach end_idx
 };
 
@@ -408,7 +408,7 @@ bool VIteratorNudge( struct VIterator * it );
          .vec = vec, \
          .init_idx = 0, \
          .curr_idx = 0, \
-         .end_idx = VectorLength(vec) - 1 \
+         .end_idx = (ptrdiff_t)VectorLength(vec) - 1 \
          .dir = IterDir_Normal \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, 0); \
@@ -428,7 +428,7 @@ bool VIteratorNudge( struct VIterator * it );
          .vec = vec, \
          .init_idx = 0, \
          .curr_idx = 0, \
-         .end_idx = VectorLength(vec) - 1 \
+         .end_idx = (ptrdiff_t)VectorLength(vec) - 1 \
          .dir = IterDir_Normal \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, 0); \
@@ -446,9 +446,9 @@ bool VIteratorNudge( struct VIterator * it );
       { \
          .data_element == NULL, \
          .vec = vec, \
-         .init_idx = start_idx, \
-         .curr_idx = start_idx, \
-         .end_idx = final_idx, \
+         .init_idx = (ptrdiff_t)start_idx, \
+         .curr_idx = (ptrdiff_t)start_idx, \
+         .end_idx = (ptrdiff_t)final_idx, \
          .dir = direction \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, start_idx); \
@@ -466,9 +466,9 @@ bool VIteratorNudge( struct VIterator * it );
       { \
          .data_element == NULL, \
          .vec = vec, \
-         .init_idx = start_idx, \
-         .curr_idx = start_idx, \
-         .end_idx = final_idx, \
+         .init_idx = (ptrdiff_t)start_idx, \
+         .curr_idx = (ptrdiff_t)start_idx, \
+         .end_idx = (ptrdiff_t)final_idx, \
          .dir = direction \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, start_idx); \
