@@ -27,7 +27,14 @@ struct Vector;
 // Transparent types
 // NOTE: The user can very well define their own iterator, but here is one
 //       that is explicitly supported with the VIteratorNudge() function.
-enum IterDirection { IterDir_Left, IterDir_Right };
+enum IterDirection
+{
+   IterDir_Left,
+   IterDir_Normal=IterDir_Left,
+   IterDir_Right,
+   IterDir_Reverse=IterDir_Right,
+   NumOfIterDirs
+};
 struct VIterator
 {
    void * data_element; // Updated via VIteratorNudge()
@@ -386,30 +393,89 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
 
 /***************************** Vector Iterator API ****************************/
 
-void VIteratorNudge( struct VIterator * it );
+/**
+ * @brief Moves the current index of the iterator to the applicable next index.
+ * @param it Iterator handle (if NULL, returns false)
+ * @return true if the nudge was successful, false otherwise
+ */
+bool VIteratorNudge( struct VIterator * it );
 
-#define FOREACH_VEC(type, var_ref, vec, body) \
+#define FOREACH_VEC_READ(type, var, vec, body) \
    { \
-      type * var_ref; \
-      struct VIterator * it_zKIlbpzi6gGEwzkt = VIteratorInit(vec, 0, VectorLength(v)); \
-      if ( it_zKIlbpzi6gGEwzkt != NULL ) \
+      struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
-         for ( ; VIteratorNext(it_zKIlbpzi6gGEwzkt) != VIteratorEnd(it_zKIlbpzi6gGEwzkt); VIteratorNudge(it_zKIlbpzi6gGEwzkt), var_ref = (type *)VIteratorVal(it_zKIlbpzi6gGEwzkt) ) \
-         { \
-            body \
-         } \
+         .data_element == NULL, \
+         .vec = vec, \
+         .init_idx = 0, \
+         .curr_idx = 0, \
+         .end_idx = VectorLength(vec) - 1 \
+         .dir = IterDir_Normal \
+      }; \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, 0); \
+      for ( type var = *(type *)it_zKIlbpzi6gGEwzkt.data_element; \
+            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
+            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = *(type *)it_zKIlbpzi6gGEwzkt.data_element ) \
+      { \
+         body \
       } \
    }
 
-#define FOREACH_VEC_RNG(type, var_ref, vec, idx_start, idx_end, body) \
+#define FOREACH_VEC_REF(type, var, vec, body) \
    { \
-      type * var_ref; \
-      struct VIterator * it_zKIlbpzi6gGEwzkt = VIteratorInit(vec, idx_start, idx_end); \
-      if ( it_zKIlbpzi6gGEwzkt != NULL ) \
+      struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
-         for ( ; VIteratorNext(it_zKIlbpzi6gGEwzkt) != VIteratorEnd(it_zKIlbpzi6gGEwzkt); VIteratorNudge(it_zKIlbpzi6gGEwzkt), var_ref = (type *)VIteratorVal(it_zKIlbpzi6gGEwzkt) ) \
-         { \
-            body \
-         } \
+         .data_element == NULL, \
+         .vec = vec, \
+         .init_idx = 0, \
+         .curr_idx = 0, \
+         .end_idx = VectorLength(vec) - 1 \
+         .dir = IterDir_Normal \
+      }; \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, 0); \
+      for ( type * var = it_zKIlbpzi6gGEwzkt.data_element; \
+            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
+            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = it_zKIlbpzi6gGEwzkt.data_element ) \
+      { \
+         body \
+      } \
+   }
+
+#define FOREACH_VEC_READ_RNG(type, var, vec, start_idx, final_idx, direction, body) \
+   { \
+      struct VIterator it_zKIlbpzi6gGEwzkt = \
+      { \
+         .data_element == NULL, \
+         .vec = vec, \
+         .init_idx = start_idx, \
+         .curr_idx = start_idx, \
+         .end_idx = final_idx, \
+         .dir = direction \
+      }; \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, start_idx); \
+      for ( type var = *(type *)it_zKIlbpzi6gGEwzkt.data_element; \
+            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
+            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = *(type *)it_zKIlbpzi6gGEwzkt.data_element ) \
+      { \
+         body \
+      } \
+   }
+
+#define FOREACH_VEC_REF_RNG(type, var, vec, start_idx, final_idx, direction, body) \
+   { \
+      struct VIterator it_zKIlbpzi6gGEwzkt = \
+      { \
+         .data_element == NULL, \
+         .vec = vec, \
+         .init_idx = start_idx, \
+         .curr_idx = start_idx, \
+         .end_idx = final_idx, \
+         .dir = direction \
+      }; \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, start_idx); \
+      for ( type var = it_zKIlbpzi6gGEwzkt.data_element; \
+            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
+            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = it_zKIlbpzi6gGEwzkt.data_element ) \
+      { \
+         body \
       } \
    }

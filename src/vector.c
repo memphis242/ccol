@@ -87,9 +87,11 @@ static bool vec_expand(struct Vector *);
 static bool vec_expandby(struct Vector *, size_t);
 static void shiftn( struct Vector *, size_t, enum ShiftDir, size_t);
 
-STATIC struct VIterator * viter_pool_dispatch(void);
-STATIC void               viter_pool_reclaim(const struct VIterator * ptr);
-STATIC bool               viter_isalloc(const struct VIterator * ptr);
+ptrdiff_t viter_span(struct VIterator * it);
+
+//STATIC struct VIterator * viter_pool_dispatch(void);
+//STATIC void               viter_pool_reclaim(const struct VIterator * ptr);
+//STATIC bool               viter_isalloc(const struct VIterator * ptr);
 
 /* Public API Implementations */
 
@@ -1068,11 +1070,29 @@ bool VectorRangeClear( struct Vector * self,
 
 bool VIteratorNudge( struct VIterator * it )
 {
-   if ( NULL == it || NULL == it->vec || NULL == it->vec.arr ||
-        viter_span(it) > it->vec.len || it->curr_idx == it->end_idx )
+   if ( NULL == it || NULL == it->vec || NULL == it->vec->arr ||
+        it->curr_idx >= it->vec->len || it->end_idx >= it->vec->len ||
+        viter_span(it) > it->vec->len || viter_span(it) <= 0 ||
+        it->curr_idx == it->end_idx || it->dir >= NumOfIterDirs )
       return false;
 
-   
+   if ( it->dir == IterDir_Right )
+   {
+      size_t new_idx = it->curr_idx + 1;
+      if ( new_idx >= it->vec->len ) new_idx = 0;
+      it->curr_idx = new_idx;
+   }
+   else if ( it->curr_idx == 0 )
+   {
+      it->curr_idx = it->vec->len - 1;
+   }
+   else
+   {
+      it->curr_idx -= 1;
+   }
+   it->data_element = (void *)PTR_TO_IDX(it->vec, it->curr_idx);
+
+   return true;
 }
 
 
@@ -1237,6 +1257,43 @@ static void shiftn( struct Vector * self, size_t start_idx,
    // specifically made for this kind of operation, whereas memcpy isn't
    // guaranteed to behave correctly here.
    memmove( new_spot, old_spot, (self->len - start_idx) * self->element_size );
+}
+
+/**
+ * Calculates the span (number of elements) between the initial and end indices
+ * of a vector iterator, taking into account the direction of iteration and
+ * possible wrap-around in circular iteration.
+ *
+ * Preconditions:
+ * - `it` must not be NULL.
+ * - `it->vec` must not be NULL.
+ * - `it->dir` must be a valid direction (less than NumOfIterDirs).
+ *
+ * @param it Pointer to a VIterator structure representing the iterator.
+ * @return The span
+ */
+ptrdiff_t viter_span(struct VIterator * it)
+{
+   assert(it != NULL);
+   assert(it->vec != NULL);
+   assert(it->dir < NumOfIterDirs);
+   // FIXME: Think through what happens if indices are greater than vec len...
+
+   ptrdiff_t span = 0;
+   if ( it->dir == IterDir_Right )
+   {
+      span = ( it->init_idx <= it->end_idx ) ?
+         it->end_idx - it->init_idx :
+         it->end_idx + (it->vec->len - it->init_idx);
+   }
+   else
+   {
+      span = ( it->init_idx >= it->end_idx ) ?
+         it->init_idx - it->end_idx :
+         it->init_idx + (it->vec->len - it->end_idx);
+   }
+
+   return span;
 }
 
 /******************************************************************************/
