@@ -29,12 +29,13 @@ struct Vector;
 //       that is explicitly supported with the VIteratorNudge() function.
 enum IterDirection
 {
-   IterDir_Left,
-   IterDir_Normal=IterDir_Left,
    IterDir_Right,
-   IterDir_Reverse=IterDir_Right,
+   IterDir_Left,
+   IterDir_Normal=IterDir_Right,
+   IterDir_Reverse=IterDir_Left,
    NumOfIterDirs
 };
+
 struct VIterator
 {
    void * data_element; // Updated via VIteratorNudge()
@@ -420,7 +421,7 @@ bool VIteratorNudge( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF(type, var, vector, body) \
+#define FOREACH_VEC_REF(type, var_ptr, vector, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
@@ -432,9 +433,9 @@ bool VIteratorNudge( struct VIterator * it );
          .dir = IterDir_Normal \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, 0); \
-      for ( type * var = it_zKIlbpzi6gGEwzkt.data_element; \
+      for ( type * var_ptr = it_zKIlbpzi6gGEwzkt.data_element; \
             it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
-            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = it_zKIlbpzi6gGEwzkt.data_element ) \
+            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var_ptr = it_zKIlbpzi6gGEwzkt.data_element ) \
       { \
          body \
       } \
@@ -460,7 +461,7 @@ bool VIteratorNudge( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF_RNG(type, var, vector, start_idx, final_idx, direction, body) \
+#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, final_idx, direction, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
@@ -472,9 +473,9 @@ bool VIteratorNudge( struct VIterator * it );
          .dir = direction \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, start_idx); \
-      for ( type var = it_zKIlbpzi6gGEwzkt.data_element; \
+      for ( type * var_ptr = it_zKIlbpzi6gGEwzkt.data_element; \
             it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
-            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = it_zKIlbpzi6gGEwzkt.data_element ) \
+            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var_ptr = it_zKIlbpzi6gGEwzkt.data_element ) \
       { \
          body \
       } \

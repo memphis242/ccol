@@ -3951,14 +3951,41 @@ void test_VIterator_BasicRead_FullVec(void)
 {
    struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
    int i = 1;
-   FOREACH_VEC_READ( int, val, v,
-      TEST_ASSERT_EQUAL_INT( i++, val ); );
+   struct VIterator it_zKIlbpzi6gGEwzkt =
+   {
+      .data_element = NULL,
+      .vec = v,
+      .init_idx = 0,
+      .curr_idx = 0,
+      .end_idx = (ptrdiff_t)VectorLength(v) - 1,
+      .dir = IterDir_Normal
+   };
+   it_zKIlbpzi6gGEwzkt.data_element = VectorGet(v, 0);
+   for ( int val = *(int *)it_zKIlbpzi6gGEwzkt.data_element;
+         it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx;
+         VIteratorNudge(&it_zKIlbpzi6gGEwzkt), val = *(int *)it_zKIlbpzi6gGEwzkt.data_element )
+   {
+      TEST_ASSERT_EQUAL_INT(i++, val);
+   }
+   //FOREACH_VEC_READ( int, val, v,
+   //   TEST_ASSERT_EQUAL_INT(i++, val);
+   //);
+   //TEST_ASSERT_EQUAL_INT(6, i); // Confirm that we really did iterate through all elements
    VectorFree(v);
 }
 
 void test_VIterator_BasicUpdate_FullVec(void)
 {
-   TEST_ASSERT_TRUE(false);
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
+   FOREACH_VEC_REF( int, valptr, v,
+      (*valptr)++;
+   );
+   int i = 2;
+   FOREACH_VEC_READ( int, val, v,
+      TEST_ASSERT_EQUAL_INT(i++, val);
+   );
+   TEST_ASSERT_EQUAL_INT(7, i); // Confirm that we really did iterate through all elements
+   VectorFree(v);
 }
 
 void test_VIterator_BasicRead_SubRng_Normal(void)
