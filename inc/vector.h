@@ -17,26 +17,26 @@
 // TODO: Exceptions
 
 /* Public Macro Definitions */
+#define VITER_RESET(iter) (iter.curr_idx = iter.init_idx)
 
 /* Public Datatypes */
 
 // Opaque type declaration to act as a handle for the user to pass into the API
 struct Vector;
-struct VIterator; // see note below
-// NOTE: For VIterator, the underlying implementation will always have a
-//       pointer to the data currently pointed to by the iterator as the first
-//       member. An example definition of struct VIterator might be:
-//          struct VIterator = { void * data; struct Vector * vec; ... };
-//       Because of this, the user can take advantage of the standard guaranteeing
-//       that the first member of a struct is at offset 0 by type casting a
-//       (pointer to struct VIterator) to a (pointer to the underlying data),
-//       bypassing the API and saving an function call - AKA, type punning.
-//       That said, type punning in general isn't guaranteed to work as expected
-//       by the standard, but a lot of compilers will do what you want here.
-//       So, the below code _should_ work (always confirm):
-//          struct Vector * vec = VectorNew(sizeof(int), 15, 100, (int[]){1, 2, 3}, 3, NULL);
-//          struct VIterator * it = VIteratorInit(vec, 0, 10);
-//          int first_val = **(int **)(it); // should get 1
+
+// Transparent types
+// NOTE: The user can very well define their own iterator, but here is one
+//       that is explicitly supported with the VIteratorNudge() function.
+enum IterDirection { IterDir_Left, IterDir_Right };
+struct VIterator
+{
+   void * data_element; // Updated via VIteratorNudge()
+   struct Vector * vec;
+   const size_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
+   size_t curr_idx;
+   size_t end_idx;
+   enum IterDirection dir; // Library supports wrapping around to reach end_idx
+};
 
 /* Public API */
 
@@ -386,9 +386,6 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
 
 /***************************** Vector Iterator API ****************************/
 
-struct VIterator * VIteratorInit( struct Vector * vec, size_t idx_start, size_t idx_end );
-void * VIteratorNext( struct VIterator * it );
-void * VIteratorEnd( struct VIterator * it );
 void VIteratorNudge( struct VIterator * it );
 
 #define FOREACH_VEC(type, var_ref, vec, body) \
