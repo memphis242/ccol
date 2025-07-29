@@ -5,15 +5,18 @@
 .PHONY: release release-vec libvector
 .PHONY: debug debug-vec
 .PHONY: test-vec test-all
+.PHONY: coverage
 
 test-vec:
 	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) _test BUILD_TYPE=TEST DS=vector > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
+	@$(MAKE) coverage
 
 test-all:
 	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) --always-make test-vec > /dev/null
+	@$(MAKE) coverage
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
 
 test-vec-verbose:
@@ -256,9 +259,14 @@ $(LIB_FILE): $(OBJ_FILES) $(BUILD_DIRS)
 	ar rcs $@ $(OBJ_FILES)
 
 ######################## Test Rules ########################
-_test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS) $(GCOV_FILES)
+_test: $(BUILD_DIRS) $(TEST_EXECUTABLES) $(LIB_FILE) $(TEST_LIST_FILE) $(RESULTS)
 	@echo
 	@echo -e "\033[36mAll tests completed!\033[0m"
+	@echo
+
+coverage: $(GCOV_FILES)
+	@echo
+	@echo -e "\033[36mCoverage data gathered.\033[0m"
 	@echo
 
 # Write the test results to a result .txt file

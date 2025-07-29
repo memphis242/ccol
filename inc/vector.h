@@ -400,18 +400,18 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
  */
 bool VIteratorNudge( struct VIterator * it );
 
-#define FOREACH_VEC_READ(type, var, vec, body) \
+#define FOREACH_VEC_READ(type, var, vector, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
-         .data_element == NULL, \
-         .vec = vec, \
+         .data_element = NULL, \
+         .vec = vector, \
          .init_idx = 0, \
          .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vec) - 1 \
+         .end_idx = (ptrdiff_t)VectorLength(vector) - 1, \
          .dir = IterDir_Normal \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, 0); \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, 0); \
       for ( type var = *(type *)it_zKIlbpzi6gGEwzkt.data_element; \
             it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
             VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = *(type *)it_zKIlbpzi6gGEwzkt.data_element ) \
@@ -420,18 +420,18 @@ bool VIteratorNudge( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF(type, var, vec, body) \
+#define FOREACH_VEC_REF(type, var, vector, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
-         .data_element == NULL, \
-         .vec = vec, \
+         .data_element = NULL, \
+         .vec = vector, \
          .init_idx = 0, \
          .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vec) - 1 \
+         .end_idx = (ptrdiff_t)VectorLength(vector) - 1, \
          .dir = IterDir_Normal \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, 0); \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, 0); \
       for ( type * var = it_zKIlbpzi6gGEwzkt.data_element; \
             it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
             VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = it_zKIlbpzi6gGEwzkt.data_element ) \
@@ -440,18 +440,18 @@ bool VIteratorNudge( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_READ_RNG(type, var, vec, start_idx, final_idx, direction, body) \
+#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, final_idx, direction, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
-         .data_element == NULL, \
-         .vec = vec, \
+         .data_element = NULL, \
+         .vec = vector, \
          .init_idx = (ptrdiff_t)start_idx, \
          .curr_idx = (ptrdiff_t)start_idx, \
          .end_idx = (ptrdiff_t)final_idx, \
          .dir = direction \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, start_idx); \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, start_idx); \
       for ( type var = *(type *)it_zKIlbpzi6gGEwzkt.data_element; \
             it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
             VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = *(type *)it_zKIlbpzi6gGEwzkt.data_element ) \
@@ -460,18 +460,18 @@ bool VIteratorNudge( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF_RNG(type, var, vec, start_idx, final_idx, direction, body) \
+#define FOREACH_VEC_REF_RNG(type, var, vector, start_idx, final_idx, direction, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
-         .data_element == NULL, \
-         .vec = vec, \
+         .data_element = NULL, \
+         .vec = vector, \
          .init_idx = (ptrdiff_t)start_idx, \
          .curr_idx = (ptrdiff_t)start_idx, \
          .end_idx = (ptrdiff_t)final_idx, \
          .dir = direction \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vec, start_idx); \
+      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, start_idx); \
       for ( type var = it_zKIlbpzi6gGEwzkt.data_element; \
             it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
             VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = it_zKIlbpzi6gGEwzkt.data_element ) \

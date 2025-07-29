@@ -272,6 +272,17 @@ void test_VectorRange_ClearElementsInRng_AtEnd(void);
 void test_VectorRange_ClearElementsInRng_InvalidIndices(void);
 void test_VectorRange_ClearElementsInRng_InvalidVec(void);
 
+void test_VIterator_BasicRead_FullVec(void);
+void test_VIterator_BasicUpdate_FullVec(void);
+void test_VIterator_BasicRead_SubRng_Normal(void);
+void test_VIterator_BasicUpdate_SubRng_Normal(void);
+void test_VIterator_BasicRead_SubRng_Reverse(void);
+void test_VIterator_BasicUpdate_SubRng_Reverse(void);
+void test_VIterator_BasicRead_SubRng_NormalWithWrap(void);
+void test_VIterator_BasicUpdate_SubRng_NormalWithWrap(void);
+void test_VIterator_BasicRead_SubRng_ReverseWithWrap(void);
+void test_VIterator_BasicUpdate_SubRng_ReverseWithWrap(void);
+
 /* Meat of the Program */
 
 int main(void)
@@ -490,6 +501,17 @@ int main(void)
    RUN_TEST(test_VectorRange_ClearElementsInRng_AtEnd);
    RUN_TEST(test_VectorRange_ClearElementsInRng_InvalidIndices);
    RUN_TEST(test_VectorRange_ClearElementsInRng_InvalidVec);
+
+   RUN_TEST(test_VIterator_BasicRead_FullVec);
+   RUN_TEST(test_VIterator_BasicUpdate_FullVec);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_Normal);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Normal);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Reverse);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_NormalWithWrap);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_NormalWithWrap);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_ReverseWithWrap);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_ReverseWithWrap);
 
    return UNITY_END();
 }
@@ -3923,6 +3945,62 @@ void test_VectorRange_ClearElementsInRng_InvalidVec(void)
    TEST_ASSERT_FALSE(VectorRangeClear(NULL, 0, 1));
 }
 
+/********************************** VIterator *********************************/
+
+void test_VIterator_BasicRead_FullVec(void)
+{
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
+   int i = 1;
+   FOREACH_VEC_READ( int, val, v,
+      TEST_ASSERT_EQUAL_INT( i++, val ); );
+   VectorFree(v);
+}
+
+void test_VIterator_BasicUpdate_FullVec(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicRead_SubRng_Normal(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicUpdate_SubRng_Normal(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicRead_SubRng_Reverse(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicUpdate_SubRng_Reverse(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicRead_SubRng_NormalWithWrap(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicUpdate_SubRng_NormalWithWrap(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicRead_SubRng_ReverseWithWrap(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
+void test_VIterator_BasicUpdate_SubRng_ReverseWithWrap(void)
+{
+   TEST_ASSERT_TRUE(false);
+}
+
 /************************* Local Function Definitions *************************/
 
 void * test_nil_alloc(size_t req_sz, void * ctx)
@@ -3947,4 +4025,3 @@ void test_nil_reclaim(void * old_ptr, size_t old_sz, void * ctx)
    (void)old_sz;
    (void)ctx;
 }
-
