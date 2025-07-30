@@ -33,6 +33,10 @@ enum IterDirection
    IterDir_Left,
    IterDir_Normal=IterDir_Right,
    IterDir_Reverse=IterDir_Left,
+   IterDir_RightWrap,
+   IterDir_LeftWrap,
+   IterDir_RightBounce,
+   IterDir_LeftBounce,
    NumOfIterDirs
 };
 
@@ -401,6 +405,8 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
  */
 bool VIteratorNudge( struct VIterator * it );
 
+ptrdiff_t VIteratorPeekNext( struct VIterator * it );
+
 #define FOREACH_VEC_READ(type, var, vector, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
@@ -409,7 +415,7 @@ bool VIteratorNudge( struct VIterator * it );
          .vec = vector, \
          .init_idx = 0, \
          .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vector) - 1, \
+         .end_idx = (ptrdiff_t)VectorLength(vector), \
          .dir = IterDir_Normal \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, 0); \
@@ -429,7 +435,7 @@ bool VIteratorNudge( struct VIterator * it );
          .vec = vector, \
          .init_idx = 0, \
          .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vector) - 1, \
+         .end_idx = (ptrdiff_t)VectorLength(vector), \
          .dir = IterDir_Normal \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, 0); \
@@ -441,7 +447,7 @@ bool VIteratorNudge( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, final_idx, direction, body) \
+#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, end_idx, direction, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
@@ -449,7 +455,7 @@ bool VIteratorNudge( struct VIterator * it );
          .vec = vector, \
          .init_idx = (ptrdiff_t)start_idx, \
          .curr_idx = (ptrdiff_t)start_idx, \
-         .end_idx = (ptrdiff_t)final_idx, \
+         .end_idx = (ptrdiff_t)end_idx, \
          .dir = direction \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, start_idx); \
@@ -461,7 +467,7 @@ bool VIteratorNudge( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, final_idx, direction, body) \
+#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, end_idx, direction, body) \
    { \
       struct VIterator it_zKIlbpzi6gGEwzkt = \
       { \
@@ -469,7 +475,7 @@ bool VIteratorNudge( struct VIterator * it );
          .vec = vector, \
          .init_idx = (ptrdiff_t)start_idx, \
          .curr_idx = (ptrdiff_t)start_idx, \
-         .end_idx = (ptrdiff_t)final_idx, \
+         .end_idx = (ptrdiff_t)end_idx, \
          .dir = direction \
       }; \
       it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, start_idx); \

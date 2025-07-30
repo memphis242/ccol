@@ -1071,28 +1071,98 @@ bool VectorRangeClear( struct Vector * self,
 bool VIteratorNudge( struct VIterator * it )
 {
    if ( NULL == it || NULL == it->vec || NULL == it->vec->arr ||
-        it->curr_idx >= (ptrdiff_t)it->vec->len || it->end_idx >= (ptrdiff_t)it->vec->len ||
+        it->curr_idx >= (ptrdiff_t)it->vec->len || it->end_idx > (ptrdiff_t)it->vec->len ||
         viter_span(it) > (ptrdiff_t)it->vec->len || viter_span(it) <= 0 ||
         it->curr_idx == it->end_idx || it->dir >= NumOfIterDirs )
+   {
       return false;
+   }
 
-   if ( it->dir == IterDir_Right )
+   switch ( it->dir)
    {
-      ptrdiff_t new_idx = it->curr_idx + 1;
-      if ( new_idx >= (ptrdiff_t)it->vec->len ) new_idx = 0;
-      it->curr_idx = new_idx;
+      case IterDir_Right:
+         if ( it->curr_idx >= (ptrdiff_t)(it->vec->len - 1) )
+            return false;
+         it->curr_idx++;
+         break;
+
+      case IterDir_Left:
+         if ( it->curr_idx <= 0 )
+            return false;
+         it->curr_idx--;
+         break;
+
+      case IterDir_RightWrap:
+         // TODO
+         break;
+
+      case IterDir_LeftWrap:
+         // TODO
+         //it->curr_idx = (ptrdiff_t)it->vec->len - 1;
+         break;
+
+      case IterDir_RightBounce:
+         // TODO
+         break;
+
+      case IterDir_LeftBounce:
+         // TODO
+         break;
+
+      default:
+         // TODO
+         break;
    }
-   else if ( it->curr_idx == 0 )
-   {
-      it->curr_idx = (ptrdiff_t)it->vec->len - 1;
-   }
-   else
-   {
-      it->curr_idx -= 1;
-   }
+
    it->data_element = (void *)PTR_TO_IDX(it->vec, (size_t)it->curr_idx);
 
+   assert(it->curr_idx < (ptrdiff_t)it->vec->len);
+   assert(it->data_element != NULL);
+
    return true;
+}
+
+ptrdiff_t VIteratorPeekNext( struct VIterator * it )
+{
+   if ( NULL == it || NULL == it->vec || NULL == it->vec->arr || it->dir >= NumOfIterDirs )
+      return 0;
+
+   ptrdiff_t next_idx = it->end_idx;
+   switch ( it->dir)
+   {
+      case IterDir_Right:
+         next_idx = it->curr_idx + 1;
+         break;
+
+      case IterDir_Left:
+         next_idx = it->curr_idx - 1;
+         break;
+
+      case IterDir_RightWrap:
+         // TODO
+         break;
+
+      case IterDir_LeftWrap:
+         // TODO
+         //it->curr_idx = (ptrdiff_t)it->vec->len - 1;
+         break;
+
+      case IterDir_RightBounce:
+         // TODO
+         break;
+
+      case IterDir_LeftBounce:
+         // TODO
+         break;
+
+      default:
+         // TODO
+         break;
+   }
+
+   assert(next_idx <= it->vec->len);
+
+   return next_idx;
 }
 
 
