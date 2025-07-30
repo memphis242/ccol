@@ -11,22 +11,21 @@ test-vec:
 	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) _test BUILD_TYPE=TEST DS=vector > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
-	@$(MAKE) coverage
+	@$(MAKE) coverage > /dev/null
 
 test-all:
 	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) --always-make test-vec > /dev/null
-	@$(MAKE) coverage
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
+	@$(MAKE) coverage > /dev/null
 
 test-vec-verbose:
 	@$(MAKE) _test BUILD_TYPE=TEST DS=vector
-	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
+	@$(MAKE) coverage
 
 test-all-verbose:
 	@$(MAKE) --always-make test-vec
-	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
-
+	@$(MAKE) coverage
 
 release:
 	@$(MAKE) lib BUILD_TYPE=RELEASE DS=ALL
@@ -67,6 +66,9 @@ else
 
 endif
 
+BUILD_TYPE ?= RELEASE
+DS ?= ALL
+
 # Relevant paths
 PATH_UNITY        = Unity/src/
 PATH_SRC          = src/
@@ -74,12 +76,16 @@ PATH_INC          = inc/
 PATH_CFG          = cfg/
 PATH_TEST_FILES   = test/
 PATH_BUILD        = build/
-PATH_OBJECT_FILES = $(PATH_BUILD)objs/
+ifeq ($(BUILD_TYPE), RELEASE)
+	PATH_OBJ_FILES = $(PATH_BUILD)rel/objs/
+else
+	PATH_OBJ_FILES = $(PATH_BUILD)dbg/objs/
+endif
 PATH_RESULTS      = $(PATH_BUILD)results/
 PATH_PROFILE      = $(PATH_BUILD)profile/
 PATH_BENCHMARK	   = benchmark/
 PATH_SCRIPTS      = scripts/
-BUILD_DIRS        = $(PATH_BUILD) $(PATH_OBJECT_FILES)
+BUILD_DIRS        = $(PATH_BUILD) $(PATH_OBJ_FILES)
 
 # Lists of files
 # The pattern employed here is to generate lists of files which shall then be
@@ -89,13 +95,10 @@ COLORIZE_UNITY_SCRIPT = $(PATH_SCRIPTS)colorize_unity.py
 
 UNITY_SRC_FILES = $(wildcard $(PATH_UNITY)*.c)
 UNITY_HDR_FILES = $(wildcard $(PATH_UNITY)*.h)
-UNITY_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(UNITY_SRC_FILES)))
+UNITY_OBJ_FILES = $(patsubst %.c, $(PATH_OBJ_FILES)%.o, $(notdir $(UNITY_SRC_FILES)))
 UNITY_LIB = unity
 
 COLLECTION_LIB_NAME = ccol
-
-BUILD_TYPE ?= RELEASE
-DS ?= ALL
 
 SHARED_SRC_FILES = $(PATH_SRC)ccol_shared.c
 SHARED_HDR_FILES = $(PATH_INC)ccol_shared.h
@@ -115,7 +118,7 @@ endif
 TEST_EXECUTABLES = $(patsubst %.c, $(PATH_BUILD)%.$(TARGET_EXTENSION), $(notdir $(SRC_TEST_FILES)))
 LIB_LIST_FILE = $(patsubst %.$(STATIC_LIB_EXTENSION), $(PATH_BUILD)%.lst, $(notdir $(LIB_FILE)))
 TEST_LIST_FILE = $(patsubst %.$(TARGET_EXTENSION), $(PATH_BUILD)%.lst, $(notdir $(TEST_EXECUTABLES)))
-TEST_OBJ_FILES = $(patsubst %.c, $(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_TEST_FILES)))
+TEST_OBJ_FILES = $(patsubst %.c, $(PATH_OBJ_FILES)%.o, $(notdir $(SRC_TEST_FILES)))
 RESULTS = $(patsubst %.c, $(PATH_RESULTS)%.txt, $(notdir $(SRC_TEST_FILES)))
 
 # List of all gcov coverage files I'm expecting
@@ -128,7 +131,7 @@ else ifeq ($(BUILD_TYPE), PROFILE)
 endif
 
 # List of all object files we're expecting for the data structures
-OBJ_FILES = $(patsubst %.c,$(PATH_OBJECT_FILES)%.o, $(notdir $(SRC_FILES)))
+OBJ_FILES = $(patsubst %.c,$(PATH_OBJ_FILES)%.o, $(notdir $(SRC_FILES)))
 
 # Compiler setup
 CROSS	= 
@@ -284,7 +287,7 @@ $(PATH_BUILD)%.$(TARGET_EXTENSION): $(TEST_OBJ_FILES) $(LIB_FILE)
 	@echo
 	$(CC) $(LDFLAGS) -o $@ $(TEST_OBJ_FILES) -l$(UNITY_LIB) -L$(PATH_BUILD) -l$(basename $(notdir $(LIB_FILE)))
 
-$(PATH_OBJECT_FILES)%.o: $(PATH_TEST_FILES)%.c $(COLORIZE_CPPCHECK_SCRIPT)
+$(PATH_OBJ_FILES)%.o: $(PATH_TEST_FILES)%.c $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the test file: $<..."
@@ -292,7 +295,7 @@ $(PATH_OBJECT_FILES)%.o: $(PATH_TEST_FILES)%.c $(COLORIZE_CPPCHECK_SCRIPT)
 	$(CC) -c $(CFLAGS_TEST) $< -o $@
 	@echo
 
-$(PATH_OBJECT_FILES)%.o: $(PATH_UNITY)%.c $(PATH_UNITY)%.h
+$(PATH_OBJ_FILES)%.o: $(PATH_UNITY)%.c $(PATH_UNITY)%.h
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the unity file: $<..."
@@ -311,7 +314,7 @@ unity_static_analysis: $(PATH_UNITY)unity.c $(COLORIZE_CPPCHECK_SCRIPT)
 ######################### Generic ##########################
 
 # Compile the collection source file into an object file
-$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h $(PATH_CFG)%_cfg.h $(COLORIZE_CPPCHECK_SCRIPT)
+$(PATH_OBJ_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h $(PATH_CFG)%_cfg.h $(COLORIZE_CPPCHECK_SCRIPT)
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."
@@ -323,7 +326,7 @@ $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h $(PATH_CFG)%_cfg.h $(COL
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
-$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
+$(PATH_OBJ_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."
@@ -335,7 +338,7 @@ $(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c $(PATH_INC)%.h
 	@echo
 	cppcheck --template='{severity}: {file}:{line}: {message}' $< 2>&1 | tee $(PATH_BUILD)cppcheck.log | python $(COLORIZE_CPPCHECK_SCRIPT)
 
-$(PATH_OBJECT_FILES)%.o : $(PATH_SRC)%.c
+$(PATH_OBJ_FILES)%.o : $(PATH_SRC)%.c
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mCompiling\033[0m the collection source file: $<..."
@@ -368,7 +371,7 @@ $(PATH_BUILD)%.lst: $(PATH_BUILD)%.$(TARGET_EXTENSION)
 # '/', not back slashes '\', and must not end with a forward slash. Otherwise,
 # gcov exists with a cryptic
 # 		<obj_dir>/.gcno:cannot open notes file
-# kind of error. Hence, I use $(<path>:%/=%) /w PATH_OBJECT_FILES.
+# kind of error. Hence, I use $(<path>:%/=%) /w PATH_OBJ_FILES.
 #
 # Also, I've redirected gcov's output because I want to prioritize viewing the
 # unit test results. Coverage results are meant to be inspected manually rather
@@ -378,7 +381,7 @@ $(PATH_SRC)%.c.gcov: $(PATH_SRC)%.c
 	@echo
 	@echo "----------------------------------------"
 	@echo -e "\033[36mAnalyzing coverage\033[0m for $<..."
-	$(GCOV) $(GCOV_FLAGS) --object-directory $(PATH_OBJECT_FILES:%/=%) $< > $(PATH_RESULTS)$(GCOV_CONSOLE_OUT_FILE)
+	$(GCOV) $(GCOV_FLAGS) --object-directory $(PATH_OBJ_FILES:%/=%) $< > $(PATH_RESULTS)$(GCOV_CONSOLE_OUT_FILE)
 	mv *.gcov $(PATH_RESULTS)
 	gcovr $(GCOVR_FLAGS)
 	@echo
@@ -388,7 +391,7 @@ $(PATH_SRC)%.c.gcov: $(PATH_SRC)%.c
 $(PATH_RESULTS):
 	$(MKDIR) $@
 
-$(PATH_OBJECT_FILES):
+$(PATH_OBJ_FILES):
 	$(MKDIR) $@
 
 $(PATH_BUILD):
@@ -401,7 +404,8 @@ $(PATH_PROFILE):
 .PHONY: clean
 clean:
 	@echo
-	$(CLEANUP) $(PATH_OBJECT_FILES)*.o
+	$(CLEANUP) $(PATH_BUILD)rel/*.o
+	$(CLEANUP) $(PATH_BUILD)dbg/*.o
 	$(CLEANUP) $(PATH_BUILD)*.$(TARGET_EXTENSION)
 	$(CLEANUP) $(PATH_RESULTS)*.txt
 	$(CLEANUP) $(PATH_BUILD)*.lst
