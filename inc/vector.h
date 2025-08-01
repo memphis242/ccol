@@ -406,6 +406,11 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
  */
 bool VIteratorNudge( struct VIterator * it );
 
+/**
+ * @brief See the next index of the iterator, but don't mutate the iterator.
+ * @param it Iterator handle (if NULL, returns PTRDIFF_MAX)
+ * @return next index if valid iterator, PTRDIFF_MAX otherwise
+ */
 ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 #define FOREACH_VEC_READ(type, var, vector, body) \

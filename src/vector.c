@@ -1082,7 +1082,7 @@ bool VIteratorNudge( struct VIterator * it )
    switch ( it->dir)
    {
       case IterDir_Right:
-         if ( it->curr_idx >= (ptrdiff_t)(it->end_idx - 1) )
+         if ( it->curr_idx >= (it->end_idx - 1) )
          {
             it->limit_hit = true;
             return false;
@@ -1116,6 +1116,8 @@ bool VIteratorNudge( struct VIterator * it )
          // TODO
          break;
 
+      case NumOfIterDirs:
+         // fallthrough
       default:
          // TODO
          break;
@@ -1132,7 +1134,7 @@ bool VIteratorNudge( struct VIterator * it )
 ptrdiff_t VIteratorPeek( struct VIterator * it )
 {
    if ( NULL == it || NULL == it->vec || NULL == it->vec->arr || it->dir >= NumOfIterDirs )
-      return 0;
+      return PTRDIFF_MAX;
 
    ptrdiff_t next_idx = it->end_idx;
    switch ( it->dir)
@@ -1162,12 +1164,15 @@ ptrdiff_t VIteratorPeek( struct VIterator * it )
          // TODO
          break;
 
+      case NumOfIterDirs:
+         // fallthrough
       default:
          // TODO
          break;
    }
 
-   assert(next_idx <= it->vec->len);
+   assert(next_idx <= (ptrdiff_t)it->vec->len);
+   assert(next_idx >= -1);
 
    return next_idx;
 }
