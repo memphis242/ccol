@@ -1073,7 +1073,8 @@ bool VIteratorNudge( struct VIterator * it )
    if ( NULL == it || NULL == it->vec || NULL == it->vec->arr ||
         it->curr_idx >= (ptrdiff_t)it->vec->len || it->end_idx > (ptrdiff_t)it->vec->len ||
         viter_span(it) > (ptrdiff_t)it->vec->len || viter_span(it) <= 0 ||
-        it->curr_idx == it->end_idx || it->dir >= NumOfIterDirs )
+        it->curr_idx == it->end_idx || it->dir >= NumOfIterDirs ||
+        it->limit_hit == true )
    {
       return false;
    }
@@ -1081,14 +1082,20 @@ bool VIteratorNudge( struct VIterator * it )
    switch ( it->dir)
    {
       case IterDir_Right:
-         if ( it->curr_idx >= (ptrdiff_t)(it->vec->len - 1) )
+         if ( it->curr_idx >= (ptrdiff_t)(it->end_idx - 1) )
+         {
+            it->limit_hit = true;
             return false;
+         }
          it->curr_idx++;
          break;
 
       case IterDir_Left:
-         if ( it->curr_idx <= 0 )
+         if ( it->curr_idx <= (it->end_idx + 1) )
+         {
+            it->limit_hit = true;
             return false;
+         }
          it->curr_idx--;
          break;
 

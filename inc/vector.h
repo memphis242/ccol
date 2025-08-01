@@ -47,6 +47,7 @@ struct VIterator
    const ptrdiff_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
    ptrdiff_t curr_idx;
    ptrdiff_t end_idx;
+   bool limit_hit;
    enum IterDirection dir; // Library supports wrapping around to reach end_idx
 };
 
@@ -409,19 +410,20 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 #define FOREACH_VEC_READ(type, var, vector, body) \
    { \
-      struct VIterator it_zKIlbpzi6gGEwzkt = \
+      struct VIterator _it_29LbM3 = \
       { \
          .data_element = NULL, \
          .vec = vector, \
          .init_idx = 0, \
          .curr_idx = 0, \
          .end_idx = (ptrdiff_t)VectorLength(vector), \
+         .limit_hit = false, \
          .dir = IterDir_Normal \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, 0); \
-      for ( type var = *(type *)it_zKIlbpzi6gGEwzkt.data_element; \
-            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
-            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = *(type *)it_zKIlbpzi6gGEwzkt.data_element ) \
+      _it_29LbM3.data_element = VectorGet(vector, 0); \
+      for ( type var = *(type *)_it_29LbM3.data_element; \
+            _it_29LbM3.limit_hit == false; \
+            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
       { \
          body \
       } \
@@ -429,7 +431,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 #define FOREACH_VEC_REF(type, var_ptr, vector, body) \
    { \
-      struct VIterator it_zKIlbpzi6gGEwzkt = \
+      struct VIterator _it_29LbM3 = \
       { \
          .data_element = NULL, \
          .vec = vector, \
@@ -438,10 +440,10 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          .end_idx = (ptrdiff_t)VectorLength(vector), \
          .dir = IterDir_Normal \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, 0); \
-      for ( type * var_ptr = it_zKIlbpzi6gGEwzkt.data_element; \
-            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
-            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var_ptr = it_zKIlbpzi6gGEwzkt.data_element ) \
+      _it_29LbM3.data_element = VectorGet(vector, 0); \
+      for ( type * var_ptr = _it_29LbM3.data_element; \
+            _it_29LbM3.curr_idx != _it_29LbM3.end_idx; \
+            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
       { \
          body \
       } \
@@ -449,7 +451,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 #define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, end_idx, direction, body) \
    { \
-      struct VIterator it_zKIlbpzi6gGEwzkt = \
+      struct VIterator _it_29LbM3 = \
       { \
          .data_element = NULL, \
          .vec = vector, \
@@ -458,10 +460,10 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          .end_idx = (ptrdiff_t)end_idx, \
          .dir = direction \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, start_idx); \
-      for ( type var = *(type *)it_zKIlbpzi6gGEwzkt.data_element; \
-            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
-            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var = *(type *)it_zKIlbpzi6gGEwzkt.data_element ) \
+      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
+      for ( type var = *(type *)_it_29LbM3.data_element; \
+            _it_29LbM3.curr_idx != _it_29LbM3.end_idx; \
+            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
       { \
          body \
       } \
@@ -469,7 +471,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 #define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, end_idx, direction, body) \
    { \
-      struct VIterator it_zKIlbpzi6gGEwzkt = \
+      struct VIterator _it_29LbM3 = \
       { \
          .data_element = NULL, \
          .vec = vector, \
@@ -478,10 +480,10 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          .end_idx = (ptrdiff_t)end_idx, \
          .dir = direction \
       }; \
-      it_zKIlbpzi6gGEwzkt.data_element = VectorGet(vector, start_idx); \
-      for ( type * var_ptr = it_zKIlbpzi6gGEwzkt.data_element; \
-            it_zKIlbpzi6gGEwzkt.curr_idx != it_zKIlbpzi6gGEwzkt.end_idx; \
-            VIteratorNudge(&it_zKIlbpzi6gGEwzkt), var_ptr = it_zKIlbpzi6gGEwzkt.data_element ) \
+      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
+      for ( type * var_ptr = _it_29LbM3.data_element; \
+            _it_29LbM3.curr_idx != _it_29LbM3.end_idx; \
+            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
       { \
          body \
       } \
