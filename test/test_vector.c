@@ -3961,9 +3961,11 @@ void test_VIterator_BasicRead_FullVec(void)
       .dir = IterDir_Normal
    };
    it_zKIlbpzi6gGEwzkt.data_element = VectorGet(v, 0);
+   bool nudge_took_affect = true;
    for ( int val = *(int *)it_zKIlbpzi6gGEwzkt.data_element;
-         VIteratorPeekNext(&it_zKIlbpzi6gGEwzkt) != it_zKIlbpzi6gGEwzkt.end_idx;
-         VIteratorNudge(&it_zKIlbpzi6gGEwzkt), val = *(int *)it_zKIlbpzi6gGEwzkt.data_element
+         (VIteratorPeek(&it_zKIlbpzi6gGEwzkt) != it_zKIlbpzi6gGEwzkt.end_idx &&
+                             nudge_took_affect == true);
+         nudge_took_affect = VIteratorNudge(&it_zKIlbpzi6gGEwzkt), val = *(int *)it_zKIlbpzi6gGEwzkt.data_element
    )
    {
       TEST_ASSERT_EQUAL_INT(i++, val);

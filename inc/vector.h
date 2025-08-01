@@ -405,7 +405,7 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
  */
 bool VIteratorNudge( struct VIterator * it );
 
-ptrdiff_t VIteratorPeekNext( struct VIterator * it );
+ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 #define FOREACH_VEC_READ(type, var, vector, body) \
    { \

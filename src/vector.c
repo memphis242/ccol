@@ -1122,7 +1122,7 @@ bool VIteratorNudge( struct VIterator * it )
    return true;
 }
 
-ptrdiff_t VIteratorPeekNext( struct VIterator * it )
+ptrdiff_t VIteratorPeek( struct VIterator * it )
 {
    if ( NULL == it || NULL == it->vec || NULL == it->vec->arr || it->dir >= NumOfIterDirs )
       return 0;
