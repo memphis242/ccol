@@ -496,3 +496,87 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          body \
       } \
    }
+
+#define FOREACH_VEC_READ_WDIR(type, var, vector, body, direction) \
+   { \
+      struct VIterator _it_29LbM3 = \
+      { \
+         .data_element = NULL, \
+         .vec = vector, \
+         .init_idx = 0, \
+         .curr_idx = 0, \
+         .end_idx = (ptrdiff_t)VectorLength(vector), \
+         .limit_hit = false, \
+         .dir = direction \
+      }; \
+      _it_29LbM3.data_element = VectorGet(vector, 0); \
+      for ( type var = *(type *)_it_29LbM3.data_element; \
+            _it_29LbM3.limit_hit == false; \
+            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
+      { \
+         body \
+      } \
+   }
+
+#define FOREACH_VEC_REF_WDIR(type, var_ptr, vector, body, direction) \
+   { \
+      struct VIterator _it_29LbM3 = \
+      { \
+         .data_element = NULL, \
+         .vec = vector, \
+         .init_idx = 0, \
+         .curr_idx = 0, \
+         .end_idx = (ptrdiff_t)VectorLength(vector), \
+         .limit_hit = false, \
+         .dir = direction \
+      }; \
+      _it_29LbM3.data_element = VectorGet(vector, 0); \
+      for ( type * var_ptr = _it_29LbM3.data_element; \
+            _it_29LbM3.limit_hit == false; \
+            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
+      { \
+         body \
+      } \
+   }
+
+#define FOREACH_VEC_READ_RNG_WDIR(type, var, vector, start_idx, one_past_final_idx, body, direction) \
+   { \
+      struct VIterator _it_29LbM3 = \
+      { \
+         .data_element = NULL, \
+         .vec = vector, \
+         .init_idx = start_idx, \
+         .curr_idx = start_idx, \
+         .end_idx = one_past_final_idx, \
+         .limit_hit = false, \
+         .dir = direction \
+      }; \
+      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
+      for ( type var = *(type *)_it_29LbM3.data_element; \
+            _it_29LbM3.limit_hit == false; \
+            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
+      { \
+         body \
+      } \
+   }
+
+#define FOREACH_VEC_REF_RNG_WDIR(type, var_ptr, vector, start_idx, one_past_final_idx, body, direction) \
+   { \
+      struct VIterator _it_29LbM3 = \
+      { \
+         .data_element = NULL, \
+         .vec = vector, \
+         .init_idx = start_idx, \
+         .curr_idx = start_idx, \
+         .end_idx = one_past_final_idx, \
+         .limit_hit = false, \
+         .dir = direction \
+      }; \
+      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
+      for ( type * var_ptr = _it_29LbM3.data_element; \
+            _it_29LbM3.limit_hit == false; \
+            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
+      { \
+         body \
+      } \
+   }

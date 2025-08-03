@@ -1100,26 +1100,55 @@ bool VIteratorNudge( struct VIterator * it )
          break;
 
       case IterDir_RightWrap:
-         // TODO
+         if ( it->curr_idx >= (it->end_idx - 1) ||
+              ( (it->curr_idx == ((ptrdiff_t)it->vec->len - 1)) && it->end_idx == 0 ) )
+         {
+            it->limit_hit = true;
+            return false;
+         }
+         // branchless way to wrap while avoiding modulus when incrementing by 1
+         it->curr_idx = it->curr_idx + 1 - 
+            ( (it->curr_idx + 1 == (ptrdiff_t)it->vec->len) * (ptrdiff_t)it->vec->len );
          break;
 
       case IterDir_LeftWrap:
-         // TODO
-         //it->curr_idx = (ptrdiff_t)it->vec->len - 1;
+         if ( it->curr_idx <= (it->end_idx + 1) ||
+              ( it->curr_idx == 0 && (it->end_idx == (ptrdiff_t)it->vec->len || it->end_idx == ((ptrdiff_t)it->vec->len - 1)) ) )
+         {
+            it->limit_hit = true;
+            return false;
+         }
+         // branchless way to wrap while avoiding modulus when decrementing by 1
+         it->curr_idx = it->curr_idx - 1 + 
+            ( (it->curr_idx - 1 < 0) * (ptrdiff_t)it->vec->len );
          break;
 
       case IterDir_RightBounce:
-         // TODO
+         if ( it->curr_idx >= (it->end_idx - 1) ||
+              ( (it->curr_idx == ((ptrdiff_t)it->vec->len - 1)) && it->end_idx == 0 ) )
+         {
+            it->limit_hit = true;
+            return false;
+         }
+         // TODO: Bounce needs extra bounce flag
          break;
 
       case IterDir_LeftBounce:
-         // TODO
+         if ( it->curr_idx <= (it->end_idx + 1) )
+         {
+            it->limit_hit = true;
+            return false;
+         }
+         // TODO: Bounce needs extra bounce flag
          break;
 
       case NumOfIterDirs:
          // fallthrough
       default:
-         // TODO
+         // Should never get here, because the function checks for limits on
+         // it->dir, but -Wswitch-enum doesn't know that, and I don't want to
+         // clutter the code here /w compiler-specific pragma warning suppressions..
+         return false;
          break;
    }
 
@@ -1148,12 +1177,14 @@ ptrdiff_t VIteratorPeek( struct VIterator * it )
          break;
 
       case IterDir_RightWrap:
-         // TODO
+         // branchless way to wrap while avoiding modulus when incrementing by 1
+         next_idx = it->curr_idx + 1 - 
+            ( (it->curr_idx + 1 == (ptrdiff_t)it->vec->len) * (ptrdiff_t)it->vec->len );
          break;
 
       case IterDir_LeftWrap:
-         // TODO
-         //it->curr_idx = (ptrdiff_t)it->vec->len - 1;
+         next_idx = it->curr_idx - 1 + 
+            ( (it->curr_idx - 1 < 0) * (ptrdiff_t)it->vec->len );
          break;
 
       case IterDir_RightBounce:
@@ -1167,7 +1198,10 @@ ptrdiff_t VIteratorPeek( struct VIterator * it )
       case NumOfIterDirs:
          // fallthrough
       default:
-         // TODO
+         // Should never get here, because the function checks for limits on
+         // it->dir, but -Wswitch-enum doesn't know that, and I don't want to
+         // clutter the code here /w compiler-specific pragma warning suppressions..
+         return PTRDIFF_MAX;
          break;
    }
 
