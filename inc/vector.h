@@ -23,10 +23,8 @@
 
 // Opaque type declaration to act as a handle for the user to pass into the API
 struct Vector;
+struct VIterator;
 
-// Transparent types
-// NOTE: The user can very well define their own iterator, but here is one
-//       that is explicitly supported with the VIteratorNudge() function.
 enum IterDirection
 {
    IterDir_Right,
@@ -38,17 +36,6 @@ enum IterDirection
    IterDir_RightBounce,
    IterDir_LeftBounce,
    NumOfIterDirs
-};
-
-struct VIterator
-{
-   void * data_element; // Updated via VIteratorNudge()
-   struct Vector * vec;
-   const ptrdiff_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
-   ptrdiff_t curr_idx;
-   ptrdiff_t end_idx;
-   bool limit_hit; // This helps clarify when the iterator has gone through the last element
-   enum IterDirection dir; // Library supports wrapping around to reach end_idx
 };
 
 /* Public API */
@@ -400,6 +387,54 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
 /***************************** Vector Iterator API ****************************/
 
 /**
+ * @brief Creates a new VIterator object that can be used to iterate over a vector
+ *        in a variety of ways (forward, reverse, wrap, bounce, ...).
+ * @param vec The vector to associate /w this iterator
+ * @param idx_start The starting index of the iterator
+ * @param idx_end The index _after_ the one you wish to finally go through
+ *                (e.g., to go up to _and including_ index i, you'd use i ± 1
+ *                 depending on the direction you're going)
+ * @param direction The direction the iterator will go through the vector. See
+ *                  the enum IterDirection list for your options.
+ * @return The new VIterator object if cfg is valid & allocation succeeded; NULL otherwise
+ */
+struct VIterator * VIteratorNew( const struct Vector * vec,
+                                 ptrdiff_t idx_start,
+                                 ptrdiff_t idx_end,
+                                 enum IterDirection direction );
+
+/**
+ * @brief Return a pointer to the data being pointed to by the iterator.
+ * @param it The iterator handle
+ * @return Pointer to the data at the current idx of the iterator
+ */
+void * VIteratorData( const struct VIterator * it );
+
+/**
+ * @brief Retrieve the initial idx of the iterator from its conception.
+ * @param it The iterator handle
+ */
+ptrdiff_t VIteratorInitIdx( const struct VIterator * it );
+
+/**
+ * @brief Retrieve the current idx of the iterator.
+ * @param it The iterator handle
+ */
+ptrdiff_t VIteratorCurrIdx( const struct VIterator * it );
+
+/**
+ * @brief Retrieve the end idx of the iterator from its conception.
+ * @param it The iterator handle
+ */
+ptrdiff_t VIteratorEndIdx( const struct VIterator * it );
+
+/**
+ * @brief Reset the current idx of the iterator to its initial idx.
+ * @param it The iterator handle
+ */
+ptrdiff_t VIteratorReset( const struct VIterator * it );
+
+/**
  * @brief Moves the current index of the iterator to the applicable next index.
  * @param it Iterator handle (if NULL, returns false)
  * @return true if the nudge was successful, false otherwise
@@ -412,6 +447,9 @@ bool VIteratorNudge( struct VIterator * it );
  * @return next index if valid iterator, PTRDIFF_MAX otherwise
  */
 ptrdiff_t VIteratorPeek( struct VIterator * it );
+
+
+/** Iterator Convenience Macros **/
 
 #define FOREACH_VEC_READ(type, var, vector, body) \
    { \
@@ -447,132 +485,6 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          .dir = IterDir_Normal \
       }; \
       _it_29LbM3.data_element = VectorGet(vector, 0); \
-      for ( type * var_ptr = _it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
-      { \
-         body \
-      } \
-   }
-
-#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, one_past_final_idx, body) \
-   { \
-      struct VIterator _it_29LbM3 = \
-      { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = start_idx, \
-         .curr_idx = start_idx, \
-         .end_idx = one_past_final_idx, \
-         .limit_hit = false, \
-         .dir = IterDir_Normal \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
-      for ( type var = *(type *)_it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
-      { \
-         body \
-      } \
-   }
-
-#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, one_past_final_idx, body) \
-   { \
-      struct VIterator _it_29LbM3 = \
-      { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = start_idx, \
-         .curr_idx = start_idx, \
-         .end_idx = one_past_final_idx, \
-         .limit_hit = false, \
-         .dir = IterDir_Normal \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
-      for ( type * var_ptr = _it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
-      { \
-         body \
-      } \
-   }
-
-#define FOREACH_VEC_READ_WDIR(type, var, vector, direction, body) \
-   { \
-      struct VIterator _it_29LbM3 = \
-      { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = 0, \
-         .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vector), \
-         .limit_hit = false, \
-         .dir = direction \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, 0); \
-      for ( type var = *(type *)_it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
-      { \
-         body \
-      } \
-   }
-
-#define FOREACH_VEC_REF_WDIR(type, var_ptr, vector, direction, body) \
-   { \
-      struct VIterator _it_29LbM3 = \
-      { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = 0, \
-         .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vector), \
-         .limit_hit = false, \
-         .dir = direction \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, 0); \
-      for ( type * var_ptr = _it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
-      { \
-         body \
-      } \
-   }
-
-#define FOREACH_VEC_READ_RNG_WDIR(type, var, vector, start_idx, one_past_final_idx, direction, body) \
-   { \
-      struct VIterator _it_29LbM3 = \
-      { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = start_idx, \
-         .curr_idx = start_idx, \
-         .end_idx = one_past_final_idx, \
-         .limit_hit = false, \
-         .dir = direction \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
-      for ( type var = *(type *)_it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
-      { \
-         body \
-      } \
-   }
-
-#define FOREACH_VEC_REF_RNG_WDIR(type, var_ptr, vector, start_idx, one_past_final_idx, direction, body) \
-   { \
-      struct VIterator _it_29LbM3 = \
-      { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = start_idx, \
-         .curr_idx = start_idx, \
-         .end_idx = one_past_final_idx, \
-         .limit_hit = false, \
-         .dir = direction \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, start_idx); \
       for ( type * var_ptr = _it_29LbM3.data_element; \
             _it_29LbM3.limit_hit == false; \
             (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \

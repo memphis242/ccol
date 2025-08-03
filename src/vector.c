@@ -70,6 +70,17 @@ struct Vector
    struct Allocator mem_mgr;
 };
 
+struct VIterator
+{
+   void * data_element; // Updated via VIteratorNudge()
+   struct Vector * vec;
+   const ptrdiff_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
+   ptrdiff_t curr_idx;
+   ptrdiff_t end_idx;
+   bool limit_hit; // This helps clarify when the iterator has gone through the last element
+   enum IterDirection dir; // Library supports wrapping around to reach end_idx
+};
+
 enum ShiftDir
 {
    ShiftDir_Left,
@@ -1068,6 +1079,60 @@ bool VectorRangeClear( struct Vector * self,
 /******************************************************************************/
 /****************************** Vector Iterator *******************************/
 
+struct VIterator * VIteratorNew( const struct Vector * vec,
+                                 ptrdiff_t idx_start,
+                                 ptrdiff_t idx_end,
+                                 enum IterDirection direction )
+{
+   struct VIterator _it_29LbM3 = \
+   { \
+      .data_element = NULL, \
+      .vec = vector, \
+      .init_idx = 0, \
+      .curr_idx = 0, \
+      .end_idx = (ptrdiff_t)VectorLength(vector), \
+      .limit_hit = false, \
+      .dir = IterDir_Normal \
+   }; \
+}
+
+/******************************************************************************/
+
+void * VIteratorData( const struct VIterator * it )
+{
+
+}
+
+/******************************************************************************/
+
+ptrdiff_t VIteratorInitIdx( const struct VIterator * it )
+{
+
+}
+
+/******************************************************************************/
+
+ptrdiff_t VIteratorCurrIdx( const struct VIterator * it )
+{
+
+}
+
+/******************************************************************************/
+
+ptrdiff_t VIteratorEndIdx( const struct VIterator * it )
+{
+
+}
+
+/******************************************************************************/
+
+ptrdiff_t VIteratorReset( const struct VIterator * it )
+{
+
+}
+
+/******************************************************************************/
+
 bool VIteratorNudge( struct VIterator * it )
 {
    if ( NULL == it || NULL == it->vec || NULL == it->vec->arr ||
@@ -1160,6 +1225,8 @@ bool VIteratorNudge( struct VIterator * it )
    return true;
 }
 
+/******************************************************************************/
+
 ptrdiff_t VIteratorPeek( struct VIterator * it )
 {
    if ( NULL == it || NULL == it->vec || NULL == it->vec->arr || it->dir >= NumOfIterDirs )
@@ -1211,6 +1278,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it )
    return next_idx;
 }
 
+/******************************************************************************/
 
 /* Private Function Implementations */
 
