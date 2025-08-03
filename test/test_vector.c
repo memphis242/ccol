@@ -506,7 +506,7 @@ int main(void)
    RUN_TEST(test_VIterator_BasicUpdate_FullVec);
    RUN_TEST(test_VIterator_BasicRead_SubRng_Normal);
    RUN_TEST(test_VIterator_BasicUpdate_SubRng_Normal);
-//   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
 //   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Reverse);
 //   RUN_TEST(test_VIterator_BasicRead_SubRng_NormalWithWrap);
 //   RUN_TEST(test_VIterator_BasicUpdate_SubRng_NormalWithWrap);
@@ -4008,7 +4008,13 @@ void test_VIterator_BasicUpdate_SubRng_Normal(void)
 
 void test_VIterator_BasicRead_SubRng_Reverse(void)
 {
-   TEST_ASSERT_TRUE(false);
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1,2,3,4,5}, 5, NULL);
+   int i = 5;
+   FOREACH_VEC_READ_WDIR(int, val, v, IterDir_Reverse,
+      TEST_ASSERT_EQUAL_INT(i--, val);
+   );
+   TEST_ASSERT_EQUAL_INT(-1, i);
+   VectorFree(v);
 }
 
 void test_VIterator_BasicUpdate_SubRng_Reverse(void)

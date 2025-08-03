@@ -497,7 +497,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_READ_WDIR(type, var, vector, body, direction) \
+#define FOREACH_VEC_READ_WDIR(type, var, vector, direction, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
@@ -518,7 +518,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF_WDIR(type, var_ptr, vector, body, direction) \
+#define FOREACH_VEC_REF_WDIR(type, var_ptr, vector, direction, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
@@ -539,7 +539,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_READ_RNG_WDIR(type, var, vector, start_idx, one_past_final_idx, body, direction) \
+#define FOREACH_VEC_READ_RNG_WDIR(type, var, vector, start_idx, one_past_final_idx, direction, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
@@ -560,7 +560,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF_RNG_WDIR(type, var_ptr, vector, start_idx, one_past_final_idx, body, direction) \
+#define FOREACH_VEC_REF_RNG_WDIR(type, var_ptr, vector, start_idx, one_past_final_idx, direction, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
