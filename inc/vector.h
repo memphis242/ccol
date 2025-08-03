@@ -455,7 +455,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, one_past_final_idx, direction, body) \
+#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, one_past_final_idx, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
@@ -476,7 +476,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       } \
    }
 
-#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, one_past_final_idx, direction, body) \
+#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, one_past_final_idx, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
