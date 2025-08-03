@@ -503,7 +503,7 @@ int main(void)
    //RUN_TEST(test_VectorRange_ClearElementsInRng_InvalidVec);
 
    RUN_TEST(test_VIterator_BasicRead_FullVec);
-//   RUN_TEST(test_VIterator_BasicUpdate_FullVec);
+   RUN_TEST(test_VIterator_BasicUpdate_FullVec);
 //   RUN_TEST(test_VIterator_BasicRead_SubRng_Normal);
 //   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Normal);
 //   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
@@ -3960,16 +3960,16 @@ void test_VIterator_BasicRead_FullVec(void)
 
 void test_VIterator_BasicUpdate_FullVec(void)
 {
-//   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
-//   FOREACH_VEC_REF( int, valptr, v,
-//      (*valptr)++;
-//   );
-//   int i = 2;
-//   FOREACH_VEC_READ( int, val, v,
-//      TEST_ASSERT_EQUAL_INT(i++, val);
-//   );
-//   TEST_ASSERT_EQUAL_INT(7, i); // Confirm that we really did iterate through all elements
-//   VectorFree(v);
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
+   FOREACH_VEC_REF( int, valptr, v,
+      (*valptr)++;
+   );
+   int i = 2;
+   FOREACH_VEC_READ( int, val, v,
+      TEST_ASSERT_EQUAL_INT(i++, val);
+   );
+   TEST_ASSERT_EQUAL_INT(7, i); // Confirm that we really did iterate through all elements
+   VectorFree(v);
 }
 
 void test_VIterator_BasicRead_SubRng_Normal(void)

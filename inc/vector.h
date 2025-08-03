@@ -47,7 +47,7 @@ struct VIterator
    const ptrdiff_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
    ptrdiff_t curr_idx;
    ptrdiff_t end_idx;
-   bool limit_hit;
+   bool limit_hit; // This helps clarify when the iterator has gone through the last element
    enum IterDirection dir; // Library supports wrapping around to reach end_idx
 };
 
@@ -443,51 +443,54 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          .init_idx = 0, \
          .curr_idx = 0, \
          .end_idx = (ptrdiff_t)VectorLength(vector), \
+         .limit_hit = false, \
          .dir = IterDir_Normal \
       }; \
       _it_29LbM3.data_element = VectorGet(vector, 0); \
       for ( type * var_ptr = _it_29LbM3.data_element; \
-            _it_29LbM3.curr_idx != _it_29LbM3.end_idx; \
+            _it_29LbM3.limit_hit == false; \
             (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
       { \
          body \
       } \
    }
 
-#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, end_idx, direction, body) \
+#define FOREACH_VEC_READ_RNG(type, var, vector, start_idx, one_past_final_idx, direction, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
          .data_element = NULL, \
          .vec = vector, \
-         .init_idx = (ptrdiff_t)start_idx, \
-         .curr_idx = (ptrdiff_t)start_idx, \
-         .end_idx = (ptrdiff_t)end_idx, \
-         .dir = direction \
+         .init_idx = start_idx, \
+         .curr_idx = start_idx, \
+         .end_idx = one_past_final_idx, \
+         .limit_hit = false, \
+         .dir = IterDir_Normal \
       }; \
       _it_29LbM3.data_element = VectorGet(vector, start_idx); \
       for ( type var = *(type *)_it_29LbM3.data_element; \
-            _it_29LbM3.curr_idx != _it_29LbM3.end_idx; \
+            _it_29LbM3.limit_hit == false; \
             (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
       { \
          body \
       } \
    }
 
-#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, end_idx, direction, body) \
+#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, start_idx, one_past_final_idx, direction, body) \
    { \
       struct VIterator _it_29LbM3 = \
       { \
          .data_element = NULL, \
          .vec = vector, \
-         .init_idx = (ptrdiff_t)start_idx, \
-         .curr_idx = (ptrdiff_t)start_idx, \
-         .end_idx = (ptrdiff_t)end_idx, \
-         .dir = direction \
+         .init_idx = start_idx, \
+         .curr_idx = start_idx, \
+         .end_idx = one_past_final_idx, \
+         .limit_hit = false, \
+         .dir = IterDir_Normal \
       }; \
       _it_29LbM3.data_element = VectorGet(vector, start_idx); \
       for ( type * var_ptr = _it_29LbM3.data_element; \
-            _it_29LbM3.curr_idx != _it_29LbM3.end_idx; \
+            _it_29LbM3.limit_hit == false; \
             (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
       { \
          body \
