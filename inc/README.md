@@ -66,6 +66,7 @@ bool VectorRangeSetToVal( struct Vector * self, size_t idx_start, size_t idx_end
 bool VectorRangeRemove( struct Vector * self, size_t idx_start, size_t idx_end, void * buf );
 bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
 ```
+
 ### Example Usage
 ```c
 struct Vector * vec = VectorNew( sizeof(int), 10, 100, 0, NULL );
