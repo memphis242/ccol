@@ -439,6 +439,16 @@ ptrdiff_t VIteratorCurrIdx( const struct VIterator * it );
 ptrdiff_t VIteratorEndIdx( const struct VIterator * it );
 
 /**
+ * @brief Returns whether the iterator has been nudged to its limit (after the final index)
+ * @param it The iterator handle
+ * @example Say the iterator is over indices 0 _through_ 5 (idx_start = 0, idx_end = 6).
+ *          The nudge from 4 → 5 does **not** constitute a limit being hit.
+ *          However, nudging again after curr_idx == 5 does cause the "limit hit"
+ *          flag to be set. This is useful in for-each looping as the end condition.
+ */
+bool VIteratorLimitHit( const struct VIterator * it );
+
+/**
  * @brief Reset the current idx of the iterator to its initial idx.
  * @param it The iterator handle
  */
@@ -463,42 +473,88 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 #define FOREACH_VEC_READ(type, var, vector, body) \
    { \
-      struct VIterator _it_29LbM3 = \
+      struct VIterator * _it_29LbM3 = \
+         VIteratorNew( \
+            vector, \
+            0, \
+            VectorLength(vector), \
+            IterDir_Normal \
+         );\
+      assert( _it_28LbM3 != NULL ); \
+      if ( _it_28LbM3 != NULL ) \
       { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = 0, \
-         .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vector), \
-         .limit_hit = false, \
-         .dir = IterDir_Normal \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, 0); \
-      for ( type var = *(type *)_it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var = *(type *)_it_29LbM3.data_element ) \
-      { \
-         body \
+         for ( type var = *(type *)VIteratorData(_it_29LbM3); \
+               !VIteratorLimitHit(_it_29LbM3); \
+               (void)VIteratorNudge(&_it_29LbM3), var = *(type *)VIteratorData(_it_29LbM3) ) \
+         { \
+            body \
+         } \
       } \
+      VIteratorFree(_it_28LbM3); \
    }
 
 #define FOREACH_VEC_REF(type, var_ptr, vector, body) \
    { \
-      struct VIterator _it_29LbM3 = \
+      struct VIterator * _it_29LbM3 = \
+         VIteratorNew( \
+            vector, \
+            0, \
+            VectorLength(vector), \
+            IterDir_Normal \
+         );\
+      assert( _it_28LbM3 != NULL ); \
+      if ( _it_28LbM3 != NULL ) \
       { \
-         .data_element = NULL, \
-         .vec = vector, \
-         .init_idx = 0, \
-         .curr_idx = 0, \
-         .end_idx = (ptrdiff_t)VectorLength(vector), \
-         .limit_hit = false, \
-         .dir = IterDir_Normal \
-      }; \
-      _it_29LbM3.data_element = VectorGet(vector, 0); \
-      for ( type * var_ptr = _it_29LbM3.data_element; \
-            _it_29LbM3.limit_hit == false; \
-            (void)VIteratorNudge(&_it_29LbM3), var_ptr = _it_29LbM3.data_element ) \
-      { \
-         body \
+         for ( type var_ptr = VIteratorData(_it_29LbM3); \
+               !VIteratorLimitHit(_it_29LbM3); \
+               (void)VIteratorNudge(&_it_29LbM3), var_ptr = VIteratorData(_it_29LbM3) ) \
+         { \
+            body \
+         } \
       } \
+      VIteratorFree(_it_28LbM3); \
+   }
+
+#define FOREACH_VEC_READ_RNG(type, var, vector, idx_start, idx_end, direction, body) \
+   { \
+      struct VIterator * _it_29LbM3 = \
+         VIteratorNew( \
+            vector, \
+            idx_start, \
+            idx_end, \
+            direction \
+         );\
+      assert( _it_28LbM3 != NULL ); \
+      if ( _it_28LbM3 != NULL ) \
+      { \
+         for ( type var = *(type *)VIteratorData(_it_29LbM3); \
+               !VIteratorLimitHit(_it_29LbM3); \
+               (void)VIteratorNudge(&_it_29LbM3), var = *(type *)VIteratorData(_it_29LbM3) ) \
+         { \
+            body \
+         } \
+      } \
+      VIteratorFree(_it_28LbM3); \
+   }
+
+#define FOREACH_VEC_REF_RNG(type, var_ptr, vector, idx_start, idx_end, direction, body) \
+   { \
+      struct VIterator * _it_29LbM3 = \
+         VIteratorNew( \
+            vector, \
+            idx_start, \
+            idx_end, \
+            direction \
+         );\
+      assert( _it_28LbM3 != NULL ); \
+      if ( _it_28LbM3 != NULL ) \
+      { \
+         for ( type var = VIteratorData(_it_29LbM3); \
+               !VIteratorLimitHit(_it_29LbM3); \
+               (void)VIteratorNudge(&_it_29LbM3), var = VIteratorData(_it_29LbM3) ) \
+         { \
+            body \
+         } \
+      } \
+      VIteratorFree(_it_28LbM3); \
    }

@@ -1146,6 +1146,14 @@ ptrdiff_t VIteratorEndIdx( const struct VIterator * it )
 
 /******************************************************************************/
 
+bool VIteratorLimitHit( const struct VIterator * it )
+{
+   if ( it == NULL || !viter_isalloc(it) ) return false;
+   return it->limit_hit;
+}
+
+/******************************************************************************/
+
 void VIteratorReset( struct VIterator * it )
 {
    if ( it == NULL || !viter_isalloc(it) ) return;
