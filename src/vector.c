@@ -26,12 +26,6 @@
 
 /* Local Macro Definitions */
 
-#ifdef UNIT_TEST
-#define STATIC
-#else
-#define STATIC static
-#endif
-
 // Macro constants
 #define EXPANSION_FACTOR                    (2)   // TODO: Make the expansion factor user-configurable - note that a floating-point number causes a warning: conversion from 'size_t' {aka 'long long unsigned int'} to 'double' may change value [-Wconversion]
 #define DEFAULT_INITIAL_CAPACITY            (10)  //! Not 1 because there would likely be a resize shortly after
@@ -74,7 +68,7 @@ struct VIterator
 {
    void * data_element; // Updated via VIteratorNudge()
    struct Vector * vec;
-   const ptrdiff_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
+   ptrdiff_t init_idx; // This makes this iterator "resettable" - i.e., iter.curr_idx = iter.init_idx
    ptrdiff_t curr_idx;
    ptrdiff_t end_idx;
    bool limit_hit; // This helps clarify when the iterator has gone through the last element
@@ -100,9 +94,9 @@ static void shiftn( struct Vector *, size_t, enum ShiftDir, size_t);
 
 ptrdiff_t viter_span(struct VIterator * it);
 
-//STATIC struct VIterator * viter_pool_dispatch(void);
-//STATIC void               viter_pool_reclaim(const struct VIterator * ptr);
-//STATIC bool               viter_isalloc(const struct VIterator * ptr);
+static struct VIterator * viter_pool_dispatch(void);
+static void               viter_pool_reclaim(const struct VIterator * ptr);
+static bool               viter_isalloc(const struct VIterator * ptr);
 
 /* Public API Implementations */
 
@@ -1079,63 +1073,91 @@ bool VectorRangeClear( struct Vector * self,
 /******************************************************************************/
 /****************************** Vector Iterator *******************************/
 
-struct VIterator * VIteratorNew( const struct Vector * vec,
+struct VIterator * VIteratorNew( const struct Vector * vector,
                                  ptrdiff_t idx_start,
                                  ptrdiff_t idx_end,
                                  enum IterDirection direction )
 {
-   struct VIterator _it_29LbM3 = \
-   { \
-      .data_element = NULL, \
-      .vec = vector, \
-      .init_idx = 0, \
-      .curr_idx = 0, \
-      .end_idx = (ptrdiff_t)VectorLength(vector), \
-      .limit_hit = false, \
-      .dir = IterDir_Normal \
-   }; \
+   if ( vector == NULL || !vec_isalloc(vector) ||
+        idx_start <  0 || idx_start >= (ptrdiff_t)vector->len ||
+        idx_end   < -1 || idx_end   >  (ptrdiff_t)vector->len ||
+        idx_start == idx_end ||
+        direction >= NumOfIterDirs ||
+        ( direction == IterDir_Right && idx_start > idx_end ) ||
+        ( direction == IterDir_Left  && idx_start < idx_end ) )
+   {
+      return NULL;
+   }
+
+   struct VIterator * new_iterator = viter_pool_dispatch();
+
+   if ( new_iterator == NULL )
+      return NULL;
+
+   new_iterator->vec = (struct Vector *)vector; // Casting away const'ness even though I'm not modifying the object here...
+   new_iterator->data_element = PTR_TO_IDX(vector, (size_t)idx_start);
+   new_iterator->init_idx = idx_start;
+   new_iterator->curr_idx = idx_start;
+   new_iterator->end_idx = idx_end;
+   new_iterator->limit_hit = false;
+   new_iterator->dir = direction;
+
+   return new_iterator;
+}
+
+/******************************************************************************/
+
+void VIteratorFree( struct VIterator * it )
+{
+   viter_pool_reclaim(it);
 }
 
 /******************************************************************************/
 
 void * VIteratorData( const struct VIterator * it )
 {
-
+   if ( it == NULL || !viter_isalloc(it) ) return NULL;
+   return it->data_element;
 }
 
 /******************************************************************************/
 
 ptrdiff_t VIteratorInitIdx( const struct VIterator * it )
 {
-
+   if ( it == NULL || !viter_isalloc(it) ) return PTRDIFF_MAX;
+   return it->init_idx;
 }
 
 /******************************************************************************/
 
 ptrdiff_t VIteratorCurrIdx( const struct VIterator * it )
 {
-
+   if ( it == NULL || !viter_isalloc(it) ) return PTRDIFF_MAX;
+   return it->curr_idx;
 }
 
 /******************************************************************************/
 
 ptrdiff_t VIteratorEndIdx( const struct VIterator * it )
 {
-
+   if ( it == NULL || !viter_isalloc(it) ) return PTRDIFF_MAX;
+   return it->end_idx;
 }
 
 /******************************************************************************/
 
-ptrdiff_t VIteratorReset( const struct VIterator * it )
+void VIteratorReset( struct VIterator * it )
 {
-
+   if ( it == NULL || !viter_isalloc(it) ) return;
+   it->curr_idx = it->init_idx;
 }
 
 /******************************************************************************/
 
 bool VIteratorNudge( struct VIterator * it )
 {
-   if ( NULL == it || NULL == it->vec || NULL == it->vec->arr ||
+   if ( NULL == it  || !viter_isalloc(it) ||
+        NULL == it->vec || NULL == it->vec->arr ||
         it->curr_idx >= (ptrdiff_t)it->vec->len || it->end_idx > (ptrdiff_t)it->vec->len ||
         viter_span(it) > (ptrdiff_t)it->vec->len || viter_span(it) <= 0 ||
         it->curr_idx == it->end_idx || it->dir >= NumOfIterDirs ||
@@ -1229,8 +1251,12 @@ bool VIteratorNudge( struct VIterator * it )
 
 ptrdiff_t VIteratorPeek( struct VIterator * it )
 {
-   if ( NULL == it || NULL == it->vec || NULL == it->vec->arr || it->dir >= NumOfIterDirs )
+   if ( NULL == it || viter_isalloc(it) ||
+        NULL == it->vec || NULL == it->vec->arr ||
+        it->dir >= NumOfIterDirs )
+   {
       return PTRDIFF_MAX;
+   }
 
    ptrdiff_t next_idx = it->end_idx;
    switch ( it->dir)
@@ -1496,13 +1522,13 @@ struct VectorPool
    size_t next_idx;
 };
 
-STATIC struct VectorPool VecPool;
+static struct VectorPool VecPool;
 
 /**
  * @brief Allocates a new Vector structure from a static arena.
  * @return Pointer to the allocated Vector struct if successful, NULL otherwise.
  */
-STATIC struct Vector * vec_pool_dispatch(void)
+static struct Vector * vec_pool_dispatch(void)
 {
    assert( VecPool.next_idx < VEC_STRUCT_POOL_SIZE );
    assert( VecPool.pool != NULL );
@@ -1542,7 +1568,7 @@ STATIC struct Vector * vec_pool_dispatch(void)
    return new_vec;
 }
 
-STATIC void vec_pool_reclaim(const struct Vector * ptr)
+static void vec_pool_reclaim(const struct Vector * ptr)
 {
    if ( NULL == ptr )
    {
@@ -1571,7 +1597,7 @@ STATIC void vec_pool_reclaim(const struct Vector * ptr)
    }
 }
 
-STATIC bool vec_isalloc(const struct Vector * ptr)
+static bool vec_isalloc(const struct Vector * ptr)
 {
    for ( size_t i = 0; i < VEC_STRUCT_POOL_SIZE; i++ )
    {
@@ -1584,104 +1610,104 @@ STATIC bool vec_isalloc(const struct Vector * ptr)
    return false;
 }
 
-///*** VIterator Arena ***/
-//
-//struct VIteratorPoolItem
-//{
-//   struct VIterator viter;
-//   bool is_allocated;
-//};
-//
-//struct VIteratorPool
-//{
-//   struct VIteratorPoolItem pool[VITERATOR_STRUCT_POOL_SIZE];
-//   size_t next_idx;
-//};
-//
-//STATIC struct VIteratorPool VIterPool;
-//
-///**
-// * @brief Allocates a new VIterator structure from a static arena.
-// * @return Pointer to the allocated VIterator struct if successful, NULL otherwise.
-// */
-//STATIC struct VIterator * viter_pool_dispatch(void)
-//{
-//   assert( VIterPool.next_idx < VITERATOR_STRUCT_POOL_SIZE );
-//   assert( VIterPool.pool != NULL );
-//#ifndef NDEBUG
-//   // If next idx is allocated, by design, that must mean we are out of vitertors.
-//   if ( VIterPool.pool[VIterPool.next_idx].is_allocated == true )
-//   {
-//      for ( size_t i = 0; i < VITERATOR_STRUCT_POOL_SIZE; i++ )
-//      {
-//         assert( VIterPool.pool[i].is_allocated == true );
-//      }
-//   }
-//#endif
-//
-//   if ( VIterPool.pool[VIterPool.next_idx].is_allocated )
-//   {
-//      return NULL;
-//   }
-//
-//   struct VIterator * new_viter = &VIterPool.pool[VIterPool.next_idx].viter;
-//   VIterPool.pool[VIterPool.next_idx].is_allocated = true;
-//
-//   // 🗒️: Potential to place this in a separate asynchronous thread?
-//   // Find the next available spot
-//   size_t j = VIterPool.next_idx;
-//   for ( size_t i = 1; i < VITERATOR_STRUCT_POOL_SIZE; i++, j++ )
-//   {
-//      if ( j >= VITERATOR_STRUCT_POOL_SIZE ) j = 0; // Wrap-around
-//
-//      if ( !VIterPool.pool[j].is_allocated )
-//      {
-//         VIterPool.next_idx = j;
-//         break;
-//      }
-//   }
-//
-//   return new_viter;
-//}
-//
-//STATIC void viter_pool_reclaim(const struct VIterator * ptr)
-//{
-//   if ( NULL == ptr )
-//   {
-//      return;
-//   }
-//
-//   // Find the vitertor address that matches this pointer
-//   bool found = false;
-//   for ( size_t i = 0; i < VITERATOR_STRUCT_POOL_SIZE; i++ )
-//   {
-//      if ( ptr == &VIterPool.pool[i].viter )
-//      {
-//         found = true;
-//         if ( !VIterPool.pool[i].is_allocated )
-//         {
-//            // TODO: Raise exception for attempting to free an unallocated viter
-//         }
-//         VIterPool.pool[i].is_allocated = false;
-//         break;
-//      }
-//   }
-//
-//   if ( !found )
-//   {
-//      // TODO: Raise an exception for attempting to free a random address
-//   }
-//}
-//
-//STATIC bool viter_isalloc(const struct VIterator * ptr)
-//{
-//   for ( size_t i = 0; i < VITERATOR_STRUCT_POOL_SIZE; i++ )
-//   {
-//      if ( ptr == &VIterPool.pool[i].viter )
-//      {
-//         return VIterPool.pool[i].is_allocated;
-//      }
-//   }
-//
-//   return false;
-//}
+/*** VIterator Arena ***/
+
+struct VIteratorPoolItem
+{
+   struct VIterator viter;
+   bool is_allocated;
+};
+
+struct VIteratorPool
+{
+   struct VIteratorPoolItem pool[VITERATOR_STRUCT_POOL_SIZE];
+   size_t next_idx;
+};
+
+static struct VIteratorPool VIterPool;
+
+/**
+ * @brief Allocates a new VIterator structure from a static arena.
+ * @return Pointer to the allocated VIterator struct if successful, NULL otherwise.
+ */
+static struct VIterator * viter_pool_dispatch(void)
+{
+   assert( VIterPool.next_idx < VITERATOR_STRUCT_POOL_SIZE );
+   assert( VIterPool.pool != NULL );
+#ifndef NDEBUG
+   // If next idx is allocated, by design, that must mean we are out of vitertors.
+   if ( VIterPool.pool[VIterPool.next_idx].is_allocated == true )
+   {
+      for ( size_t i = 0; i < VITERATOR_STRUCT_POOL_SIZE; i++ )
+      {
+         assert( VIterPool.pool[i].is_allocated == true );
+      }
+   }
+#endif
+
+   if ( VIterPool.pool[VIterPool.next_idx].is_allocated )
+   {
+      return NULL;
+   }
+
+   struct VIterator * new_viter = &VIterPool.pool[VIterPool.next_idx].viter;
+   VIterPool.pool[VIterPool.next_idx].is_allocated = true;
+
+   // 🗒️: Potential to place this in a separate asynchronous thread?
+   // Find the next available spot
+   size_t j = VIterPool.next_idx;
+   for ( size_t i = 1; i < VITERATOR_STRUCT_POOL_SIZE; i++, j++ )
+   {
+      if ( j >= VITERATOR_STRUCT_POOL_SIZE ) j = 0; // Wrap-around
+
+      if ( !VIterPool.pool[j].is_allocated )
+      {
+         VIterPool.next_idx = j;
+         break;
+      }
+   }
+
+   return new_viter;
+}
+
+static void viter_pool_reclaim(const struct VIterator * ptr)
+{
+   if ( NULL == ptr )
+   {
+      return;
+   }
+
+   // Find the vitertor address that matches this pointer
+   bool found = false;
+   for ( size_t i = 0; i < VITERATOR_STRUCT_POOL_SIZE; i++ )
+   {
+      if ( ptr == &VIterPool.pool[i].viter )
+      {
+         found = true;
+         if ( !VIterPool.pool[i].is_allocated )
+         {
+            // TODO: Raise exception for attempting to free an unallocated viter
+         }
+         VIterPool.pool[i].is_allocated = false;
+         break;
+      }
+   }
+
+   if ( !found )
+   {
+      // TODO: Raise an exception for attempting to free a random address
+   }
+}
+
+static bool viter_isalloc(const struct VIterator * ptr)
+{
+   for ( size_t i = 0; i < VITERATOR_STRUCT_POOL_SIZE; i++ )
+   {
+      if ( ptr == &VIterPool.pool[i].viter )
+      {
+         return VIterPool.pool[i].is_allocated;
+      }
+   }
+
+   return false;
+}

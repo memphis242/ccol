@@ -50,6 +50,9 @@ enum IterDirection
  * @param init_data        Data to initialize the array if desired; NULL otherwise
  * @param init_dlen        Length of initialization data, if applicable; 0 otherwise
  * @param mem_mgr          Allocator that the user provides; if NULL, defaults to stdlib
+ *                         This is to be used for the underlying data array only.
+ *                         The vector object itself will come from a static fixed-size
+ *                         object pool internally.
  * @return A pointer to the initialized vector, or NULL if allocation fails.
  * @example
  *    struct Vector * v1 = VectorNew(sizeof(int), 10, 100, NULL, 0, NULL);
@@ -404,6 +407,13 @@ struct VIterator * VIteratorNew( const struct Vector * vec,
                                  enum IterDirection direction );
 
 /**
+ * @brief Free the memory allocated for the iterator.
+ * @param it Iterator handle (if NULL, nothing happens)
+ * @return none
+ */
+void VIteratorFree( struct VIterator * it );
+
+/**
  * @brief Return a pointer to the data being pointed to by the iterator.
  * @param it The iterator handle
  * @return Pointer to the data at the current idx of the iterator
@@ -432,7 +442,7 @@ ptrdiff_t VIteratorEndIdx( const struct VIterator * it );
  * @brief Reset the current idx of the iterator to its initial idx.
  * @param it The iterator handle
  */
-ptrdiff_t VIteratorReset( const struct VIterator * it );
+void VIteratorReset( struct VIterator * it );
 
 /**
  * @brief Moves the current index of the iterator to the applicable next index.
