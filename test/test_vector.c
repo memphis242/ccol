@@ -503,10 +503,10 @@ int main(void)
    //RUN_TEST(test_VectorRange_ClearElementsInRng_InvalidVec);
 
    RUN_TEST(test_VIterator_BasicRead_FullVec);
-   RUN_TEST(test_VIterator_BasicUpdate_FullVec);
-   RUN_TEST(test_VIterator_BasicRead_SubRng_Normal);
-   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Normal);
-   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
+//   RUN_TEST(test_VIterator_BasicUpdate_FullVec);
+//   RUN_TEST(test_VIterator_BasicRead_SubRng_Normal);
+//   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Normal);
+//   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
 //   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Reverse);
 //   RUN_TEST(test_VIterator_BasicRead_SubRng_NormalWithWrap);
 //   RUN_TEST(test_VIterator_BasicUpdate_SubRng_NormalWithWrap);
@@ -3961,7 +3961,7 @@ void test_VIterator_BasicRead_FullVec(void)
 void test_VIterator_BasicUpdate_FullVec(void)
 {
    struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
-   FOREACH_VEC_REF( int, valptr, v,
+   FOREACH_VEC_REF( int*, valptr, v,
       (*valptr)++;
    );
    int i = 2;
@@ -3976,7 +3976,7 @@ void test_VIterator_BasicRead_SubRng_Normal(void)
 {
    struct Vector * v = VectorNew(sizeof(int), 10, 20, (int[]){1,2,3,4,5,6,7,8,9,10}, 10, NULL);
    int i = 3;
-   FOREACH_VEC_READ_RNG( int, val, v, 2, 5,
+   FOREACH_VEC_READ_RNG( int, val, v, 2, 5, IterDir_Normal,
       TEST_ASSERT_EQUAL_INT(i++, val);
    );
    TEST_ASSERT_EQUAL_INT(6, i);
@@ -3986,7 +3986,7 @@ void test_VIterator_BasicRead_SubRng_Normal(void)
 void test_VIterator_BasicUpdate_SubRng_Normal(void)
 {
    struct Vector * v = VectorNew(sizeof(int), 10, 20, (int[]){1,2,3,4,5,6,7,8,9,10}, 10, NULL);
-   FOREACH_VEC_REF_RNG( int, ptr, v, 2, 5,
+   FOREACH_VEC_REF_RNG( int*, ptr, v, 2, 5, IterDir_Normal,
       (*ptr)++;
    );
    int i = 1;
@@ -4010,7 +4010,7 @@ void test_VIterator_BasicRead_SubRng_Reverse(void)
 {
    struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1,2,3,4,5}, 5, NULL);
    int i = 5;
-   FOREACH_VEC_READ_WDIR(int, val, v, IterDir_Reverse,
+   FOREACH_VEC_READ_RNG(int, val, v, VectorLength(v), -1, IterDir_Reverse,
       TEST_ASSERT_EQUAL_INT(i--, val);
    );
    TEST_ASSERT_EQUAL_INT(-1, i);

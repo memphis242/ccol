@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "ccol_shared.h"
 #include "vector_cfg.h"
@@ -477,20 +478,20 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          VIteratorNew( \
             vector, \
             0, \
-            VectorLength(vector), \
+            (ptrdiff_t)VectorLength(vector), \
             IterDir_Normal \
          );\
-      assert( _it_28LbM3 != NULL ); \
-      if ( _it_28LbM3 != NULL ) \
+      assert( _it_29LbM3 != NULL ); \
+      if ( _it_29LbM3 != NULL ) \
       { \
          for ( type var = *(type *)VIteratorData(_it_29LbM3); \
                !VIteratorLimitHit(_it_29LbM3); \
-               (void)VIteratorNudge(&_it_29LbM3), var = *(type *)VIteratorData(_it_29LbM3) ) \
+               (void)VIteratorNudge(_it_29LbM3), var = *(type *)VIteratorData(_it_29LbM3) ) \
          { \
             body \
          } \
       } \
-      VIteratorFree(_it_28LbM3); \
+      VIteratorFree(_it_29LbM3); \
    }
 
 #define FOREACH_VEC_REF(type, var_ptr, vector, body) \
@@ -499,20 +500,20 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
          VIteratorNew( \
             vector, \
             0, \
-            VectorLength(vector), \
+            (ptrdiff_t)VectorLength(vector), \
             IterDir_Normal \
          );\
-      assert( _it_28LbM3 != NULL ); \
-      if ( _it_28LbM3 != NULL ) \
+      assert( _it_29LbM3 != NULL ); \
+      if ( _it_29LbM3 != NULL ) \
       { \
          for ( type var_ptr = VIteratorData(_it_29LbM3); \
                !VIteratorLimitHit(_it_29LbM3); \
-               (void)VIteratorNudge(&_it_29LbM3), var_ptr = VIteratorData(_it_29LbM3) ) \
+               (void)VIteratorNudge(_it_29LbM3), var_ptr = VIteratorData(_it_29LbM3) ) \
          { \
             body \
          } \
       } \
-      VIteratorFree(_it_28LbM3); \
+      VIteratorFree(_it_29LbM3); \
    }
 
 #define FOREACH_VEC_READ_RNG(type, var, vector, idx_start, idx_end, direction, body) \
@@ -520,21 +521,21 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       struct VIterator * _it_29LbM3 = \
          VIteratorNew( \
             vector, \
-            idx_start, \
-            idx_end, \
+            (ptrdiff_t)idx_start, \
+            (ptrdiff_t)idx_end, \
             direction \
          );\
-      assert( _it_28LbM3 != NULL ); \
-      if ( _it_28LbM3 != NULL ) \
+      assert( _it_29LbM3 != NULL ); \
+      if ( _it_29LbM3 != NULL ) \
       { \
          for ( type var = *(type *)VIteratorData(_it_29LbM3); \
                !VIteratorLimitHit(_it_29LbM3); \
-               (void)VIteratorNudge(&_it_29LbM3), var = *(type *)VIteratorData(_it_29LbM3) ) \
+               (void)VIteratorNudge(_it_29LbM3), var = *(type *)VIteratorData(_it_29LbM3) ) \
          { \
             body \
          } \
       } \
-      VIteratorFree(_it_28LbM3); \
+      VIteratorFree(_it_29LbM3); \
    }
 
 #define FOREACH_VEC_REF_RNG(type, var_ptr, vector, idx_start, idx_end, direction, body) \
@@ -542,19 +543,19 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       struct VIterator * _it_29LbM3 = \
          VIteratorNew( \
             vector, \
-            idx_start, \
-            idx_end, \
+            (ptrdiff_t)idx_start, \
+            (ptrdiff_t)idx_end, \
             direction \
          );\
-      assert( _it_28LbM3 != NULL ); \
-      if ( _it_28LbM3 != NULL ) \
+      assert( _it_29LbM3 != NULL ); \
+      if ( _it_29LbM3 != NULL ) \
       { \
-         for ( type var = VIteratorData(_it_29LbM3); \
+         for ( type var_ptr = VIteratorData(_it_29LbM3); \
                !VIteratorLimitHit(_it_29LbM3); \
-               (void)VIteratorNudge(&_it_29LbM3), var = VIteratorData(_it_29LbM3) ) \
+               (void)VIteratorNudge(_it_29LbM3), var_ptr = VIteratorData(_it_29LbM3) ) \
          { \
             body \
          } \
       } \
-      VIteratorFree(_it_28LbM3); \
+      VIteratorFree(_it_29LbM3); \
    }
