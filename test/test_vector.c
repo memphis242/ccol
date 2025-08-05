@@ -4036,7 +4036,7 @@ void test_VIterator_BasicUpdate_SubRng_Normal(void)
 
 void test_VIterator_BasicRead_SubRng_Reverse(void)
 {
-   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1,2,3,4,5}, 5, NULL);
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1,2,3,4,5,6,7}, 5, NULL);
    int i = 4;
    FOREACH_VEC_READ_RNG(int, val, v, 3, 0, IterDir_Reverse,
       TEST_ASSERT_EQUAL_INT(i--, val);
@@ -4047,7 +4047,16 @@ void test_VIterator_BasicRead_SubRng_Reverse(void)
 
 void test_VIterator_BasicUpdate_SubRng_Reverse(void)
 {
-   TEST_ASSERT_TRUE(false);
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1,2,3,4,5,6,7}, 5, NULL);
+   FOREACH_VEC_REF_RNG(int*, ptr, v, 3, 0, IterDir_Reverse,
+      (*ptr)++;
+   );
+   int i = 5;
+   FOREACH_VEC_READ_RNG(int, val, v, 3, 0, IterDir_Reverse,
+      TEST_ASSERT_EQUAL_INT(i--, val);
+   );
+   TEST_ASSERT_EQUAL_INT(2, i);
+   VectorFree(v);
 }
 
 void test_VIterator_BasicRead_SubRng_NormalWithWrap(void)
