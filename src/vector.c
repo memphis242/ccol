@@ -1081,7 +1081,7 @@ struct VIterator * VIteratorNew( const struct Vector * vector,
    if ( vector == NULL || !vec_isalloc(vector) ||
         idx_start <  0 || idx_start >= (ptrdiff_t)vector->len ||
         idx_end   < -1 || idx_end   >  (ptrdiff_t)vector->len ||
-        idx_start == idx_end ||
+        ((direction == IterDir_Normal || direction == IterDir_Reverse) && idx_start == idx_end) ||
         direction >= NumOfIterDirs ||
         ( direction == IterDir_Right && idx_start > idx_end ) ||
         ( direction == IterDir_Left  && idx_start < idx_end ) )
@@ -1195,6 +1195,7 @@ bool VIteratorNudge( struct VIterator * it )
          break;
 
       case IterDir_RightWrap:
+         // FIXME: What if start and end idx are the same, but user wants that?
          if ( it->curr_idx >= (it->end_idx - 1) ||
               ( (it->curr_idx == ((ptrdiff_t)it->vec->len - 1)) && it->end_idx == 0 ) )
          {
@@ -1207,6 +1208,7 @@ bool VIteratorNudge( struct VIterator * it )
          break;
 
       case IterDir_LeftWrap:
+         // FIXME: What if start and end idx are the same, but user wants that?
          if ( it->curr_idx <= (it->end_idx + 1) ||
               ( it->curr_idx == 0 && (it->end_idx == (ptrdiff_t)it->vec->len || it->end_idx == ((ptrdiff_t)it->vec->len - 1)) ) )
          {
