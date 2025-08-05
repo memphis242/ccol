@@ -274,6 +274,8 @@ void test_VectorRange_ClearElementsInRng_InvalidVec(void);
 
 void test_VIterator_BasicRead_FullVec(void);
 void test_VIterator_BasicUpdate_FullVec(void);
+void test_VIterator_BasicRead_FullVec_Reverse(void);
+void test_VIterator_BasicUpdate_FullVec_Reverse(void);
 void test_VIterator_BasicRead_SubRng_Normal(void);
 void test_VIterator_BasicUpdate_SubRng_Normal(void);
 void test_VIterator_BasicRead_SubRng_Reverse(void);
@@ -503,15 +505,17 @@ int main(void)
    //RUN_TEST(test_VectorRange_ClearElementsInRng_InvalidVec);
 
    RUN_TEST(test_VIterator_BasicRead_FullVec);
-//   RUN_TEST(test_VIterator_BasicUpdate_FullVec);
-//   RUN_TEST(test_VIterator_BasicRead_SubRng_Normal);
-//   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Normal);
-//   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
-//   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Reverse);
-//   RUN_TEST(test_VIterator_BasicRead_SubRng_NormalWithWrap);
-//   RUN_TEST(test_VIterator_BasicUpdate_SubRng_NormalWithWrap);
-//   RUN_TEST(test_VIterator_BasicRead_SubRng_ReverseWithWrap);
-//   RUN_TEST(test_VIterator_BasicUpdate_SubRng_ReverseWithWrap);
+   RUN_TEST(test_VIterator_BasicUpdate_FullVec);
+   RUN_TEST(test_VIterator_BasicRead_FullVec_Reverse);
+   RUN_TEST(test_VIterator_BasicUpdate_FullVec_Reverse);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_Normal);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Normal);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_Reverse);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_Reverse);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_NormalWithWrap);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_NormalWithWrap);
+   RUN_TEST(test_VIterator_BasicRead_SubRng_ReverseWithWrap);
+   RUN_TEST(test_VIterator_BasicUpdate_SubRng_ReverseWithWrap);
 
    return UNITY_END();
 }
@@ -3972,6 +3976,30 @@ void test_VIterator_BasicUpdate_FullVec(void)
    VectorFree(v);
 }
 
+void test_VIterator_BasicRead_FullVec_Reverse(void)
+{
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
+   int i = 5;
+   FOREACH_VEC_READ_REVERSE(int, val, v,
+      TEST_ASSERT_EQUAL_INT(i--, val);
+   );
+   TEST_ASSERT_EQUAL_INT(0, i);
+   VectorFree(v);
+}
+
+void test_VIterator_BasicUpdate_FullVec_Reverse(void)
+{
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1, 2, 3, 4, 5}, 5, NULL);
+   int i = 0;
+   FOREACH_VEC_REF_REVERSE( int*, valptr, v,
+      *valptr += i++;
+   );
+   FOREACH_VEC_READ_REVERSE( int, val, v,
+      TEST_ASSERT_EQUAL_INT(5, val);
+   );
+   VectorFree(v);
+}
+
 void test_VIterator_BasicRead_SubRng_Normal(void)
 {
    struct Vector * v = VectorNew(sizeof(int), 10, 20, (int[]){1,2,3,4,5,6,7,8,9,10}, 10, NULL);
@@ -4009,11 +4037,11 @@ void test_VIterator_BasicUpdate_SubRng_Normal(void)
 void test_VIterator_BasicRead_SubRng_Reverse(void)
 {
    struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1,2,3,4,5}, 5, NULL);
-   int i = 5;
-   FOREACH_VEC_READ_RNG(int, val, v, VectorLength(v), -1, IterDir_Reverse,
+   int i = 4;
+   FOREACH_VEC_READ_RNG(int, val, v, 3, 0, IterDir_Reverse,
       TEST_ASSERT_EQUAL_INT(i--, val);
    );
-   TEST_ASSERT_EQUAL_INT(-1, i);
+   TEST_ASSERT_EQUAL_INT(1, i);
    VectorFree(v);
 }
 

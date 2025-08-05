@@ -559,3 +559,9 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
       } \
       VIteratorFree(_it_29LbM3); \
    }
+
+#define FOREACH_VEC_READ_REVERSE(type, var, vector, body) \
+   FOREACH_VEC_READ_RNG(type, var, vector, VectorLength(vector)-1, -1, IterDir_Reverse, body)
+
+#define FOREACH_VEC_REF_REVERSE(type, var_ptr, vector, body) \
+   FOREACH_VEC_REF_RNG(type, var_ptr, vector, VectorLength(vector)-1, -1, IterDir_Reverse, body)
