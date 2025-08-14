@@ -11,21 +11,21 @@ test-vec:
 	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) _test BUILD_TYPE=TEST DS=vector > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
-	@$(MAKE) coverage > /dev/null
+	@$(MAKE) coverage BUILD_TYPE=TEST DS=vector > /dev/null
 
 test-all:
 	@echo "Hold on. Build in progress... (output supressed until test results)"
 	@$(MAKE) --always-make test-vec > /dev/null
 	cat $(RESULTS) | python $(COLORIZE_UNITY_SCRIPT)
-	@$(MAKE) coverage > /dev/null
+	@$(MAKE) coverage BUILD_TYPE=TEST > /dev/null
 
 test-vec-verbose:
 	@$(MAKE) _test BUILD_TYPE=TEST DS=vector
-	@$(MAKE) coverage
+	@$(MAKE) coverage BUILD_TYPE=TEST DS=vector
 
 test-all-verbose:
 	@$(MAKE) --always-make test-vec
-	@$(MAKE) coverage
+	@$(MAKE) coverage BUILD_TYPE=TEST
 
 release:
 	@$(MAKE) lib BUILD_TYPE=RELEASE DS=ALL
@@ -76,10 +76,13 @@ PATH_INC          = inc/
 PATH_CFG          = cfg/
 PATH_TEST_FILES   = test/
 PATH_BUILD        = build/
+REL_DIR           = rel/
+DBG_DIR           = dbg/
+OBJ_DIR           = objs/
 ifeq ($(BUILD_TYPE), RELEASE)
-	PATH_OBJ_FILES = $(PATH_BUILD)rel/objs/
+	PATH_OBJ_FILES = $(PATH_BUILD)$(REL_DIR)$(OBJ_DIR)
 else
-	PATH_OBJ_FILES = $(PATH_BUILD)dbg/objs/
+	PATH_OBJ_FILES = $(PATH_BUILD)$(DBG_DIR)$(OBJ_DIR)
 endif
 PATH_RESULTS      = $(PATH_BUILD)results/
 PATH_PROFILE      = $(PATH_BUILD)profile/
@@ -404,14 +407,18 @@ $(PATH_PROFILE):
 .PHONY: clean
 clean:
 	@echo
-	$(CLEANUP) $(PATH_BUILD)rel/*.o
-	$(CLEANUP) $(PATH_BUILD)dbg/*.o
+	$(CLEANUP) $(PATH_BUILD)$(REL_DIR)$(OBJ_DIR)*.o
+	$(CLEANUP) $(PATH_BUILD)$(DBG_DIR)$(OBJ_DIR)*.o
+	$(CLEANUP) $(PATH_BUILD)$(REL_DIR)$(OBJ_DIR)*.gcda
+	$(CLEANUP) $(PATH_BUILD)$(DBG_DIR)$(OBJ_DIR)*.gcno
 	$(CLEANUP) $(PATH_BUILD)*.$(TARGET_EXTENSION)
 	$(CLEANUP) $(PATH_RESULTS)*.txt
 	$(CLEANUP) $(PATH_BUILD)*.lst
 	$(CLEANUP) $(PATH_BUILD)*.log
 	$(CLEANUP) $(PATH_BUILD)*.$(STATIC_LIB_EXTENSION)
 	$(CLEANUP) $(PATH_RESULTS)*.gcov
+	$(CLEANUP) $(PATH_RESULTS)*.html
+	$(CLEANUP) $(PATH_RESULTS)*.css
 	$(CLEANUP) *.gcov
 	@echo
 
