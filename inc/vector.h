@@ -397,9 +397,17 @@ bool VectorRangeClear( struct Vector * self, size_t idx_start, size_t idx_end );
  * @param idx_start The starting index of the iterator
  * @param idx_end The index _after_ the one you wish to finally go through
  *                (e.g., to go up to _and including_ index i, you'd use i ± 1
- *                 depending on the direction you're going)
+ *                 depending on the direction you're going, including 1 out of
+ *                 bounds of the vector)
  * @param direction The direction the iterator will go through the vector. See
  *                  the enum IterDirection list for your options.
+ * @note For a given direction, only the following start/end idx values are valid:
+ *    - IterDir_Right: start < end, start ≥ 0, end ≤ len
+ *    - IterDir_Left:  start > end, start > 0, end ≥ -1
+ *    - IterDir_RightWrap: start ≥ 0, ≤ len - 1; end ≥  0, ≤ len
+ *    - IterDir_LeftWrap:  start ≥ 0, ≤ len - 1; end ≥ -1, ≤ len - 1
+ *    - IterDir_RightBounce: start ≥ 0, ≤ len - 1; end ≥  0, ≤ len
+ *    - IterDir_LeftBounce:  start ≥ 0, ≤ len - 1; end ≥ -1, ≤ len - 1
  * @return The new VIterator object if cfg is valid & allocation succeeded; NULL otherwise
  */
 struct VIterator * VIteratorNew( const struct Vector * vec,
@@ -471,6 +479,7 @@ ptrdiff_t VIteratorPeek( struct VIterator * it );
 
 
 /** Iterator Convenience Macros **/
+// TODO: Handle failure to allocate iterator in macros to alert user. Sep DBG v REL versions?
 
 #define FOREACH_VEC_READ(type, var, vector, body) \
    { \

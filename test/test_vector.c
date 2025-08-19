@@ -4061,7 +4061,9 @@ void test_VIterator_BasicUpdate_SubRng_Reverse(void)
 
 void test_VIterator_BasicRead_SubRng_NormalWithWrap(void)
 {
-   TEST_ASSERT_TRUE(false);
+   struct Vector * v = VectorNew(sizeof(int), 5, 10, (int[]){1,2,3,4,5}, 5, NULL);
+   FOREACH_VEC_READ_RNG(int, val, v, 3, 3, IterDir_RightWrap,
+      
 }
 
 void test_VIterator_BasicUpdate_SubRng_NormalWithWrap(void)
